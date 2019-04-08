@@ -3,6 +3,7 @@ package newenergy.wx.api.service;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.NewenergyOrder;
+import newenergy.db.domain.Resident;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,9 @@ public class WxOrderService {
         order = new NewenergyOrder();
         order.setRegister_id(deviceid);
         order.setAmount(fee);
+        Resident user = null;
+        user = new Resident();
+        String plot_num = user.getPlot_num();
         return ResponseUtil.ok();
     }
     @Transactional
