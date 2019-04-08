@@ -1,18 +1,17 @@
 package newenergy.db.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "recharge_record")
 public class NewenergyOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer register_id;//登记号,设备号
+    @Column(length = 14)
+    private String register_id;//登记号,设备号
 
     private Integer amount;//充值金额
 
@@ -50,11 +49,11 @@ public class NewenergyOrder {
         this.id = id;
     }
 
-    public Integer getRegister_id() {
+    public String getRegister_id() {
         return register_id;
     }
 
-    public void setRegister_id(Integer register_id) {
+    public void setRegister_id(String register_id) {
         this.register_id = register_id;
     }
 
