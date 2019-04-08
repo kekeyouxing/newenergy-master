@@ -1,0 +1,2 @@
+webpackJsonp([17],{"+abo":function(e,n,o){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var l={name:"AuthRedirect",created:function(){var e=window.location.search.slice(1);window.opener.location.href=window.location.origin+"/login#"+e,window.close()}},i=o("VU/8")(l,null,!1,null,null,null);n.default=i.exports}});
+//# sourceMappingURL=17.f4665efe3004e2f5cab6.js.map

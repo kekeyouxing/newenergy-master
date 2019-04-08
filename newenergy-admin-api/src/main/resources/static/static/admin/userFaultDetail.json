@@ -1,0 +1,53 @@
+{
+  "ret": true,
+  "data": {
+    "userFaultDetail": [{
+      "faultTime": "2019-1-10 13:20",
+      "phenomenon": "出风温度低",
+      "solution": "清洗过滤器后恢复正常",
+      "finishTime": "2019-1-11 9:30",
+      "servicer": "张旭怡",
+      "remark": "正常"
+    }, {
+      "faultTime": "2019-1-10 13:20",
+      "phenomenon": "出风温度低",
+      "solution": "清洗过滤器后恢复正常",
+      "finishTime": "2019-1-11 9:30",
+      "servicer": "张旭怡",
+      "remark": "正常"
+    }, {
+      "faultTime": "2019-1-10 13:20",
+      "phenomenon": "出风温度低",
+      "solution": "清洗过滤器后恢复正常",
+      "finishTime": "2019-1-11 9:30",
+      "servicer": "张旭怡",
+      "remark": "正常"
+    }, {
+      "faultTime": "2019-1-10 13:20",
+      "phenomenon": "出风温度低",
+      "solution": "清洗过滤器后恢复正常",
+      "finishTime": "2019-1-11 9:30",
+      "servicer": "张旭怡",
+      "remark": "正常"
+    }, {
+      "faultTime": "2019-1-10 13:20",
+      "phenomenon": "出风温度低",
+      "solution": "清洗过滤器后恢复正常",
+      "finishTime": "2019-1-11 9:30",
+      "servicer": "张旭怡",
+      "remark": "正常"
+    }],
+    "userInfo": [{
+      "registerId": 12345678912345,
+      "userName": "张三",
+      "address": "荆州市荆州新天地小区12栋2单元",
+      "room": 1503,
+      "phone": 13900000000,
+      "type": "中宇xx-xx-x",
+      "receiveTime": "2019/1/15",
+      "guaranteeTime": "2020/1/16",
+      "guaranteeState": "保内",
+      "plotName": "荆州新天地小区"
+    }]
+  }
+}

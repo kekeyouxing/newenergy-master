@@ -40,9 +40,9 @@ public class NewenergyRoleService {
         return roles;
 
     }
+    //query all role list
+    public Page<NewenergyRole> querySelective(String name, Integer page, Integer size){
 
-    public Page<NewenergyRole> querySelective(String name, Integer page, Integer size, String sort){
-        //分页
         Pageable pageable = PageRequest.of(page, size);
         //动态条件
         Specification specification = getListSpecification(name);
@@ -74,12 +74,12 @@ public class NewenergyRoleService {
     }
 
     public NewenergyRole read(Integer id){
-        return (NewenergyRole) roleRepository.getOne(id);
+        return roleRepository.getOne(id);
     }
 
-    public void deleteById(NewenergyRole role){
+    public void deleteRole(NewenergyRole role){
         role.setDeleted(true);
-        roleRepository.save(role);
+        roleRepository.saveAndFlush(role);
     }
     private Specification<NewenergyRole> getCountSpecification(String name){
 
@@ -118,4 +118,7 @@ public class NewenergyRoleService {
 
     }
 
+    public void updateRole(NewenergyRole role) {
+        roleRepository.saveAndFlush(role);
+    }
 }
