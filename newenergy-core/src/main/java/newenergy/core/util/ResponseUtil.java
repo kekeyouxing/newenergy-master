@@ -51,4 +51,7 @@ public class ResponseUtil {
 		return fail(506,"无操作权限");
 	}
 
+	public static Object updatedDataFailed() {
+		return fail(505, "更新数据失败");
+	}
 }

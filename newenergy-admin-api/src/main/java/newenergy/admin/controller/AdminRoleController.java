@@ -1,12 +1,9 @@
 package newenergy.admin.controller;
 
-import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.ResponseUtil;
-import newenergy.core.validator.Sort;
 import newenergy.db.domain.NewenergyRole;
 import newenergy.db.service.NewenergyPermissionService;
 import newenergy.db.service.NewenergyRoleService;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
@@ -14,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +22,7 @@ import static newenergy.admin.util.AdminResponseCode.ROLE_NAME_EXIST;
 @RequestMapping("/admin/role")
 @Validated
 public class AdminRoleController {
+
     @Autowired
     private NewenergyRoleService roleService;
 
@@ -35,10 +34,8 @@ public class AdminRoleController {
     @GetMapping("/list")
     public Object list(String name,
                        @RequestParam(defaultValue = "0") Integer page,
-                       @RequestParam(defaultValue = "10") Integer limit,
-                       @Sort @RequestParam(defaultValue = "add_time") String sort){
-
-        Page<NewenergyRole> pageRole = roleService.querySelective(name, page, limit, sort);
+                       @RequestParam(defaultValue = "10") Integer limit){
+        Page<NewenergyRole> pageRole = roleService.querySelective(name, page-1, limit);
         List<NewenergyRole> roleList = pageRole.getContent();
         int total = pageRole.getNumberOfElements();
         Map<String, Object> data = new HashMap<>();
@@ -59,6 +56,8 @@ public class AdminRoleController {
         if(roleService.checkExist(role.getName())){
             return ResponseUtil.fail(ROLE_NAME_EXIST, "角色已经存在");
         }
+        role.setDeleted(false);
+        role.setEnable(true);
         roleService.add(role);
         return ResponseUtil.ok(role);
     }
@@ -73,13 +72,13 @@ public class AdminRoleController {
 
     //@RequiresPermissions("admin:role:delete")
     //@RequiresPermissionsDesc(menu = {"系统管理","角色管理"}, button = "删除")
-    @GetMapping("/delete")
+    @PostMapping("/delete")
     public Object delete(@RequestBody NewenergyRole role){
         Integer id = role.getId();
         if(id == null){
             return ResponseUtil.badArgument();
         }
-        roleService.deleteById(role);
+        roleService.deleteRole(role);
         return ResponseUtil.ok();
     }
     private Object validate(NewenergyRole role){
@@ -88,5 +87,34 @@ public class AdminRoleController {
             return ResponseUtil.badArgument();
         }
         return null;
+    }
+    //@RequiresPermissions("admin:role:list")
+    //@RequiresPermissionsDesc(menu={"系统管理" , "角色管理"}, button="查询")
+    @GetMapping("/options")
+    public Object options(){
+        List<NewenergyRole> roleList = roleService.queryAll();
+
+        List<Map<String, Object>> options = new ArrayList<>(roleList.size());
+        for(NewenergyRole role: roleList){
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", role.getId());
+            option.put("label",role.getName());
+            options.add(option);
+        }
+
+        return ResponseUtil.ok(options);
+    }
+
+    //@RequiresPermissions("admin:role:update")
+    //@RequiresPermissionsDesc(menu={"系统管理" , "角色管理"}, button="编辑")
+    @PostMapping("/update")
+    public Object update(@RequestBody NewenergyRole role) {
+        Object error = validate(role);
+        if (error != null) {
+            return error;
+        }
+
+        roleService.updateRole(role);
+        return ResponseUtil.ok();
     }
 }

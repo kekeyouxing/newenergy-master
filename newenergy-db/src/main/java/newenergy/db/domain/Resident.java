@@ -12,34 +12,34 @@ public class Resident {
 
     //登记号
     @Column(unique = true, length = 14)
-    private String register_id;
+    private String registerId;
 
     //用户姓名
-    private String user_name;
+    private String userName;
 
     //小区编号，见数据对应表-小区
     @Column(length = 2)
-    private String plot_num;
+    private String plotNum;
 
     //地址编号，见数据对应表-地址
     @Column(length = 5)
-    private String address_num;
+    private String addressNum;
 
     //房间号
     @Column(length = 4)
-    private String room_num;
+    private String roomNum;
 
     //机型编号，见数据对应表-机型
     @Column(length = 2)
-    private String type_num;
+    private String typeNum;
 
     //装机序号，第几台机器（0-z）
     @Column(length = 1)
-    private String device_seq;
+    private String deviceSeq;
 
     //所属机房编号，见数据对应表-机房
     @Column(length = 2)
-    private String pump_num;
+    private String pumpNum;
 
     //联系电话
     private String phone;
@@ -48,19 +48,20 @@ public class Resident {
     private Double area;
 
     //额定流量，单位T/h
-    private Double rated_flow;
+    private Double ratedFlow;
 
     //机器编码
-    private String device_num;
+    @Column(unique = true)
+    private String deviceNum;
 
     //购机日期
-    private LocalDateTime buy_time;
+    private LocalDateTime buyTime;
 
     //安装设备日期
-    private LocalDateTime install_time;
+    private LocalDateTime installTime;
 
     //验收设备日期
-    private LocalDateTime receive_time;
+    private LocalDateTime receiveTime;
 
     //微信openid
     private String openid;
@@ -70,17 +71,17 @@ public class Resident {
     private Integer threshold;
 
     //安全属性：添加时间
-    private LocalDateTime safe_changed_time;
+    private LocalDateTime safeChangedTime;
 
     //安全属性： 添加人id
-    private Integer safe_changed_userid;
+    private Integer safeChangedUserid;
 
     //安全属性：是否删除，1删除，0未删除
     @Column(columnDefinition = "tinyint default 0")
-    private Integer safe_delete;
+    private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private Integer safe_parent;
+    private Integer safeParent;
 
     public Integer getId() {
         return id;
@@ -90,72 +91,73 @@ public class Resident {
         this.id = id;
     }
 
-    public String getRegister_id() {
-        return register_id;
+    public String getRegisterId() {
+        return registerId;
     }
 
-    public void setRegister_id() {
-        this.register_id = this.address_num + this.room_num + this.type_num + this.device_seq + this.pump_num;
+    public void setRegisterId(String registerId) {
+        this.registerId = registerId;
     }
 
-    public void setRegister_id(String register_id) {
-        this.register_id = register_id;
+    public void initRegisterId() {
+        this.registerId = this.getAddressNum() + this.getRoomNum() + this.getTypeNum() + this.getDeviceSeq()
+                + this.getPumpNum();
     }
 
-    public String getUser_name() {
-        return user_name;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUser_name(String user_name) {
-        this.user_name = user_name;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getPlot_num() {
-        return plot_num;
+    public String getPlotNum() {
+        return plotNum;
     }
 
-    public void setPlot_num(String plot_num) {
-        this.plot_num = plot_num;
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
-    public String getAddress_num() {
-        return address_num;
+    public String getAddressNum() {
+        return addressNum;
     }
 
-    public void setAddress_num(String address_num) {
-        this.address_num = address_num;
+    public void setAddressNum(String addressNum) {
+        this.addressNum = addressNum;
     }
 
-    public String getRoom_num() {
-        return room_num;
+    public String getRoomNum() {
+        return roomNum;
     }
 
-    public void setRoom_num(String room_num) {
-        this.room_num = room_num;
+    public void setRoomNum(String roomNum) {
+        this.roomNum = roomNum;
     }
 
-    public String getType_num() {
-        return type_num;
+    public String getTypeNum() {
+        return typeNum;
     }
 
-    public void setType_num(String type_num) {
-        this.type_num = type_num;
+    public void setTypeNum(String typeNum) {
+        this.typeNum = typeNum;
     }
 
-    public String getDevice_seq() {
-        return device_seq;
+    public String getDeviceSeq() {
+        return deviceSeq;
     }
 
-    public void setDevice_seq(String device_seq) {
-        this.device_seq = device_seq;
+    public void setDeviceSeq(String deviceSeq) {
+        this.deviceSeq = deviceSeq;
     }
 
-    public String getPump_num() {
-        return pump_num;
+    public String getPumpNum() {
+        return pumpNum;
     }
 
-    public void setPump_num(String pump_num) {
-        this.pump_num = pump_num;
+    public void setPumpNum(String pumpNum) {
+        this.pumpNum = pumpNum;
     }
 
     public String getPhone() {
@@ -166,7 +168,7 @@ public class Resident {
         this.phone = phone;
     }
 
-    public double getArea() {
+    public Double getArea() {
         return area;
     }
 
@@ -174,44 +176,44 @@ public class Resident {
         this.area = area;
     }
 
-    public Double getRated_flow() {
-        return rated_flow;
+    public Double getRatedFlow() {
+        return ratedFlow;
     }
 
-    public void setRated_flow(double rated_flow) {
-        this.rated_flow = rated_flow;
+    public void setRatedFlow(Double ratedFlow) {
+        this.ratedFlow = ratedFlow;
     }
 
-    public String getDevice_num() {
-        return device_num;
+    public String getDeviceNum() {
+        return deviceNum;
     }
 
-    public void setDevice_num(String device_num) {
-        this.device_num = device_num;
+    public void setDeviceNum(String deviceNum) {
+        this.deviceNum = deviceNum;
     }
 
-    public LocalDateTime getBuy_time() {
-        return buy_time;
+    public LocalDateTime getBuyTime() {
+        return buyTime;
     }
 
-    public void setBuy_time(LocalDateTime buy_time) {
-        this.buy_time = buy_time;
+    public void setBuyTime(LocalDateTime buyTime) {
+        this.buyTime = buyTime;
     }
 
-    public LocalDateTime getInstall_time() {
-        return install_time;
+    public LocalDateTime getInstallTime() {
+        return installTime;
     }
 
-    public void setInstall_time(LocalDateTime install_time) {
-        this.install_time = install_time;
+    public void setInstallTime(LocalDateTime installTime) {
+        this.installTime = installTime;
     }
 
-    public LocalDateTime getReceive_time() {
-        return receive_time;
+    public LocalDateTime getReceiveTime() {
+        return receiveTime;
     }
 
-    public void setReceive_time(LocalDateTime receive_time) {
-        this.receive_time = receive_time;
+    public void setReceiveTime(LocalDateTime receiveTime) {
+        this.receiveTime = receiveTime;
     }
 
     public String getOpenid() {
@@ -230,35 +232,35 @@ public class Resident {
         this.threshold = threshold;
     }
 
-    public LocalDateTime getSafe_changed_time() {
-        return safe_changed_time;
+    public LocalDateTime getSafeChangedTime() {
+        return safeChangedTime;
     }
 
-    public void setSafe_changed_time(LocalDateTime safe_changed_time) {
-        this.safe_changed_time = safe_changed_time;
+    public void setSafeChangedTime(LocalDateTime safeChangedTime) {
+        this.safeChangedTime = safeChangedTime;
     }
 
-    public Integer getSafe_changed_userid() {
-        return safe_changed_userid;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setSafe_changed_userid(Integer safe_changed_userid) {
-        this.safe_changed_userid = safe_changed_userid;
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 
-    public Integer getSafe_delete() {
-        return safe_delete;
+    public Integer getSafeDelete() {
+        return safeDelete;
     }
 
-    public void setSafe_delete(Integer safe_delete) {
-        this.safe_delete = safe_delete;
+    public void setSafeDelete(Integer safeDelete) {
+        this.safeDelete = safeDelete;
     }
 
-    public Integer getSafe_parent() {
-        return safe_parent;
+    public Integer getSafeParent() {
+        return safeParent;
     }
 
-    public void setSafe_parent(Integer safe_parent) {
-        this.safe_parent = safe_parent;
+    public void setSafeParent(Integer safeParent) {
+        this.safeParent = safeParent;
     }
 }
