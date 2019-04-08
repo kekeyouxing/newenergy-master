@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class NewenergyOrderService {
@@ -27,22 +28,14 @@ public class NewenergyOrderService {
         return newenergyOrderRepository.save(order);
     }
 
-    private String getRandomNum(Integer num) {
-        String base = "0123456789";
-        Random random = new Random();
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < num; i++) {
-            int number = random.nextInt(base.length());
-            sb.append(base.charAt(number));
-        }
-        return sb.toString();
-    }
-
     //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性
-    public String generateOrderSn(String deviceId){
+    public String generateOrderSn(){
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyyMMdd");
         String now = df.format(LocalDate.now());
-        String orderSn = now + getRandomNum(6);
-        while()
+        int hashCodev = UUID.randomUUID().toString().hashCode();
+        if (hashCodev < 0){
+            hashCodev =- hashCodev;
+        }
+        return "pk"+now+String.format("%012d",hashCodev);
     }
 }

@@ -23,6 +23,8 @@ public class NewenergyOrder {
 
     private double updated_volume;//可用流量/新增流量
 
+    private String orderSn;//商户订单号
+
     private String user_name;//批量充值人的名字   默认:微信充值时为用户昵称
 
     private String user_phone;//充值人的手机号   默认：微信充值时为空
@@ -167,5 +169,13 @@ public class NewenergyOrder {
 
     public void setSafe_parent(Integer safe_parent) {
         this.safe_parent = safe_parent;
+    }
+
+    public String getOrderSn() {
+        return orderSn;
+    }
+
+    public void setOrderSn(String orderSn) {
+        this.orderSn = orderSn;
     }
 }

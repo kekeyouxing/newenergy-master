@@ -16,8 +16,8 @@ public class WxOrderController {
     private WxOrderService wxOrderService;
 
     @PostMapping("submit")
-    public Object submit(@RequestBody String body){
-        return wxOrderService.submit(body);
+    public Object submit(@RequestBody String body,HttpServletRequest request){
+        return wxOrderService.submit(body,request);
     }
 
     @PostMapping("prepay")

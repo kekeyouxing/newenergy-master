@@ -2,11 +2,13 @@ package newenergy.wx.api.service;
 
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
+import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.NewenergyOrder;
 import newenergy.db.domain.Resident;
 import newenergy.db.service.NewenergyOrderService;
+import newenergy.wx.api.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +23,11 @@ public class WxOrderService {
 
     @Autowired
     private NewenergyOrderService newenergyOrderService;
+    @Autowired
+    private WxPayService wxPayService;
 
     @Transactional
-    public Object submit(String body){
+    public Object submit(String body,HttpServletRequest request){
         if(body == null){
             return ResponseUtil.badArgument();
         }
@@ -41,11 +45,21 @@ public class WxOrderService {
         String plot_num = newenergyOrderService.findByRegisterId(deviceid);
         Double plot_factor = newenergyOrderService.findByPlotNum(plot_num);
         Double recharge_volumn = acturalAmount.doubleValue()/plot_factor;
-
+        order.setOrderSn(newenergyOrderService.generateOrderSn());
         WxPayMpOrderResult result = null;
         try{
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
-            orderRequest.setOutTradeNo();
+            orderRequest.setOutTradeNo(order.getOrderSn());
+            orderRequest.setOpenid(openid);
+            orderRequest.setBody("订单："+order.getOrderSn());
+            orderRequest.setTotalFee(fee);
+            orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
+
+            result = wxPayService.createOrder(orderRequest);
+
+            String prepayId = result.getPackageValue();
+            prepayId = prepayId.replace("prepay_id=","");
+
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
