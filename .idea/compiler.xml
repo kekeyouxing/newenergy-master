@@ -13,14 +13,13 @@
         <module name="newenergy-wx-api" />
       </profile>
     </annotationProcessing>
-  </component>
-  <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="newenergy-admin-api" options="-parameters" />
-      <module name="newenergy-all" options="-parameters" />
-      <module name="newenergy-core" options="-parameters" />
-      <module name="newenergy-db" options="-parameters" />
-      <module name="newenergy-wx-api" options="-parameters" />
-    </option>
+    <bytecodeTargetLevel>
+      <module name="newenergy-admin-api" target="1.8" />
+      <module name="newenergy-all" target="1.8" />
+      <module name="newenergy-core" target="1.8" />
+      <module name="newenergy-db" target="1.8" />
+      <module name="newenergy-master" target="1.8" />
+      <module name="newenergy-wx-api" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
