@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class RechargeRecordService extends LogicOperation<RechargeRecord>{
+public class RechargeRecordService extends LogicOperation<RechargeRecord> {
 
     @Autowired
     private RechargeRecordRepository repository;
@@ -43,35 +43,27 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord>{
         deleteRecord(id,userid,repository);
     }
 
-    public List<RechargeRecord> queryAll(){
-        return repository.findAll();
+    public List<RechargeRecord> findAllBySafeDelete(int safeDelete){
+        return repository.findAllBySafeDelete(safeDelete);
     }
 
-    public void save(RechargeRecord newenergyRechargeRecord){
-        repository.save(newenergyRechargeRecord);
+    public List<RechargeRecord> findByRegisterIdAndSafeDelete(String registerId, int safeDelete){
+        return repository.findByRegisterIdAndSafeDelete(registerId,safeDelete);
     }
 
-    public void deleteById(int id){
-        repository.deleteById(id);
+    public List<RechargeRecord> findBySafeDeleteAndState(int safeDelete, int state){
+        return repository.findBySafeDeleteAndState(safeDelete,state);
     }
 
-    public List<RechargeRecord> queryByRegisterId(String registerId){
-        return repository.findByRegisterId(registerId);
+    public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, int safeDelete, int state){
+        return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
     }
 
-    public List<RechargeRecord> queryByState(int state){
-        return repository.findByState(state);
-    }
-
-    public List<RechargeRecord> queryByRegisterIdAndState(String registerId,int state){
-        return repository.findByRegisterIdAndState(registerId,state);
-    }
-
-    public RechargeRecord queryById(int id){
-        if (repository.findById(id).size()==0){
+    public RechargeRecord findById(int id){
+        if (repository.findAllById(id).size()==0){
             return null;
         }else {
-            return repository.findById(id).get(0);
+            return repository.findAllById(id).get(0);
         }
     }
 }

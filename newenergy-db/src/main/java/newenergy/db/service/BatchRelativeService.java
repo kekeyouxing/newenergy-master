@@ -11,29 +11,21 @@ import java.util.List;
 public class BatchRelativeService {
 
     @Autowired
-    private BatchRelativeRepository BatchRelativeRepository;
+    private BatchRelativeRepository batchRelativeRepository;
 
-    public List<BatchRelative> queryAll(){
-        return BatchRelativeRepository.findAll();
+    public List<BatchRelative> findAll(){
+        return batchRelativeRepository.findAll();
     }
 
-    public void save(BatchRelative BatchRelative){
-        BatchRelativeRepository.save(BatchRelative);
+    public List<BatchRelative> findByBatchRecordId(int batchRecoreId){
+        return batchRelativeRepository.findAllByBatchRecordId(batchRecoreId);
     }
 
-    public void deleteById(int id){
-        BatchRelativeRepository.deleteById(id);
+    public List<BatchRelative> findByState(int state){
+        return batchRelativeRepository.findAllByState(state);
     }
 
-    public List<BatchRelative> queryByBatchRecoreId(int batchRecoreId){
-        return BatchRelativeRepository.queryAllByBatchRecordId(batchRecoreId);
-    }
-
-    public List<BatchRelative> queryByState(int state){
-        return BatchRelativeRepository.queryAllByState(state);
-    }
-
-    public List<BatchRelative> queryByBatchRecoreIdAndState(int state,int batchRecordId){
-        return BatchRelativeRepository.queryAllByStateAndBatchRecordId(state,batchRecordId);
+    public List<BatchRelative> findByBatchRecordIdAndState(int batchRecoreId, int state){
+        return batchRelativeRepository.findAllByBatchRecordIdAndState(batchRecoreId ,state);
     }
 }
