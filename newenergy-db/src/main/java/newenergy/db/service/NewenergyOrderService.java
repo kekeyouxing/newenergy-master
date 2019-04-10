@@ -2,6 +2,7 @@ package newenergy.db.service;
 
 import newenergy.db.domain.NewenergyOrder;
 import newenergy.db.repository.NewenergyOrderRepository;
+import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import java.util.Random;
 import java.util.UUID;
 
 @Service
-public class NewenergyOrderService {
+public class NewenergyOrderService extends LogicOperation<NewenergyOrder> {
     @Autowired
     private NewenergyOrderRepository newenergyOrderRepository;
 
@@ -22,10 +23,19 @@ public class NewenergyOrderService {
     public Double findByPlotNum(String plot_num){
         return newenergyOrderRepository.findPlotFactorByPlotNum(plot_num);
     }
-    public NewenergyOrder add(NewenergyOrder order){
-        order.setRecharge_time(LocalDateTime.now());
+
+    public NewenergyOrder findBySn(String orderSn){
+        return newenergyOrderRepository.findBySn(orderSn);
+    }
+    //逻辑添加
+    public NewenergyOrder add(NewenergyOrder order,Integer userid){
+//        order.setRecharge_time(LocalDateTime.now());
         order.setState(0);
-        return newenergyOrderRepository.save(order);
+        return addRecord(order,userid,newenergyOrderRepository);
+    }
+    //逻辑更新
+    public NewenergyOrder update(NewenergyOrder order,Integer userid){
+        return updateRecord(order,userid,newenergyOrderRepository);
     }
 
     //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性
