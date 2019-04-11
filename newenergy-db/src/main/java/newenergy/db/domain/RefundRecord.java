@@ -1,8 +1,7 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +13,7 @@ public class RefundRecord {
     private int id;
     private String registerId;
     private int refundAmount;
-    private int refundVolume;
+    private BigDecimal refundVolume;
     private LocalDateTime refundTime;
     private int recordId;
     private int checkId;
@@ -49,11 +48,11 @@ public class RefundRecord {
         this.refundAmount = refundAmount;
     }
 
-    public int getRefundVolume() {
+    public BigDecimal getRefundVolume() {
         return refundVolume;
     }
 
-    public void setRefundVolume(int refundVolume) {
+    public void setRefundVolume(BigDecimal refundVolume) {
         this.refundVolume = refundVolume;
     }
 

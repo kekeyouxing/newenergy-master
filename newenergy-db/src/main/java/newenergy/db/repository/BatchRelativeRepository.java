@@ -9,15 +9,11 @@ import java.util.List;
 @Repository
 public interface BatchRelativeRepository extends JpaRepository<BatchRelative,Integer>{
 
-//    @Query("select batchRelative from BatchRelative batchRelative where batchRelative.batchRecordId = :batchRecordId")
-    List<BatchRelative> findAllByBatchRecordId(Integer batch_record_id);
+ List<BatchRelative> findAllByBatchRecordId(Integer batch_record_id);
 
-//    @Query("select batchRelative from BatchRelative batchRelative where batchRelative.state = :state")
-    List<BatchRelative> findAllByState(Integer state);
+ List<BatchRelative> findAllByState(Integer state);
 
-//    @Query("select batchRelative from BatchRelative batchRelative where batchRelative.state = :state" +
-//            " and batchRelative.batchRecordId =:batchRecordId")
-    List<BatchRelative> findAllByBatchRecordIdAndState(Integer batch_record_id, Integer state);
+  List<BatchRelative> findAllByBatchRecordIdAndState(Integer batch_record_id, Integer state);
 
 
 }

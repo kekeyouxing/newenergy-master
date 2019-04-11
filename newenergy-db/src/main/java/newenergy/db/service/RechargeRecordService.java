@@ -43,20 +43,19 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
         deleteRecord(id,userid,repository);
     }
 
-    public List<RechargeRecord> findAllBySafeDelete(int safeDelete){
-        return repository.findAllBySafeDelete(safeDelete);
-    }
-
-    public List<RechargeRecord> findByRegisterIdAndSafeDelete(String registerId, int safeDelete){
-        return repository.findByRegisterIdAndSafeDelete(registerId,safeDelete);
-    }
-
-    public List<RechargeRecord> findBySafeDeleteAndState(int safeDelete, int state){
-        return repository.findBySafeDeleteAndState(safeDelete,state);
-    }
-
     public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, int safeDelete, int state){
-        return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
+//        safeDelete默认为0，registerid默认“”，state默认-1，为默认值时，插叙你所有类型，否则，查询指定类型
+        if (registerId.equals("")&&(state==-1)){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else if (registerId.equals("")){
+            return repository.findAllBySafeDeleteAndState(safeDelete,state);
+        }else if (state==-1){
+            System.out.println(registerId);
+            return repository.findAllByRegisterIdAndSafeDelete(registerId,safeDelete);
+        }else {
+            return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
+        }
+
     }
 
     public RechargeRecord findById(int id){

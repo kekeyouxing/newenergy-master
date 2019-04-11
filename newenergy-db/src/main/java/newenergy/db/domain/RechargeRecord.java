@@ -1,8 +1,7 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,9 +15,9 @@ public class RechargeRecord {
     private String registerId;
     private int amount;
     private LocalDateTime rechargeTime;
-    private double rechargeVolume;
-    private double remainVolume;
-    private double updatedVolume;
+    private BigDecimal rechargeVolume;
+    private BigDecimal remainVolume;
+    private BigDecimal updatedVolume;
     private String userName;
     private String userPhone;
     private int state;
@@ -28,6 +27,8 @@ public class RechargeRecord {
     private int safeChangedUserId;
     private int safeDelete;
     private int safeParent;
+    private int batchRecordId;
+    private int reviewState;
 
     public int getId() {
         return id;
@@ -61,27 +62,27 @@ public class RechargeRecord {
         this.rechargeTime = rechargeTime;
     }
 
-    public double getRechargeVolume() {
+    public BigDecimal getRechargeVolume() {
         return rechargeVolume;
     }
 
-    public void setRechargeVolume(double rechargeVolume) {
+    public void setRechargeVolume(BigDecimal rechargeVolume) {
         this.rechargeVolume = rechargeVolume;
     }
 
-    public double getRemainVolume() {
+    public BigDecimal getRemainVolume() {
         return remainVolume;
     }
 
-    public void setRemainVolume(double remainVolume) {
+    public void setRemainVolume(BigDecimal remainVolume) {
         this.remainVolume = remainVolume;
     }
 
-    public double getUpdatedVolume() {
+    public BigDecimal getUpdatedVolume() {
         return updatedVolume;
     }
 
-    public void setUpdatedVolume(double updatedVolume) {
+    public void setUpdatedVolume(BigDecimal updatedVolume) {
         this.updatedVolume = updatedVolume;
     }
 
@@ -155,5 +156,21 @@ public class RechargeRecord {
 
     public void setSafeParent(int safeParent) {
         this.safeParent = safeParent;
+    }
+
+    public int getBatchRecordId() {
+        return batchRecordId;
+    }
+
+    public void setBatchRecordId(int batchRecordId) {
+        this.batchRecordId = batchRecordId;
+    }
+
+    public int getReviewState() {
+        return reviewState;
+    }
+
+    public void setReviewState(int reviewState) {
+        this.reviewState = reviewState;
     }
 }

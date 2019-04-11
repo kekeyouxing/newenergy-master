@@ -43,21 +43,15 @@ public class BatchRecordService extends LogicOperation<BatchRecord> {
         deleteRecord(id,userid,repository);
     }
 
-    public List<BatchRecord> findAll(int safeDelete){
-        return repository.findAllBySafeDelete(safeDelete);
-    }
-
-    public int save(BatchRecord newenergyBatchRecord){
-         BatchRecord batchRecord = repository.save(newenergyBatchRecord);
-         return batchRecord.getId();
-    }
-
-    public void deleteByid(int id){
-        repository.deleteById(id);
-    }
 
     public List<BatchRecord> queryByCompanyAndSafeDelete(String company, Integer safeDelete){
-        return repository.findAllByCompanyAndSafeDelete(company,safeDelete);
+//        safeDelete默认值为0，公司为空时，返回所有，否则，返回指定
+        if (company.equals("")){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else {
+            return repository.findAllByCompanyAndSafeDelete(company,safeDelete);
+        }
+
     }
 
     public BatchRecord queryById(int id){
