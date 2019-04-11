@@ -11,10 +11,10 @@ import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.ExtraWater;
-import newenergy.db.domain.NewenergyOrder;
+import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.Resident;
 import newenergy.db.service.ExtraWaterService;
-import newenergy.db.service.NewenergyOrderService;
+import newenergy.db.service.RechargeRecordService;
 import newenergy.wx.api.util.IpUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -36,7 +36,7 @@ public class WxOrderService {
     private final Log logger = LogFactory.getLog(WxOrderService.class);
 
     @Autowired
-    private NewenergyOrderService newenergyOrderService;
+    private RechargeRecordService rechargeRecordService;
     @Autowired
     private WxPayService wxPayService;
     @Autowired
@@ -54,15 +54,15 @@ public class WxOrderService {
 //      将充值金额转换为分
         int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
         Integer orderId = null;
-        NewenergyOrder order = null;
-        order = new NewenergyOrder();
-        order.setRegister_id(deviceid);
+        RechargeRecord order = null;
+        order = new RechargeRecord();
+        order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
-        String plot_num = newenergyOrderService.findByRegisterId(deviceid);
-        Double plot_factor = newenergyOrderService.findByPlotNum(plot_num);
+        String plot_num = rechargeRecordService.findByRegisterId(deviceid);
+        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
         Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
-        order.setOrderSn(newenergyOrderService.generateOrderSn());
-        order.setRecharge_volume(recharge_volumn);
+        order.setOrderSn(rechargeRecordService.generateOrderSn());
+        order.setRechargeVolume(recharge_volumn);
         WxPayMpOrderResult result = null;
         try{
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
@@ -72,7 +72,7 @@ public class WxOrderService {
             orderRequest.setTotalFee(fee);
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
-            newenergyOrderService.add(order,null);
+            rechargeRecordService.addRechargeRecord(order,null);
 //            String prepayId = result.getPackageValue();
 //            prepayId = prepayId.replace("prepay_id=","");
 
@@ -108,7 +108,7 @@ public class WxOrderService {
         String payId = result.getTransactionId();
 
         String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
-        NewenergyOrder order = newenergyOrderService.findBySn(orderSn);
+        RechargeRecord order = rechargeRecordService.findBySn(orderSn);
         if (order == null){
             return WxPayNotifyResponse.fail("订单不存在 sn="+orderSn);
         }
@@ -120,14 +120,14 @@ public class WxOrderService {
             return WxPayNotifyResponse.fail(order.getOrderSn()+":支付金额不符合 totalFee="+totalFee);
         }
 
-        order.setTransaction_id(payId);
-        order.setRecharge_time(LocalDateTime.now());
-        newenergyOrderService.update(order,null);
+        order.setTransactionId(payId);
+        order.setRechargeTime(LocalDateTime.now());
+        rechargeRecordService.updateRechargeRecord(order,null);
 
         //TODO 发送邮件和短信通知，这里采用异步发送
 
         ExtraWater extraWater = null;
-        extraWater = new ExtraWater(order.getRegister_id(),new BigDecimal(order.getRecharge_volume()),null);
+        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
 //        extraWater.setRegisterId(order.getRegister_id());
 //        extraWater.setRecord_id(null);
 //        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
@@ -144,7 +144,7 @@ public class WxOrderService {
             return ResponseUtil.badArgument();
         }
 
-        NewenergyOrder order = newenergyOrderService.findOrderById(orderId);
+        RechargeRecord order = rechargeRecordService.findById(orderId);
         if (order == null){
             return ResponseUtil.badArgument();
         }

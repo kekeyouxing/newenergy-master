@@ -29,4 +29,6 @@ public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,I
 //            " rechargeRecord.safeDelete = 0 ")
     List<RechargeRecord> findAllBySafeDelete(Integer state);
 
+    public RechargeRecord findFirstByOrderSn(String orderSn);
+
 }

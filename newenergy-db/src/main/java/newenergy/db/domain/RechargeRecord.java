@@ -3,6 +3,7 @@ package newenergy.db.domain;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,28 +13,29 @@ public class RechargeRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private int id;
+    private Integer id;
     private String registerId;
-    private int amount;
+    private Integer amount;
     private LocalDateTime rechargeTime;
     private double rechargeVolume;
     private double remainVolume;
     private double updatedVolume;
+    private String orderSn;
     private String userName;
     private String userPhone;
-    private int state;
-    private int delegate;
+    private Integer state;
+    private Integer delegate;
     private String transactionId;
     private LocalDateTime safeChangedTime;
-    private int safeChangedUserId;
-    private int safeDelete;
-    private int safeParent;
+    private Integer safeChangedUserid;
+    private Integer safeDelete;
+    private Integer safeParent;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -45,11 +47,11 @@ public class RechargeRecord {
         this.registerId = registerId;
     }
 
-    public int getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
 
@@ -101,19 +103,19 @@ public class RechargeRecord {
         this.userPhone = userPhone;
     }
 
-    public int getState() {
+    public Integer getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
-    public int getDelegate() {
+    public Integer getDelegate() {
         return delegate;
     }
 
-    public void setDelegate(int delegate) {
+    public void setDelegate(Integer delegate) {
         this.delegate = delegate;
     }
 
@@ -133,27 +135,43 @@ public class RechargeRecord {
         this.safeChangedTime = safeChangedTime;
     }
 
-    public int getSafeChangedUserId() {
-        return safeChangedUserId;
+    public Integer getSafeChangedUserId() {
+        return safeChangedUserid;
     }
 
-    public void setSafeChangedUserId(int safeChangedUserId) {
-        this.safeChangedUserId = safeChangedUserId;
+    public void setSafeChangedUserId(Integer safeChangedUserId) {
+        this.safeChangedUserid = safeChangedUserId;
     }
 
-    public int getSafeDelete() {
+    public Integer getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(int safeDelete) {
+    public void setSafeDelete(Integer safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public int getSafeParent() {
+    public Integer getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(int safeParent) {
+    public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
+    }
+
+    public String getOrderSn() {
+        return orderSn;
+    }
+
+    public void setOrderSn(String orderSn) {
+        this.orderSn = orderSn;
+    }
+
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
+    }
+
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 }
