@@ -10,8 +10,10 @@ import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
+import newenergy.db.domain.ExtraWater;
 import newenergy.db.domain.NewenergyOrder;
 import newenergy.db.domain.Resident;
+import newenergy.db.service.ExtraWaterService;
 import newenergy.db.service.NewenergyOrderService;
 import newenergy.wx.api.util.IpUtil;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +39,8 @@ public class WxOrderService {
     private NewenergyOrderService newenergyOrderService;
     @Autowired
     private WxPayService wxPayService;
+    @Autowired
+    private ExtraWaterService extraWaterService;
 
     @Transactional
     public Object submit(String body,HttpServletRequest request){
@@ -56,8 +60,9 @@ public class WxOrderService {
         order.setAmount(acturalAmount.intValue());
         String plot_num = newenergyOrderService.findByRegisterId(deviceid);
         Double plot_factor = newenergyOrderService.findByPlotNum(plot_num);
-        Double recharge_volumn = acturalAmount.doubleValue()/plot_factor;
+        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
         order.setOrderSn(newenergyOrderService.generateOrderSn());
+        order.setRecharge_volume(recharge_volumn);
         WxPayMpOrderResult result = null;
         try{
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
@@ -77,6 +82,7 @@ public class WxOrderService {
         }
         return ResponseUtil.ok(result);
     }
+
     @Transactional
     public Object payNotify(HttpServletRequest request, HttpServletResponse response){
         String xmlResult = null;
@@ -120,6 +126,28 @@ public class WxOrderService {
 
         //TODO 发送邮件和短信通知，这里采用异步发送
 
+        ExtraWater extraWater = null;
+        extraWater = new ExtraWater(order.getRegister_id(),new BigDecimal(order.getRecharge_volume()),null);
+//        extraWater.setRegisterId(order.getRegister_id());
+//        extraWater.setRecord_id(null);
+//        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
+        extraWaterService.add(extraWater);
+
+
+
+        return WxPayNotifyResponse.success("处理成功");
+    }
+
+    public Object refund(String body){
+        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+        if (orderId==null){
+            return ResponseUtil.badArgument();
+        }
+
+        NewenergyOrder order = newenergyOrderService.findOrderById(orderId);
+        if (order == null){
+            return ResponseUtil.badArgument();
+        }
         return ResponseUtil.ok();
     }
 }

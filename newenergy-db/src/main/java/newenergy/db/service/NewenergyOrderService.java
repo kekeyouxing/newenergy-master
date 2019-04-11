@@ -1,7 +1,9 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.NewenergyOrder;
+import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.NewenergyOrderRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,15 +19,25 @@ public class NewenergyOrderService extends LogicOperation<NewenergyOrder> {
     @Autowired
     private NewenergyOrderRepository newenergyOrderRepository;
 
+    @Autowired
+    private ResidentRepository residentRepository;
+
+    @Autowired
+    private CorrPlotRepository corrPlotRepository;
+
     public String findByRegisterId(String register_id){
-        return newenergyOrderRepository.findByRegisterId(register_id);
+        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
     }
     public Double findByPlotNum(String plot_num){
-        return newenergyOrderRepository.findPlotFactorByPlotNum(plot_num);
+        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
     }
 
     public NewenergyOrder findBySn(String orderSn){
-        return newenergyOrderRepository.findBySn(orderSn);
+        return newenergyOrderRepository.findFirstByOrderSn(orderSn);
+    }
+
+    public NewenergyOrder findOrderById(Integer id){
+        return newenergyOrderRepository.findById(id).get();
     }
     //逻辑添加
     public NewenergyOrder add(NewenergyOrder order,Integer userid){
