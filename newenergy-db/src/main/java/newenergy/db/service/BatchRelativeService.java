@@ -13,19 +13,17 @@ public class BatchRelativeService {
     @Autowired
     private BatchRelativeRepository batchRelativeRepository;
 
-    public List<BatchRelative> findAll(){
-        return batchRelativeRepository.findAll();
-    }
-
-    public List<BatchRelative> findByBatchRecordId(int batchRecoreId){
-        return batchRelativeRepository.findAllByBatchRecordId(batchRecoreId);
-    }
-
-    public List<BatchRelative> findByState(int state){
-        return batchRelativeRepository.findAllByState(state);
-    }
-
     public List<BatchRelative> findByBatchRecordIdAndState(int batchRecoreId, int state){
-        return batchRelativeRepository.findAllByBatchRecordIdAndState(batchRecoreId ,state);
+//        batchRecord，state默认值为-1，若检测到-1，返回所有类型，否则，返回指定类型的关系记录
+        if ((batchRecoreId==-1)&&(state==-1)){
+            return batchRelativeRepository.findAll();
+        }else if (batchRecoreId==-1){
+            return batchRelativeRepository.findAllByState(state);
+        }else if (state==-1){
+            return batchRelativeRepository.findAllByBatchRecordId(batchRecoreId);
+        }else {
+            return batchRelativeRepository.findAllByBatchRecordIdAndState(batchRecoreId ,state);
+        }
+
     }
 }

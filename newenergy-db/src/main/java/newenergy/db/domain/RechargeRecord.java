@@ -1,9 +1,7 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,29 +11,30 @@ public class RechargeRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private Integer id;
+    private int id;
     private String registerId;
-    private Integer amount;
+    private int amount;
     private LocalDateTime rechargeTime;
-    private double rechargeVolume;
-    private double remainVolume;
-    private double updatedVolume;
-    private String orderSn;
+    private BigDecimal rechargeVolume;
+    private BigDecimal remainVolume;
+    private BigDecimal updatedVolume;
     private String userName;
     private String userPhone;
-    private Integer state;
-    private Integer delegate;
+    private int state;
+    private int delegate;
     private String transactionId;
     private LocalDateTime safeChangedTime;
-    private Integer safeChangedUserid;
-    private Integer safeDelete;
-    private Integer safeParent;
+    private int safeChangedUserId;
+    private int safeDelete;
+    private int safeParent;
+    private int batchRecordId;
+    private int reviewState;
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -47,11 +46,11 @@ public class RechargeRecord {
         this.registerId = registerId;
     }
 
-    public Integer getAmount() {
+    public int getAmount() {
         return amount;
     }
 
-    public void setAmount(Integer amount) {
+    public void setAmount(int amount) {
         this.amount = amount;
     }
 
@@ -63,27 +62,27 @@ public class RechargeRecord {
         this.rechargeTime = rechargeTime;
     }
 
-    public double getRechargeVolume() {
+    public BigDecimal getRechargeVolume() {
         return rechargeVolume;
     }
 
-    public void setRechargeVolume(double rechargeVolume) {
+    public void setRechargeVolume(BigDecimal rechargeVolume) {
         this.rechargeVolume = rechargeVolume;
     }
 
-    public double getRemainVolume() {
+    public BigDecimal getRemainVolume() {
         return remainVolume;
     }
 
-    public void setRemainVolume(double remainVolume) {
+    public void setRemainVolume(BigDecimal remainVolume) {
         this.remainVolume = remainVolume;
     }
 
-    public double getUpdatedVolume() {
+    public BigDecimal getUpdatedVolume() {
         return updatedVolume;
     }
 
-    public void setUpdatedVolume(double updatedVolume) {
+    public void setUpdatedVolume(BigDecimal updatedVolume) {
         this.updatedVolume = updatedVolume;
     }
 
@@ -103,19 +102,19 @@ public class RechargeRecord {
         this.userPhone = userPhone;
     }
 
-    public Integer getState() {
+    public int getState() {
         return state;
     }
 
-    public void setState(Integer state) {
+    public void setState(int state) {
         this.state = state;
     }
 
-    public Integer getDelegate() {
+    public int getDelegate() {
         return delegate;
     }
 
-    public void setDelegate(Integer delegate) {
+    public void setDelegate(int delegate) {
         this.delegate = delegate;
     }
 
@@ -135,43 +134,43 @@ public class RechargeRecord {
         this.safeChangedTime = safeChangedTime;
     }
 
-    public Integer getSafeChangedUserId() {
-        return safeChangedUserid;
+    public int getSafeChangedUserId() {
+        return safeChangedUserId;
     }
 
-    public void setSafeChangedUserId(Integer safeChangedUserId) {
-        this.safeChangedUserid = safeChangedUserId;
+    public void setSafeChangedUserId(int safeChangedUserId) {
+        this.safeChangedUserId = safeChangedUserId;
     }
 
-    public Integer getSafeDelete() {
+    public int getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(Integer safeDelete) {
+    public void setSafeDelete(int safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public Integer getSafeParent() {
+    public int getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(Integer safeParent) {
+    public void setSafeParent(int safeParent) {
         this.safeParent = safeParent;
     }
 
-    public String getOrderSn() {
-        return orderSn;
+    public int getBatchRecordId() {
+        return batchRecordId;
     }
 
-    public void setOrderSn(String orderSn) {
-        this.orderSn = orderSn;
+    public void setBatchRecordId(int batchRecordId) {
+        this.batchRecordId = batchRecordId;
     }
 
-    public Integer getSafeChangedUserid() {
-        return safeChangedUserid;
+    public int getReviewState() {
+        return reviewState;
     }
 
-    public void setSafeChangedUserid(Integer safeChangedUserid) {
-        this.safeChangedUserid = safeChangedUserid;
+    public void setReviewState(int reviewState) {
+        this.reviewState = reviewState;
     }
 }
