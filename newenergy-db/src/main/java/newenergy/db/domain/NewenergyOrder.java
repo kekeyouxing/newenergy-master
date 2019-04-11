@@ -1,18 +1,17 @@
 package newenergy.db.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "recharge_record")
 public class NewenergyOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer register_id;//登记号,设备号
+    @Column(length = 14)
+    private String register_id;//登记号,设备号
 
     private Integer amount;//充值金额
 
@@ -23,6 +22,8 @@ public class NewenergyOrder {
     private double remain_volume;//剩余流量
 
     private double updated_volume;//可用流量/新增流量
+
+    private String orderSn;//商户订单号
 
     private String user_name;//批量充值人的名字   默认:微信充值时为用户昵称
 
@@ -50,11 +51,11 @@ public class NewenergyOrder {
         this.id = id;
     }
 
-    public Integer getRegister_id() {
+    public String getRegister_id() {
         return register_id;
     }
 
-    public void setRegister_id(Integer register_id) {
+    public void setRegister_id(String register_id) {
         this.register_id = register_id;
     }
 
@@ -168,5 +169,13 @@ public class NewenergyOrder {
 
     public void setSafe_parent(Integer safe_parent) {
         this.safe_parent = safe_parent;
+    }
+
+    public String getOrderSn() {
+        return orderSn;
+    }
+
+    public void setOrderSn(String orderSn) {
+        this.orderSn = orderSn;
     }
 }
