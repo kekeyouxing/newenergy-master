@@ -1,9 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.RechargeRecord;
-import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.RechargeRecordRepository;
-import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,22 +17,6 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     @Autowired
     private RechargeRecordRepository repository;
 
-    @Autowired
-    private ResidentRepository residentRepository;
-
-    @Autowired
-    private CorrPlotRepository corrPlotRepository;
-
-    public String findByRegisterId(String register_id){
-        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
-    }
-    public Double findByPlotNum(String plot_num){
-        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
-    }
-
-    public RechargeRecord findBySn(String orderSn){
-        return repository.findFirstByOrderSn(orderSn);
-    }
     /**
      * 添加记录
      * @param require 不包括id
@@ -64,23 +46,33 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
         deleteRecord(id,userid,repository);
     }
 
-    public List<RechargeRecord> findAllBySafeDelete(Integer safeDelete){
-        return repository.findAllBySafeDelete(safeDelete);
+    public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, int safeDelete, int state){
+//        safeDelete默认为0，registerid默认“”，state默认-1，为默认值时，插叙你所有类型，否则，查询指定类型
+        if (registerId.equals("")&&(state==-1)){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else if (registerId.equals("")){
+            return repository.findAllBySafeDeleteAndState(safeDelete,state);
+        }else if (state==-1){
+            System.out.println(registerId);
+            return repository.findAllByRegisterIdAndSafeDelete(registerId,safeDelete);
+        }else {
+            return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
+        }
+
     }
 
-    public List<RechargeRecord> findByRegisterIdAndSafeDelete(String registerId, Integer safeDelete){
-        return repository.findByRegisterIdAndSafeDelete(registerId,safeDelete);
+    public List<RechargeRecord> findByBatchRecordAndReviewState(Integer batchRecordId,Integer reviewState,Integer safeDelete){
+        if ((batchRecordId==-1)&&(reviewState == -1)){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else if (batchRecordId==-1){
+            return repository.findAllByReviewStateAndSafeDelete(reviewState,safeDelete);
+        }else if (reviewState==-1){
+            return repository.findAllByBatchRecordIdAndSafeDelete(batchRecordId,safeDelete);
+        }else {
+            return repository.findAllByBatchRecordIdAndReviewStateAndSafeDelete(batchRecordId,reviewState,safeDelete);
+        }
     }
-
-    public List<RechargeRecord> findBySafeDeleteAndState(Integer safeDelete, Integer state){
-        return repository.findBySafeDeleteAndState(safeDelete,state);
-    }
-
-    public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, Integer safeDelete, Integer state){
-        return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
-    }
-
-    public RechargeRecord findById(Integer id){
+    public RechargeRecord findById(int id){
         if (repository.findAllById(id).size()==0){
             return null;
         }else {

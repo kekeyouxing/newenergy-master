@@ -9,26 +9,22 @@ import java.util.List;
 @Repository
 public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,Integer>{
 
-
-//    @Query("select  rechargeRecord from RechargeRecord rechargeRecord where rechargeRecord.id = :id " )
     List<RechargeRecord> findAllById(Integer id);
 
-//    @Query("select  rechargeRecord from RechargeRecord rechargeRecord where rechargeRecord.registerId = :registerId " +
-//            "and rechargeRecord.safeDelete = 0 and rechargeRecord.state = :state")
     List<RechargeRecord> findAllByRegisterIdAndSafeDeleteAndState(String register_id, Integer safe_delete, Integer state);
 
-//    @Query("select  rechargeRecord from RechargeRecord rechargeRecord where " +
-//            " rechargeRecord.state = :state and rechargeRecord.safeDelete = 0 ")
-    List<RechargeRecord> findByRegisterIdAndSafeDelete(String register_id, Integer safe_delete);
+    List<RechargeRecord> findAllByRegisterIdAndSafeDelete(String register_id, Integer safe_delete);
 
-//    @Query("select rechargeRecord from RechargeRecord rechargeRecord where " +
-//            " rechargeRecord.registerId = :registerId and rechargeRecord.safeDelete = 0 ")
-    List<RechargeRecord> findBySafeDeleteAndState(Integer safe_delete, Integer state);
+    List<RechargeRecord> findAllBySafeDeleteAndState(Integer safe_delete, Integer state);
 
-//    @Query("select rechargeRecord from RechargeRecord rechargeRecord where " +
-//            " rechargeRecord.safeDelete = 0 ")
     List<RechargeRecord> findAllBySafeDelete(Integer state);
 
-    public RechargeRecord findFirstByOrderSn(String orderSn);
+    List<RechargeRecord> findAllByBatchRecordIdAndSafeDelete(Integer batch_record_id,Integer safe_delete);
+
+    List<RechargeRecord> findAllByReviewStateAndSafeDelete(Integer review_state,Integer safe_delete);
+
+    List<RechargeRecord> findAllByBatchRecordIdAndReviewStateAndSafeDelete(Integer batch_record_id,Integer review_state,Integer safe_delete);
+
+    RechargeRecord findFirstByOrderSn(String orderSn);
 
 }

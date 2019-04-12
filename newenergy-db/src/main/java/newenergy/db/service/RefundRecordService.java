@@ -43,15 +43,33 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
         deleteRecord(id,userid,repository);
     }
 
-    public List<RefundRecord> queryAll(){
-        return repository.findAll();
+
+    /**
+     * 按照id查找
+     * @param id 待查id
+     */
+    public RefundRecord findById(int id){
+        if (repository.findAllById(id).size()==0){
+            return null;
+        }else {
+            return repository.findAllById(id).get(0);
+        }
     }
 
-    public void save(RefundRecord RefundRecord){
-        repository.save(RefundRecord);
+    public List<RefundRecord> findByCondition(String registerId,int state,int safeDelete){
+        if (registerId.equals("")&&(state==-1)){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else if (registerId.equals("")){
+            return repository.findAllByStateAndSafeDelete(state,safeDelete);
+        }else if (state==-1){
+            return repository.findAllByRegisterIdAndSafeDelete(registerId,safeDelete);
+        }else {
+            return repository.findAllByRegisterIdAndStateAndSafeDelete(registerId,state,safeDelete);
+        }
     }
 
-    public void deleteById(int id){
-        repository.deleteById(id);
+    public void save(RefundRecord refundRecord){
+        repository.save(refundRecord);
     }
+
 }

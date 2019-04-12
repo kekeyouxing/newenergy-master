@@ -1,35 +1,33 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refund_record")
-public class RefundRecord {
+public class RefundRecord  implements Cloneable{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue
+    private Integer id;
     private String registerId;
-    private int refundAmount;
-    private int refundVolume;
+    private Integer refundAmount;
+    private BigDecimal refundVolume;
     private LocalDateTime refundTime;
-    private int recordId;
-    private int checkId;
-    private int rechargeId;
-    private int state;
+    private Integer recordId;
+    private Integer checkId;
+    private Integer rechargeId;
+    private Integer state;
     private LocalDateTime safeChangedTime;
-    private int safeChangedUserId;
-    private int safeDelete;
-    private int safeParent;
+    private Integer safeChangedUserid;
+    private Integer safeDelete;
+    private Integer safeParent;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -41,19 +39,19 @@ public class RefundRecord {
         this.registerId = registerId;
     }
 
-    public int getRefundAmount() {
+    public Integer getRefundAmount() {
         return refundAmount;
     }
 
-    public void setRefundAmount(int refundAmount) {
+    public void setRefundAmount(Integer refundAmount) {
         this.refundAmount = refundAmount;
     }
 
-    public int getRefundVolume() {
+    public BigDecimal getRefundVolume() {
         return refundVolume;
     }
 
-    public void setRefundVolume(int refundVolume) {
+    public void setRefundVolume(BigDecimal refundVolume) {
         this.refundVolume = refundVolume;
     }
 
@@ -65,35 +63,35 @@ public class RefundRecord {
         this.refundTime = refundTime;
     }
 
-    public int getRecordId() {
+    public Integer getRecordId() {
         return recordId;
     }
 
-    public void setRecordId(int recordId) {
+    public void setRecordId(Integer recordId) {
         this.recordId = recordId;
     }
 
-    public int getCheckId() {
+    public Integer getCheckId() {
         return checkId;
     }
 
-    public void setCheckId(int checkId) {
+    public void setCheckId(Integer checkId) {
         this.checkId = checkId;
     }
 
-    public int getRechargeId() {
+    public Integer getRechargeId() {
         return rechargeId;
     }
 
-    public void setRechargeId(int rechargeId) {
+    public void setRechargeId(Integer rechargeId) {
         this.rechargeId = rechargeId;
     }
 
-    public int getState() {
+    public Integer getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
@@ -105,27 +103,32 @@ public class RefundRecord {
         this.safeChangedTime = safeChangedTime;
     }
 
-    public int getSafeChangedUserId() {
-        return safeChangedUserId;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setSafeChangedUserId(int safeChangedUserId) {
-        this.safeChangedUserId = safeChangedUserId;
+    public void setSafeChangedUserid(Integer safechangedUserid) {
+        this.safeChangedUserid = safechangedUserid;
     }
 
-    public int getSafeDelete() {
+    public Integer getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(int safeDelete) {
+    public void setSafeDelete(Integer safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public int getSafeParent() {
+    public Integer getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(int safeParent) {
+    public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException{
+        return super.clone();
     }
 }

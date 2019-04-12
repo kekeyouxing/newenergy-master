@@ -1,14 +1,12 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "recharge_record")
-public class RechargeRecord {
+public class RechargeRecord implements Cloneable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,9 +15,9 @@ public class RechargeRecord {
     private String registerId;
     private Integer amount;
     private LocalDateTime rechargeTime;
-    private double rechargeVolume;
-    private double remainVolume;
-    private double updatedVolume;
+    private BigDecimal rechargeVolume;
+    private BigDecimal remainVolume;
+    private BigDecimal updatedVolume;
     private String orderSn;
     private String userName;
     private String userPhone;
@@ -30,6 +28,8 @@ public class RechargeRecord {
     private Integer safeChangedUserid;
     private Integer safeDelete;
     private Integer safeParent;
+    private Integer batchRecordId;
+    private Integer reviewState;
 
     public Integer getId() {
         return id;
@@ -63,27 +63,27 @@ public class RechargeRecord {
         this.rechargeTime = rechargeTime;
     }
 
-    public double getRechargeVolume() {
+    public BigDecimal getRechargeVolume() {
         return rechargeVolume;
     }
 
-    public void setRechargeVolume(double rechargeVolume) {
+    public void setRechargeVolume(BigDecimal rechargeVolume) {
         this.rechargeVolume = rechargeVolume;
     }
 
-    public double getRemainVolume() {
+    public BigDecimal getRemainVolume() {
         return remainVolume;
     }
 
-    public void setRemainVolume(double remainVolume) {
+    public void setRemainVolume(BigDecimal remainVolume) {
         this.remainVolume = remainVolume;
     }
 
-    public double getUpdatedVolume() {
+    public BigDecimal getUpdatedVolume() {
         return updatedVolume;
     }
 
-    public void setUpdatedVolume(double updatedVolume) {
+    public void setUpdatedVolume(BigDecimal updatedVolume) {
         this.updatedVolume = updatedVolume;
     }
 
@@ -135,14 +135,6 @@ public class RechargeRecord {
         this.safeChangedTime = safeChangedTime;
     }
 
-    public Integer getSafeChangedUserId() {
-        return safeChangedUserid;
-    }
-
-    public void setSafeChangedUserId(Integer safeChangedUserId) {
-        this.safeChangedUserid = safeChangedUserId;
-    }
-
     public Integer getSafeDelete() {
         return safeDelete;
     }
@@ -173,5 +165,26 @@ public class RechargeRecord {
 
     public void setSafeChangedUserid(Integer safeChangedUserid) {
         this.safeChangedUserid = safeChangedUserid;
+    }
+
+    public Integer getBatchRecordId() {
+        return batchRecordId;
+    }
+
+    public void setBatchRecordId(Integer batchRecordId) {
+        this.batchRecordId = batchRecordId;
+    }
+
+    public Integer getReviewState() {
+        return reviewState;
+    }
+
+    public void setReviewState(Integer reviewState) {
+        this.reviewState = reviewState;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException{
+        return (RechargeRecord)super.clone();
     }
 }

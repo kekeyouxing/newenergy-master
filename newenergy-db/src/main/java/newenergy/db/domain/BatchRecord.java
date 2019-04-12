@@ -11,20 +11,20 @@ public class BatchRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private int id;
+    private Integer id;
     private String company;
     private LocalDateTime rechargeTime;
-    private int batchAdmin;
+    private Integer batchAdmin;
     private LocalDateTime safeChangedTime;
-    private int safeChangedUserId;
-    private int safeDelete;
-    private int safeParent;
+    private Integer safeChangedUserid;
+    private Integer safeDelete;
+    private Integer safeParent;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -44,37 +44,37 @@ public class BatchRecord {
         this.rechargeTime = rechargeTime;
     }
 
-    public int getBatchAdmin() {
+    public Integer getBatchAdmin() {
         return batchAdmin;
     }
 
-    public void setBatchAdmin(int batchAdmin) {
+    public void setBatchAdmin(Integer batchAdmin) {
         this.batchAdmin = batchAdmin;
     }
 
 
 
-    public int getSafeChangedUserId() {
-        return safeChangedUserId;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setSafeChangedUserId(int safeChangedUserId) {
-        this.safeChangedUserId = safeChangedUserId;
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 
-    public int getSafeDelete() {
+    public Integer getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(int safeDelete) {
+    public void setSafeDelete(Integer safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public int getSafeParent() {
+    public Integer getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(int safeParent) {
+    public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
     }
 

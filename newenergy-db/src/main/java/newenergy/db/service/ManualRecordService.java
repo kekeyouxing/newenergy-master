@@ -17,8 +17,8 @@ public class ManualRecordService {
         return manualRecordRepository.findAll();
     }
 
-    public void save(ManualRecord newenergyManualRecord){
-        manualRecordRepository.save(newenergyManualRecord);
+    public void save(ManualRecord manualRecord){
+        manualRecordRepository.save(manualRecord);
     }
 
     public void deleteById(int id){
