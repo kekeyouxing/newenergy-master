@@ -6,35 +6,36 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "recharge_record")
-public class RechargeRecord {
+public class RechargeRecord implements Cloneable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private int id;
+    private Integer id;
     private String registerId;
-    private int amount;
+    private Integer amount;
     private LocalDateTime rechargeTime;
     private BigDecimal rechargeVolume;
     private BigDecimal remainVolume;
     private BigDecimal updatedVolume;
+    private String orderSn;
     private String userName;
     private String userPhone;
-    private int state;
-    private int delegate;
+    private Integer state;
+    private Integer delegate;
     private String transactionId;
     private LocalDateTime safeChangedTime;
-    private int safeChangedUserId;
-    private int safeDelete;
-    private int safeParent;
-    private int batchRecordId;
-    private int reviewState;
+    private Integer safeChangedUserid;
+    private Integer safeDelete;
+    private Integer safeParent;
+    private Integer batchRecordId;
+    private Integer reviewState;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -46,11 +47,11 @@ public class RechargeRecord {
         this.registerId = registerId;
     }
 
-    public int getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
 
@@ -102,19 +103,19 @@ public class RechargeRecord {
         this.userPhone = userPhone;
     }
 
-    public int getState() {
+    public Integer getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
-    public int getDelegate() {
+    public Integer getDelegate() {
         return delegate;
     }
 
-    public void setDelegate(int delegate) {
+    public void setDelegate(Integer delegate) {
         this.delegate = delegate;
     }
 
@@ -134,43 +135,56 @@ public class RechargeRecord {
         this.safeChangedTime = safeChangedTime;
     }
 
-    public int getSafeChangedUserId() {
-        return safeChangedUserId;
-    }
-
-    public void setSafeChangedUserId(int safeChangedUserId) {
-        this.safeChangedUserId = safeChangedUserId;
-    }
-
-    public int getSafeDelete() {
+    public Integer getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(int safeDelete) {
+    public void setSafeDelete(Integer safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public int getSafeParent() {
+    public Integer getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(int safeParent) {
+    public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
     }
 
-    public int getBatchRecordId() {
+    public String getOrderSn() {
+        return orderSn;
+    }
+
+    public void setOrderSn(String orderSn) {
+        this.orderSn = orderSn;
+    }
+
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
+    }
+
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
+    }
+
+    public Integer getBatchRecordId() {
         return batchRecordId;
     }
 
-    public void setBatchRecordId(int batchRecordId) {
+    public void setBatchRecordId(Integer batchRecordId) {
         this.batchRecordId = batchRecordId;
     }
 
-    public int getReviewState() {
+    public Integer getReviewState() {
         return reviewState;
     }
 
-    public void setReviewState(int reviewState) {
+    public void setReviewState(Integer reviewState) {
         this.reviewState = reviewState;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException{
+        return (RechargeRecord)super.clone();
     }
 }

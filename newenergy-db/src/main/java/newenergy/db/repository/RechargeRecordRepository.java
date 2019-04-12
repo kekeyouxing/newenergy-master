@@ -19,6 +19,12 @@ public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,I
 
     List<RechargeRecord> findAllBySafeDelete(Integer state);
 
-    public RechargeRecord findFirstByOrderSn(String orderSn);
+    List<RechargeRecord> findAllByBatchRecordIdAndSafeDelete(Integer batch_record_id,Integer safe_delete);
+
+    List<RechargeRecord> findAllByReviewStateAndSafeDelete(Integer review_state,Integer safe_delete);
+
+    List<RechargeRecord> findAllByBatchRecordIdAndReviewStateAndSafeDelete(Integer batch_record_id,Integer review_state,Integer safe_delete);
+
+    RechargeRecord findFirstByOrderSn(String orderSn);
 
 }

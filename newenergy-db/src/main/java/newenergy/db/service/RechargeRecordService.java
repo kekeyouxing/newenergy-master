@@ -6,7 +6,10 @@ import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RechargeRecordService extends LogicOperation<RechargeRecord> {
@@ -58,11 +61,33 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
 
     }
 
+    public List<RechargeRecord> findByBatchRecordAndReviewState(Integer batchRecordId,Integer reviewState,Integer safeDelete){
+        if ((batchRecordId==-1)&&(reviewState == -1)){
+            return repository.findAllBySafeDelete(safeDelete);
+        }else if (batchRecordId==-1){
+            return repository.findAllByReviewStateAndSafeDelete(reviewState,safeDelete);
+        }else if (reviewState==-1){
+            return repository.findAllByBatchRecordIdAndSafeDelete(batchRecordId,safeDelete);
+        }else {
+            return repository.findAllByBatchRecordIdAndReviewStateAndSafeDelete(batchRecordId,reviewState,safeDelete);
+        }
+    }
     public RechargeRecord findById(int id){
         if (repository.findAllById(id).size()==0){
             return null;
         }else {
             return repository.findAllById(id).get(0);
         }
+    }
+
+    //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性
+    public String generateOrderSn(){
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String now = df.format(LocalDate.now());
+        int hashCodev = UUID.randomUUID().toString().hashCode();
+        if (hashCodev < 0){
+            hashCodev =- hashCodev;
+        }
+        return "pk"+now+String.format("%012d",hashCodev);
     }
 }

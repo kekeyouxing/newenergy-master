@@ -10,21 +10,21 @@ public class BatchCredential {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String company;
     private LocalDateTime rechargeTime;
     private String imgUrl;
-    private int batchRecordId;
+    private Integer batchRecordId;
     private LocalDateTime safeChangedTime;
-    private int safeChangedUserId;
-    private int safeDelete;
-    private int safeParent;
+    private Integer safeChangedUserid;
+    private Integer safeDelete;
+    private Integer safeParent;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -52,35 +52,35 @@ public class BatchCredential {
         this.imgUrl = imgUrl;
     }
 
-    public int getBatchRecordId() {
+    public Integer getBatchRecordId() {
         return batchRecordId;
     }
 
-    public void setBatchRecordId(int batchRecordId) {
+    public void setBatchRecordId(Integer batchRecordId) {
         this.batchRecordId = batchRecordId;
     }
 
-    public int getSafeChangedUserId() {
-        return safeChangedUserId;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setSafeChangedUserId(int safeChangedUserId) {
-        this.safeChangedUserId = safeChangedUserId;
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 
-    public int getSafeDelete() {
+    public Integer getSafeDelete() {
         return safeDelete;
     }
 
-    public void setSafeDelete(int safeDelete) {
+    public void setSafeDelete(Integer safeDelete) {
         this.safeDelete = safeDelete;
     }
 
-    public int getSafeParent() {
+    public Integer getSafeParent() {
         return safeParent;
     }
 
-    public void setSafeParent(int safeParent) {
+    public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
     }
 

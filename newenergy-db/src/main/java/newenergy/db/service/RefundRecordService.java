@@ -68,4 +68,8 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
         }
     }
 
+    public void save(RefundRecord refundRecord){
+        repository.save(refundRecord);
+    }
+
 }

@@ -1,7 +1,5 @@
 package newenergy.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,18 +10,18 @@ public class ManualRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private int id;
+    private Integer id;
     private LocalDateTime operateTime;
-    private int event;
-    private int laborId;
-    private int laborIp;
-    private int recordId;
+    private Integer event;
+    private Integer laborId;
+    private Integer laborIp;
+    private Integer recordId;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -35,35 +33,35 @@ public class ManualRecord {
         this.operateTime = operateTime;
     }
 
-    public int getEvent() {
+    public Integer getEvent() {
         return event;
     }
 
-    public void setEvent(int event) {
+    public void setEvent(Integer event) {
         this.event = event;
     }
 
-    public int getLaborId() {
+    public Integer getLaborId() {
         return laborId;
     }
 
-    public void setLaborId(int laborId) {
+    public void setLaborId(Integer laborId) {
         this.laborId = laborId;
     }
 
-    public int getLaborIp() {
+    public Integer getLaborIp() {
         return laborIp;
     }
 
-    public void setLaborIp(int laborIp) {
+    public void setLaborIp(Integer laborIp) {
         this.laborIp = laborIp;
     }
 
-    public int getRecordId() {
+    public Integer getRecordId() {
         return recordId;
     }
 
-    public void setRecordId(int recordId) {
+    public void setRecordId(Integer recordId) {
         this.recordId = recordId;
     }
 }
