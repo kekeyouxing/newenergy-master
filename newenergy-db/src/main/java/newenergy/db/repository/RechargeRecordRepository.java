@@ -31,4 +31,6 @@ public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,I
 
     public RechargeRecord findFirstByOrderSn(String orderSn);
 
+    List<RechargeRecord> findAll(Specification<RechargeRecord> specification, Sort sort);
+
 }
