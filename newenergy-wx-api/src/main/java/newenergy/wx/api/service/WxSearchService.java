@@ -79,7 +79,7 @@ public class WxSearchService {
     public Object rechargeRecordInfo(String body) {
         Map<String, Object> remainWaterResult = (Map<String, Object>) remainWaterInfo(body);
         if(0 != (Integer) remainWaterResult.get("errno")) {
-            return ResponseUtil.fail();
+            return remainWaterResult;
         }
         String registerId = JacksonUtil.parseString(body, "registerId");
         Integer year = JacksonUtil.parseInteger(body, "year");
