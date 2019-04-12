@@ -1,6 +1,8 @@
 package newenergy.db.repository;
 
 import newenergy.db.domain.RechargeRecord;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,5 +28,7 @@ public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,I
     List<RechargeRecord> findAllByBatchRecordIdAndReviewStateAndSafeDelete(Integer batch_record_id,Integer review_state,Integer safe_delete);
 
     RechargeRecord findFirstByOrderSn(String orderSn);
+
+    List<RechargeRecord> findAll(Specification<RechargeRecord> specification, Sort sort);
 
 }

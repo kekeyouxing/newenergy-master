@@ -9,5 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ResidentRepository extends JpaRepository<Resident, Integer>, JpaSpecificationExecutor<Resident> {
-    public Resident findFirstByRegisterId(String register_id);
+    Resident findFirstByRegisterId(String register_id);
+    Resident findFirstByUserNameAndRegisterIdAndSafeDelete(String username, String registerId, Integer safeDelete);
 }
