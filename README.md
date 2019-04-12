@@ -1,15 +1,10 @@
 
-## 0. fork项目到自己的仓库
-
-![](imgs/fork.png)
-
 ## 1. 克隆项目的dev分支  
 
-复制仓库地址，使用`ssh`方式需要在设置中添加本机的公钥 
+复制仓库地址
  
 ![](imgs/clone.png)
 
-这里使用自己的`github`仓库的地址
 ```
 git clone -b dev git@github.com:SimpleFate/newenergy.git
 ```
@@ -96,17 +91,7 @@ git clone -b dev git@github.com:SimpleFate/newenergy.git
 
     ![](imgs/p11-2.png)
     
-## 4. 提交 `pull request`
 
-![](imgs/pullrequest0.png)
-
-请求合并自己的`dev`分支
-
-![](imgs/pullrequest1.png)
-
-添加相关的提交描述
-
-![](imgs/pullrequest2.png)
 
 
 
