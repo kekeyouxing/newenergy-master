@@ -49,7 +49,9 @@ public class CorrPumpController {
         return ResponseUtil.ok(options);
     }
 
+    //增加机房信息
     @PostMapping("/create")
+    //改成小区+机房，数据库多加一个字段，编号为4位
     public Object create(@RequestBody CorrPump corrPump, @RequestParam Integer userid){
         List<CorrPump> corrPumps = corrPumpService.findAll();
         String pump_num = getNumCode.getTwoNum(corrPumps.size());
@@ -57,4 +59,23 @@ public class CorrPumpController {
         CorrPump corrPump1 = corrPumpService.addCorrPump(corrPump, userid);
         return ResponseUtil.ok(corrPump1);
     }
+
+    //修改机房信息
+    @PostMapping("/update")
+    public Object update(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+        corrPumpService.updateCorrPump(corrPump, userid);
+        return ResponseUtil.ok();
+    }
+
+    //删除记录
+    @PostMapping("/delete")
+    public Object delete(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+        Integer id = corrPump.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        corrPumpService.deleteCorrPump(id, userid);
+        return ResponseUtil.ok();
+    }
 }
+

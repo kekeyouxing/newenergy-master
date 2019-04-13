@@ -49,6 +49,16 @@ public class CorrAddressService extends LogicOperation<CorrAddress> {
         return addRecord(corrAddress, userid, corrAddressRepository);
     }
 
+    //修改记录
+    public CorrAddress updateCorrAddress(CorrAddress corrAddress, Integer userid) {
+        return updateRecord(corrAddress, userid, corrAddressRepository);
+    }
+
+    //删除记录
+    public void deleteCorrAddress(Integer id, Integer userid) {
+        deleteRecord(id, userid, corrAddressRepository);
+    }
+
 
     //多条件动态查询
     private Specification<CorrAddress> getListSpecification(String address_dlt) {

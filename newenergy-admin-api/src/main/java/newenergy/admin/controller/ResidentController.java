@@ -54,5 +54,24 @@ public class ResidentController {
         return ResponseUtil.ok(resident1);
     }
 
+    //修改居民信息
+    @PostMapping("/update")
+    public Object update(@RequestBody Resident resident, @RequestParam Integer userid) {
+        residentService.updateResident(resident, userid);
+        return ResponseUtil.ok();
+
+    }
+
+    //删除居民信息
+    @PostMapping("/delete")
+    public Object delete(@RequestBody Resident resident, @RequestParam Integer userid) {
+        Integer id = resident.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        residentService.deleteResident(id, userid);
+        return ResponseUtil.ok();
+    }
+
 
 }

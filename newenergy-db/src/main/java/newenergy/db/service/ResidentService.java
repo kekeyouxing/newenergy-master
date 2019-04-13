@@ -51,6 +51,16 @@ public class ResidentService extends LogicOperation<Resident> {
         return addRecord(resident, userid, residentRepository);
     }
 
+    //修改记录
+    public Resident updateResident(Resident resident, Integer userid) {
+        return updateRecord(resident, userid, residentRepository);
+    }
+
+    //删除记录
+    public void deleteResident(Integer id, Integer userid) {
+        deleteRecord(id, userid, residentRepository);
+    }
+
     private Specification<Resident> getListSpecification(String user_name, List<String> address_nums) {
         //动态添加搜索条件
         Specification<Resident> specification = new Specification<Resident>() {
