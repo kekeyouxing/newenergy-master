@@ -51,6 +51,20 @@ public class ResidentService extends LogicOperation<Resident> {
         return addRecord(resident, userid, residentRepository);
     }
 
+    /**
+     * 验证户主名与登记号是否一致，默认查找的安全属性safeDelete为0
+     * @param username 户主名
+     * @param registerId 登记号
+     * @return boolean
+     */
+    public boolean verifyUserNameAndRegisterId(String username, String registerId){
+        Resident resident = residentRepository.findFirstByUserNameAndRegisterIdAndSafeDelete(username, registerId, 0);
+        if(resident != null) {
+            return true;
+        }
+        return false;
+    }
+
     //修改记录
     public Resident updateResident(Resident resident, Integer userid) {
         return updateRecord(resident, userid, residentRepository);

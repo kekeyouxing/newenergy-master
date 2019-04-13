@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/wx/order")
@@ -16,12 +17,12 @@ public class WxOrderController {
     private WxOrderService wxOrderService;
 
     @PostMapping("submit")
-    public Object submit(@RequestBody String body){
-        return wxOrderService.submit(body);
+    public Object submit(@RequestBody String body,HttpServletRequest request){
+        return wxOrderService.submit(body,request);
     }
 
-    @PostMapping("prepay")
-    public Object prepay(@RequestBody String body, HttpServletRequest request){
-        return wxOrderService.prepay(body,request);
+    @PostMapping("pay-notify")
+    public Object payNotify(HttpServletRequest request, HttpServletResponse response){
+        return wxOrderService.payNotify(request,response);
     }
 }
