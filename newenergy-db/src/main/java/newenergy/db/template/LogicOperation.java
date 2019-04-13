@@ -51,27 +51,12 @@ public class LogicOperation<T> {
      * @return 修改后的新记录
      */
     protected T updateRecord(T record, Integer userid, JpaRepository<T,Integer> repository){
-//        Integer id = getId(record);
-//        if(Objects.isNull(id))
-//            return null;
-//        T origin = repository.findById(id).orElse(null);
-//        if(Objects.isNull(origin))
-//            return null;
-//        setSafeDelete(1,origin);
-//
-//        setSafeDelete(0,record);
-//        setSafeChangedTime(LocalDateTime.now(),record);
-//        setSafeChangedUserid(userid,record);
-//        setSafeParent(id,record);
-//        setId(null, record);
-//        return repository.save(record);
         Integer originId = getId(record);
         if(Objects.isNull(originId))
             return null;
         T origin = repository.findById(originId).orElse(null);
-        if(Objects.isNull(origin))
-            return null;
-
+        if(Objects.isNull(origin)) return null;
+        if(getSafeDelete(origin).equals(1)) return null;
         T backup = (T)getCopy(origin);
         setId(null,backup);
         setSafeDelete(1,backup);
@@ -99,6 +84,7 @@ public class LogicOperation<T> {
     protected void deleteRecord(Integer id, Integer userid, JpaRepository<T,Integer> repository){
         T record = repository.findById(id).orElse(null);
         if(Objects.isNull(record)) return;
+        if(getSafeDelete(record).equals(1)) return;
         T update;
         try{
             update = (T)getBlank(record);
