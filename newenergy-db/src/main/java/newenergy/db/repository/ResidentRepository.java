@@ -11,4 +11,8 @@ import java.util.List;
 public interface ResidentRepository extends JpaRepository<Resident, Integer>, JpaSpecificationExecutor<Resident> {
     Resident findFirstByRegisterId(String register_id);
     Resident findFirstByUserNameAndRegisterIdAndSafeDelete(String username, String registerId, Integer safeDelete);
+    /**
+     * by Zeng Hui
+     */
+    Resident findFirstByRegisterIdAndSafeDelete(String registerId, Integer safeDelete);
 }

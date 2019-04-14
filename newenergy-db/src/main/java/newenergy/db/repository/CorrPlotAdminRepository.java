@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * Created by HUST Corey on 2019-04-11.
  */
 public interface CorrPlotAdminRepository extends JpaRepository<CorrPlotAdmin,Integer> {
-
+    public CorrPlotAdmin findFirstByPlotNumAndSafeDelete(String plotNum, Integer safeDelete);
 }

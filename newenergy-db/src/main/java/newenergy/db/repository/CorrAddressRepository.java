@@ -10,4 +10,8 @@ import java.util.List;
 @Repository
 public interface CorrAddressRepository extends JpaRepository<CorrAddress, Integer>, JpaSpecificationExecutor<CorrAddress> {
     public List<CorrAddress> findBySafeDelete(Integer safe_delete);
+    /**
+     * by Zeng Hui
+     */
+    CorrAddress findByAddressNumAndSafeDelete(String addressNum, Integer safeDelete);
 }
