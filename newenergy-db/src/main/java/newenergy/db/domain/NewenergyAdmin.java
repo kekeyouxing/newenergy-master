@@ -10,6 +10,8 @@ public class NewenergyAdmin {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private String realName;
+
     private String username;
 
     private String password;
@@ -21,6 +23,18 @@ public class NewenergyAdmin {
     private LocalDateTime addTime;
 
     private LocalDateTime updateTime;
+
+    private String openid;
+
+    private String phone;
+
+    private String address;
+
+    private String email;
+
+    private Integer addUserid;
+
+    private Integer updateUserid;
 
     private Boolean deleted;
 
@@ -96,5 +110,61 @@ public class NewenergyAdmin {
 
     public void setRoleIds(Integer[] roleIds) {
         this.roleIds = roleIds;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getOpenid() {
+        return openid;
+    }
+
+    public void setOpenid(String openid) {
+        this.openid = openid;
+    }
+
+    public Integer getAddUserid() {
+        return addUserid;
+    }
+
+    public void setAddUserid(Integer addUserid) {
+        this.addUserid = addUserid;
+    }
+
+    public Integer getUpdateUserid() {
+        return updateUserid;
+    }
+
+    public void setUpdateUserid(Integer updateUserid) {
+        this.updateUserid = updateUserid;
     }
 }

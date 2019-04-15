@@ -1,5 +1,6 @@
 package newenergy.admin.shiro;
 
+import newenergy.admin.util.AdminManager;
 import newenergy.core.util.bcrypt.BCryptPasswordEncoder;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.NewenergyPermissionService;
@@ -53,7 +54,7 @@ public class AdminAuthorizingRealm extends AuthorizingRealm {
         if (!encoder.matches(password, admin.getPassword())) {
             throw new UnknownAccountException("找不到用户（"+username+"）的帐号信息");
         }
-
+        AdminManager.setAdmin(admin);
         return new SimpleAuthenticationInfo(admin,password,getName());
     }
 

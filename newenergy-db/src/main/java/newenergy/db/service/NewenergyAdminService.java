@@ -29,7 +29,6 @@ public class NewenergyAdminService {
         return adminRepository.getAllByUsernameAndDeletedIsFalse(username);
 
     }
-
     public Page<NewenergyAdmin> querySelective(String username, Integer page, Integer size){
 
         Pageable pageable = PageRequest.of(page, size);
@@ -60,9 +59,6 @@ public class NewenergyAdminService {
 
     public void add(NewenergyAdmin admin){
 
-        admin.setAddTime(LocalDateTime.now());
-        admin.setUpdateTime(LocalDateTime.now());
-        admin.setDeleted(false);
         adminRepository.saveAndFlush(admin);
 
     }
