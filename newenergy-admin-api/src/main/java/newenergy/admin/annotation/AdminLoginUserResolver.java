@@ -1,6 +1,6 @@
 package newenergy.admin.annotation;
 
-import newenergy.admin.util.AdminManager;
+//import newenergy.admin.util.AdminManager;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -18,6 +18,7 @@ public class AdminLoginUserResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
                                   NativeWebRequest request, WebDataBinderFactory factory) throws Exception {
         System.out.println("");
-        return AdminManager.getAdminId();
+        return null;
+//        return AdminManager.getAdminId();
     }
 }
