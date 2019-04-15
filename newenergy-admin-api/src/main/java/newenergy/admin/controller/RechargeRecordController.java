@@ -47,15 +47,6 @@ public class RechargeRecordController {
         return rechargeRecordService.findByBatchRecordAndReviewState(batchRecordId,reviewState,safeDelete);
     }
 
-//    //    添加批量充值
-//    @RequestMapping(value = "/add", method = RequestMethod.POST)
-//    public Object add(@RequestParam Integer operatorId,
-//                      @RequestBody BatchAndRecharge batchAndRecharge){
-//        BatchAndRecharge batchAndRecharge1 = new BatchAndRecharge();
-//        return batchAndRecharge.getRechargeRecords().size();
-//    }
-
-
     //    充值订单审核
     @RequestMapping(value = "/review", method = RequestMethod.POST)
     public Object review(@RequestBody String string,
@@ -66,6 +57,11 @@ public class RechargeRecordController {
             JSONObject jsonObject= jsonArray.getJSONObject(i);
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(jsonObject.getInt("id")).clone();
             rechargeRecord.setReviewState(jsonObject.getInt("reviewState"));
+            if (jsonObject.getInt("reviewState")==2){
+                rechargeRecord.setState(1);
+            }else {
+                rechargeRecord.setState(0);
+            }
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,operatorId);
             ManualRecord manualRecord = new ManualRecord();
             manualRecord.setLaborId(operatorId);

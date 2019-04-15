@@ -61,6 +61,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
 
     }
 
+//    根据批量充值记录id,审核状态查询充值记录,当批量充值id为-1,审核状态为-1,则查询所有的批量充值记录,否则按条件查询
     public List<RechargeRecord> findByBatchRecordAndReviewState(Integer batchRecordId,Integer reviewState,Integer safeDelete){
         if ((batchRecordId==-1)&&(reviewState == -1)){
             return repository.findAllBySafeDelete(safeDelete);
@@ -72,6 +73,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             return repository.findAllByBatchRecordIdAndReviewStateAndSafeDelete(batchRecordId,reviewState,safeDelete);
         }
     }
+
+//    根据id查询批量充值记录
     public RechargeRecord findById(int id){
         if (repository.findAllById(id).size()==0){
             return null;
