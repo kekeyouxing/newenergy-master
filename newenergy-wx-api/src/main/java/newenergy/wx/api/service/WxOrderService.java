@@ -20,11 +20,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,17 +35,22 @@ import java.time.LocalDateTime;
 import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
 
 @Service
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class WxOrderService {
     private final Log logger = LogFactory.getLog(WxOrderService.class);
 
     @Autowired
     private RechargeRecordService rechargeRecordService;
+
     @Autowired
     private WxPayService wxPayService;
+
     @Autowired
     private ExtraWaterService extraWaterService;
+
     @Autowired
     private ResidentService residentService;
+
     @Autowired
     private CorrPlotService corrPlotService;
 
