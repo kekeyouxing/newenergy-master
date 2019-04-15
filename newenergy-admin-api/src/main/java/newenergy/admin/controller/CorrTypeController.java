@@ -46,7 +46,7 @@ public class CorrTypeController {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrType.getTypeNum());
             option.put("label", corrType.getTypeDtl());
-            option.put("rated_flow", corrType.getRatedFlow());
+            option.put("ratedFlow", corrType.getRatedFlow());
             options.add(option);
         }
         return ResponseUtil.ok(options);

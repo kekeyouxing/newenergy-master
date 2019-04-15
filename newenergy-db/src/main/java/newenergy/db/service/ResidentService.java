@@ -19,8 +19,7 @@ public class ResidentService extends LogicOperation<Resident> {
     @Autowired
     private ResidentRepository residentRepository;
 
-    //根据搜索条件查找
-    /*
+    /**
     * @Param
     * @Param address_nums 装机地址模糊查询对应编号
     * @return 返回十页的resident数据
@@ -33,7 +32,7 @@ public class ResidentService extends LogicOperation<Resident> {
         return residentRepository.findAll(specification, pageable);
     }
 
-    /*查找同一地址同一房间的装机纪录
+    /**查找同一地址同一房间的装机纪录
      * @Param  address_num  地址编号
      * @Param  room_num    房间号
      * @return
@@ -65,12 +64,30 @@ public class ResidentService extends LogicOperation<Resident> {
         return false;
     }
 
-    //修改记录
+    /**
+     * 根据小区编号查找居民用户
+     * @Param plot_num 小区编号
+     * @return List<resident>
+     */
+    public List<Resident> findByPlotNum(String plotNum) {
+        return residentRepository.findByPlotNumAndSafeDelete(plotNum,0);
+    }
+
+    /**
+     * 修改居民用户表记录
+     * @param resident
+     * @param userid  操作人id
+     * @return
+     */
     public Resident updateResident(Resident resident, Integer userid) {
         return updateRecord(resident, userid, residentRepository);
     }
 
-    //删除记录
+    /**
+     * 删除居民用户记录
+     * @param id    删除记录的id
+     * @param userid   操作人id
+     */
     public void deleteResident(Integer id, Integer userid) {
         deleteRecord(id, userid, residentRepository);
     }

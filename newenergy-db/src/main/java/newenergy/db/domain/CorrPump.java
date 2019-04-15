@@ -14,8 +14,11 @@ public class CorrPump {
     @Column(length = 2)
     private String pumpNum;
 
+    //机房所在小区
+    private String pumpPlot;
+
     //机房信息
-    private String pumpDlt;
+    private Integer pumpDlt;
 
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
@@ -46,11 +49,19 @@ public class CorrPump {
         this.pumpNum = pumpNum;
     }
 
-    public String getPumpDlt() {
+    public String getPumpPlot() {
+        return pumpPlot;
+    }
+
+    public void setPumpPlot(String pumpPlot) {
+        this.pumpPlot = pumpPlot;
+    }
+
+    public Integer getPumpDlt() {
         return pumpDlt;
     }
 
-    public void setPumpDlt(String pumpDlt) {
+    public void setPumpDlt(Integer pumpDlt) {
         this.pumpDlt = pumpDlt;
     }
 
