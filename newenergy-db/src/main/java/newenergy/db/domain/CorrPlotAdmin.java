@@ -1,30 +1,23 @@
 package newenergy.db.domain;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Created by HUST Corey on 2019-03-27.
+ * Created by HUST Corey on 2019-04-11.
  */
 @Entity
 @Table(
-        name = "device_require",
-        indexes = {
-                @Index(columnList = "plotInfo")
-        }
+        name = "corr_plot_admin",
+        indexes = @Index(columnList = "plotNum")
 )
-public class DeviceRequire {
+public class CorrPlotAdmin {
     @Id
     @GeneratedValue
     private Integer id;
-    private String plotInfo;
-
-    private BigDecimal requireVolume;
-    private LocalDateTime updateTime;
-
-    private Integer updateLoop;
-
+    private String plotNum;
+    private Integer monitorId;
+    private Integer servicerId;
     private LocalDateTime safeChangedTime;
     private Integer safeChangedUserid;
     private Integer safeDelete;
@@ -38,36 +31,28 @@ public class DeviceRequire {
         this.id = id;
     }
 
-    public String getPlotInfo() {
-        return plotInfo;
+    public String getPlotNum() {
+        return plotNum;
     }
 
-    public void setPlotInfo(String plotInfo) {
-        this.plotInfo = plotInfo;
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
-    public BigDecimal getRequireVolume() {
-        return requireVolume;
+    public Integer getMonitorId() {
+        return monitorId;
     }
 
-    public void setRequireVolume(BigDecimal requireVolume) {
-        this.requireVolume = requireVolume;
+    public void setMonitorId(Integer monitorId) {
+        this.monitorId = monitorId;
     }
 
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
+    public Integer getServicerId() {
+        return servicerId;
     }
 
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getUpdateLoop() {
-        return updateLoop;
-    }
-
-    public void setUpdateLoop(Integer updateLoop) {
-        this.updateLoop = updateLoop;
+    public void setServicerId(Integer servicerId) {
+        this.servicerId = servicerId;
     }
 
     public LocalDateTime getSafeChangedTime() {
@@ -101,5 +86,4 @@ public class DeviceRequire {
     public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
     }
-
 }
