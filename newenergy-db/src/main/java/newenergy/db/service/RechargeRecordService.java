@@ -1,7 +1,9 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.RechargeRecord;
+import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.RechargeRecordRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -25,6 +27,14 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     @Autowired
     private RechargeRecordRepository repository;
 
+    /**
+     * 通过商户订单号获取订单
+     * @param orderSn
+     * @return RechargeRecord
+     */
+    public RechargeRecord findBySn(String orderSn){
+        return repository.findFirstByOrderSn(orderSn);
+    }
     /**
      * 添加记录
      * @param require 不包括id

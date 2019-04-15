@@ -11,8 +11,10 @@ import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.ExtraWater;
 import newenergy.db.domain.RechargeRecord;
+import newenergy.db.service.CorrPlotService;
 import newenergy.db.service.ExtraWaterService;
 import newenergy.db.service.RechargeRecordService;
+import newenergy.db.service.ResidentService;
 import newenergy.wx.api.util.IpUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -39,6 +41,10 @@ public class WxOrderService {
     private WxPayService wxPayService;
     @Autowired
     private ExtraWaterService extraWaterService;
+    @Autowired
+    private ResidentService residentService;
+    @Autowired
+    private CorrPlotService corrPlotService;
 
     @Transactional
     public Object submit(String body,HttpServletRequest request){
@@ -59,9 +65,11 @@ public class WxOrderService {
         order = new RechargeRecord();
         order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
-        String plot_num = rechargeRecordService.findByRegisterId(deviceid);
-        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
-        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
+        String plot_num = residentService.findPlotNumByRegisterid(deviceid);
+//        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
+        BigDecimal plot_factor = new BigDecimal(corrPlotService.findPlotFacByPlotNum(plot_num));
+//        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
+        BigDecimal recharge_volumn = acturalAmount.multiply(plot_factor);
         order.setOrderSn(rechargeRecordService.generateOrderSn());
         order.setRechargeVolume(recharge_volumn);
         WxPayMpOrderResult result = null;
@@ -128,7 +136,8 @@ public class WxOrderService {
         //TODO 发送邮件和短信通知，这里采用异步发送
 
         ExtraWater extraWater = null;
-        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
+        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),null);
+//        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
 //        extraWater.setRegisterId(order.getRegister_id());
 //        extraWater.setRecord_id(null);
 //        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
