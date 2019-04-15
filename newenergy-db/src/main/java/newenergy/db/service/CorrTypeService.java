@@ -39,6 +39,16 @@ public class CorrTypeService extends LogicOperation<CorrType> {
         return addRecord(corrType, userid, corrTypeRepository);
     }
 
+    //修改记录
+    public CorrType updateCorrType(CorrType corrType, Integer userid) {
+        return updateRecord(corrType, userid, corrTypeRepository);
+    }
+
+    //删除记录
+    public void deleteCorrType(Integer id, Integer userid) {
+        deleteRecord(id, userid, corrTypeRepository);
+    }
+
     private Specification<CorrType> getListSpecification(String type_dlt) {
         Specification<CorrType> specification = new Specification<CorrType>() {
             @Override

@@ -28,6 +28,7 @@ public class CorrPlotController {
     public Object list(String plot_dtl,
                        @RequestParam(defaultValue = "0") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
+        System.out.println("列表显示");
         Page<CorrPlot> pagePlot = corrPlotService.querySelective(plot_dtl, page, limit);
         List<CorrPlot> corrPlots = pagePlot.getContent();
         int total = pagePlot.getNumberOfElements();
@@ -55,11 +56,31 @@ public class CorrPlotController {
     //新增小区信息
     @PostMapping("/create")
     public Object create(@RequestBody CorrPlot corrPlot, @RequestParam Integer userid) {
+        System.out.println("增加啦");
+        System.out.println(corrPlot.getPlotDtl());
         List<CorrPlot> corrPlots = corrPlotService.findAll();
         String plot_num = getNumCode.getTwoNum(corrPlots.size());
         corrPlot.setPlotNum(plot_num);
         CorrPlot corrPlot1 = corrPlotService.addCorrPlot(corrPlot, userid);
         return ResponseUtil.ok(corrPlot1);
+    }
+
+    //修改小区信息
+    @PostMapping("/update")
+    public Object update(@RequestBody CorrPlot corrPlot, @RequestParam Integer userid) {
+        corrPlotService.updateCorrPlot(corrPlot, userid);
+        return ResponseUtil.ok();
+    }
+
+    //删除小区信息
+    @PostMapping("/delete")
+    public Object delete(@RequestBody CorrPlot corrPlot, @RequestParam Integer userid) {
+        Integer id = corrPlot.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        corrPlotService.deleteCorrPlot(id, userid);
+        return ResponseUtil.ok();
     }
 
 }

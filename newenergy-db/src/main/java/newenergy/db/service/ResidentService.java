@@ -19,8 +19,7 @@ public class ResidentService extends LogicOperation<Resident> {
     @Autowired
     private ResidentRepository residentRepository;
 
-    //根据搜索条件查找
-    /*
+    /**
     * @Param
     * @Param address_nums 装机地址模糊查询对应编号
     * @return 返回十页的resident数据
@@ -33,7 +32,7 @@ public class ResidentService extends LogicOperation<Resident> {
         return residentRepository.findAll(specification, pageable);
     }
 
-    /*查找同一地址同一房间的装机纪录
+    /**查找同一地址同一房间的装机纪录
      * @Param  address_num  地址编号
      * @Param  room_num    房间号
      * @return
@@ -49,6 +48,56 @@ public class ResidentService extends LogicOperation<Resident> {
     //新增纪录
     public Resident addResident(Resident resident, Integer userid) {
         return addRecord(resident, userid, residentRepository);
+    }
+
+    /**
+     * 验证户主名与登记号是否一致，默认查找的安全属性safeDelete为0
+     * @param username 户主名
+     * @param registerId 登记号
+     * @return boolean
+     */
+    public boolean verifyUserNameAndRegisterId(String username, String registerId){
+        Resident resident = residentRepository.findFirstByUserNameAndRegisterIdAndSafeDelete(username, registerId, 0);
+        if(resident != null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 根据小区编号查找居民用户
+     * @Param plot_num 小区编号
+     * @return List<resident>
+     */
+    public List<Resident> findByPlotNum(String plotNum) {
+        return residentRepository.findByPlotNumAndSafeDelete(plotNum,0);
+    }
+
+    /**
+     * 通过设备号查询所在小区编号
+     * @param register_id
+     * @return String plotNum-小区编号
+     */
+    public String findPlotNumByRegisterid(String register_id){
+        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
+    }
+    /**
+     * 修改居民用户表记录
+     * @param resident
+     * @param userid  操作人id
+     * @return
+     */
+    public Resident updateResident(Resident resident, Integer userid) {
+        return updateRecord(resident, userid, residentRepository);
+    }
+
+    /**
+     * 删除居民用户记录
+     * @param id    删除记录的id
+     * @param userid   操作人id
+     */
+    public void deleteResident(Integer id, Integer userid) {
+        deleteRecord(id, userid, residentRepository);
     }
 
     private Specification<Resident> getListSpecification(String user_name, List<String> address_nums) {

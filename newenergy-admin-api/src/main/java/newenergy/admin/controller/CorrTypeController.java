@@ -46,7 +46,7 @@ public class CorrTypeController {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrType.getTypeNum());
             option.put("label", corrType.getTypeDtl());
-            option.put("rated_flow", corrType.getRatedFlow());
+            option.put("ratedFlow", corrType.getRatedFlow());
             options.add(option);
         }
         return ResponseUtil.ok(options);
@@ -60,5 +60,23 @@ public class CorrTypeController {
         corrType.setTypeNum(type_num);
         CorrType corrType1 = corrTypeService.addCorrType(corrType, userid);
         return ResponseUtil.ok(corrType1);
+    }
+
+    //修改记录
+    @PostMapping("/update")
+    public Object update(@RequestBody CorrType corrType, @RequestParam Integer userid) {
+        corrTypeService.updateCorrType(corrType, userid);
+        return ResponseUtil.ok();
+    }
+
+    //删除记录
+    @PostMapping("/delete")
+    public Object delete(@RequestBody CorrType corrType, @RequestParam Integer userid) {
+        Integer id = corrType.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        corrTypeService.deleteCorrType(id, userid);
+        return ResponseUtil.ok();
     }
 }

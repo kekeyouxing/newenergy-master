@@ -51,7 +51,8 @@ public class CorrAddressController {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrAddress.getAddressNum());
             option.put("plot", corrAddress.getAddressPlot());
-            option.put("block", corrAddress.getAddressBlock()+"栋"+corrAddress.getAddressUnit() + "单元");
+            option.put("block", corrAddress.getAddressBlock()+"栋");
+            option.put("unit", corrAddress.getAddressUnit() + "单元");
             options.add(option);
         }
         return ResponseUtil.ok(options);
@@ -65,5 +66,23 @@ public class CorrAddressController {
         corrAddress.setAddressNum(adress_num);
         CorrAddress corrAddress1 = corrAddressService.addCorrAddress(corrAddress, userid);
         return ResponseUtil.ok(corrAddress1);
+    }
+
+    //修改地址信息表数据
+    @PostMapping("/update")
+    public Object update(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+        corrAddressService.updateCorrAddress(corrAddress, userid);
+        return ResponseUtil.ok();
+    }
+
+    //删除地址信息表数据
+    @PostMapping("/delete")
+    public Object delete(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+        Integer id = corrAddress.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        corrAddressService.deleteCorrAddress(id, userid);
+        return ResponseUtil.ok();
     }
 }

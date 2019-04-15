@@ -1,6 +1,7 @@
 package newenergy.db.domain;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -19,7 +20,7 @@ public class DeviceRequire {
     private Integer id;
     private String plotInfo;
 
-    private Double requireVolume;
+    private BigDecimal requireVolume;
     private LocalDateTime updateTime;
 
     private Integer updateLoop;
@@ -45,11 +46,11 @@ public class DeviceRequire {
         this.plotInfo = plotInfo;
     }
 
-    public Double getRequireVolume() {
+    public BigDecimal getRequireVolume() {
         return requireVolume;
     }
 
-    public void setRequireVolume(Double requireVolume) {
+    public void setRequireVolume(BigDecimal requireVolume) {
         this.requireVolume = requireVolume;
     }
 

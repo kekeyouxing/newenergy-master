@@ -40,6 +40,16 @@ public class CorrPumpService extends LogicOperation<CorrPump> {
         return addRecord(corrPump, userid, corrPumpRepository);
     }
 
+    //修改记录
+    public CorrPump updateCorrPump(CorrPump corrPump, Integer userid) {
+        return updateRecord(corrPump, userid, corrPumpRepository);
+    }
+
+    //删除记录
+    public void deleteCorrPump(Integer id, Integer userid) {
+        deleteRecord(id, userid, corrPumpRepository);
+    }
+
     private Specification<CorrPump> getListSpecification(String pump_dlt) {
         Specification<CorrPump> specification = new Specification<CorrPump>() {
             @Override

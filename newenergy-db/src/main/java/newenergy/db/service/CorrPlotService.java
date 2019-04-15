@@ -43,6 +43,16 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         return addRecord(corrPlot, userid, corrPlotRepository);
     }
 
+    //修改数据
+    public CorrPlot updateCorrPlot(CorrPlot corrPlot, Integer userid) {
+        return updateRecord(corrPlot, userid, corrPlotRepository);
+    }
+
+    //删除数据
+    public void deleteCorrPlot(Integer id, Integer userid) {
+        deleteRecord(id, userid, corrPlotRepository);
+    }
+
     private Specification<CorrPlot> getListSpecification(String plot_dlt) {
         Specification<CorrPlot> specification = new Specification<CorrPlot>() {
             @Override
@@ -56,5 +66,14 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             }
         };
         return specification;
+    }
+
+    /**
+     * 通过小区号获取充值系数
+     * @param plot_num
+     * @return Double plotFactor 充值系数
+     */
+    public Double findPlotFacByPlotNum(String plot_num){
+        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
     }
 }

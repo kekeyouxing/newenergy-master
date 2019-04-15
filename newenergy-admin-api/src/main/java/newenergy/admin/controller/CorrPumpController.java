@@ -3,6 +3,7 @@ package newenergy.admin.controller;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrPump;
+import newenergy.db.service.CorrPlotService;
 import newenergy.db.service.CorrPumpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,9 @@ import java.util.Map;
 public class CorrPumpController {
     @Autowired
     private CorrPumpService corrPumpService;
+
+    @Autowired
+    private CorrPlotService corrPlotService;
 
     GetNumCode getNumCode = new GetNumCode();
 
@@ -43,18 +47,41 @@ public class CorrPumpController {
         for(CorrPump corrPump : corrPumps) {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrPump.getPumpNum());
-            option.put("label", corrPump.getPumpDlt());
+            option.put("plot", corrPump.getPumpPlot());
+            option.put("pump", corrPump.getPumpDlt() + "号机房");
             options.add(option);
         }
         return ResponseUtil.ok(options);
     }
 
+    //增加机房信息
     @PostMapping("/create")
+    //改成小区+机房，数据库多加一个字段，编号为4位
     public Object create(@RequestBody CorrPump corrPump, @RequestParam Integer userid){
         List<CorrPump> corrPumps = corrPumpService.findAll();
-        String pump_num = getNumCode.getTwoNum(corrPumps.size());
+        String plot_num = corrPlotService.fingPlotNum(corrPump.getPumpPlot());
+        String pump_num = plot_num + getNumCode.getTwoNum(corrPumps.size());
         corrPump.setPumpNum(pump_num);
         CorrPump corrPump1 = corrPumpService.addCorrPump(corrPump, userid);
         return ResponseUtil.ok(corrPump1);
     }
+
+    //修改机房信息
+    @PostMapping("/update")
+    public Object update(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+        corrPumpService.updateCorrPump(corrPump, userid);
+        return ResponseUtil.ok();
+    }
+
+    //删除记录
+    @PostMapping("/delete")
+    public Object delete(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+        Integer id = corrPump.getId();
+        if(id==null) {
+            return ResponseUtil.badArgument();
+        }
+        corrPumpService.deleteCorrPump(id, userid);
+        return ResponseUtil.ok();
+    }
 }
+
