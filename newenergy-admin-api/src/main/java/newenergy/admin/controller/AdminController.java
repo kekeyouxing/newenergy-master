@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
@@ -14,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,7 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:create")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="添加")
     @PostMapping("/create")
-    public Object create(@RequestBody NewenergyAdmin admin) {
+    public Object create(@AdminLoginUser Integer userId, @RequestBody NewenergyAdmin admin) {
         Object error = validate(admin);
         if (error != null) {
             return error;
@@ -60,7 +62,12 @@ public class AdminController {
         String rawPassword = admin.getPassword();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPassword = encoder.encode(rawPassword);
+
         admin.setPassword(encodedPassword);
+        admin.setAddUserid(userId);
+        admin.setAddTime(LocalDateTime.now());
+        admin.setUpdateTime(LocalDateTime.now());
+        admin.setDeleted(false);
 
         adminService.add(admin);
         return ResponseUtil.ok(admin);
@@ -95,7 +102,7 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:update")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="编辑")
     @PostMapping("/update")
-    public Object update(@RequestBody NewenergyAdmin admin) {
+    public Object update(@AdminLoginUser Integer userId, @RequestBody NewenergyAdmin admin) {
         Object error = validate(admin);
         if (error != null) {
             return error;
@@ -109,7 +116,10 @@ public class AdminController {
         String rawPassword = admin.getPassword();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPassword = encoder.encode(rawPassword);
+
         admin.setPassword(encodedPassword);
+        admin.setUpdateUserid(userId);
+        admin.setUpdateTime(LocalDateTime.now());
 
         if (adminService.updateById(admin) == null) {
             return ResponseUtil.updatedDataFailed();
@@ -117,6 +127,7 @@ public class AdminController {
 
         return ResponseUtil.ok(admin);
     }
+
     //@RequiresPermissions("admin:admin:delete")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="删除")
     @PostMapping("/delete")

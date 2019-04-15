@@ -43,23 +43,17 @@ public class BatchRecordService extends LogicOperation<BatchRecord> {
         deleteRecord(id,userid,repository);
     }
 
+//    查询所有批量充值记录
     public List<BatchRecord> findAll(int safeDelete){
         return repository.findAllBySafeDelete(safeDelete);
     }
 
-    public int save(BatchRecord newenergyBatchRecord){
-         BatchRecord batchRecord = repository.save(newenergyBatchRecord);
-         return batchRecord.getId();
-    }
-
-    public void deleteByid(int id){
-        repository.deleteById(id);
-    }
-
+//   根据公司查询批量充值记录
     public List<BatchRecord> queryByCompanyAndSafeDelete(String company, Integer safeDelete){
         return repository.findAllByCompanyAndSafeDelete(company,safeDelete);
     }
 
+//    根据id查询批量充值记录
     public BatchRecord queryById(int id){
         if (repository.findAllById(id).size()==0){
             return null;
@@ -67,8 +61,6 @@ public class BatchRecordService extends LogicOperation<BatchRecord> {
             return repository.findAllById(id).get(0);
         }
     }
-
-
 
 
 }

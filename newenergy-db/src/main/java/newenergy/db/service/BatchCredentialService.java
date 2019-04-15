@@ -45,15 +45,25 @@ public class BatchCredentialService extends LogicOperation<BatchCredential>{
     public void deleteBatchCredential(Integer id, Integer userid){
         deleteRecord(id,userid, repository);
     }
+
     public List<BatchCredential> queryAll(){
         return repository.findAll();
     }
 
-    public void save(BatchCredential credential){
-        repository.save(credential);
-    }
-
     public void deleteById(int id){
         repository.deleteById(id);
+    }
+
+    public BatchCredential save(BatchCredential batchCredential){
+        return repository.save(batchCredential);
+    }
+
+    public BatchCredential findById(int id){
+        if (repository.findAllByIdAndSafeDelete(id,0).size()>0){
+            return repository.findAllByIdAndSafeDelete(id,0).get(0);
+        }else{
+            return null;
+        }
+
     }
 }
