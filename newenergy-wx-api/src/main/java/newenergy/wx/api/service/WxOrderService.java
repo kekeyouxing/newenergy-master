@@ -3,7 +3,6 @@ package newenergy.wx.api.service;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
-import com.github.binarywang.wxpay.bean.request.BaseWxPayRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
 import com.github.binarywang.wxpay.bean.result.BaseWxPayResult;
 import com.github.binarywang.wxpay.exception.WxPayException;
@@ -12,7 +11,6 @@ import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.ExtraWater;
 import newenergy.db.domain.RechargeRecord;
-import newenergy.db.domain.Resident;
 import newenergy.db.service.ExtraWaterService;
 import newenergy.db.service.RechargeRecordService;
 import newenergy.wx.api.util.IpUtil;
@@ -50,10 +48,13 @@ public class WxOrderService {
         String openid = JacksonUtil.parseString(body,"openid");
         String amount = JacksonUtil.parseString(body,"amount");
         String deviceid = JacksonUtil.parseString(body,"deviceid");
+        String nickName = JacksonUtil.parseString(body,"nickName");
+        if (amount == null || deviceid == null){
+            return ResponseUtil.badArgument();
+        }
         BigDecimal acturalAmount = new BigDecimal(amount);
 //      将充值金额转换为分
         int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
-        Integer orderId = null;
         RechargeRecord order = null;
         order = new RechargeRecord();
         order.setRegisterId(deviceid);
@@ -132,9 +133,6 @@ public class WxOrderService {
 //        extraWater.setRecord_id(null);
 //        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
         extraWaterService.add(extraWater);
-
-
-
         return WxPayNotifyResponse.success("处理成功");
     }
 
