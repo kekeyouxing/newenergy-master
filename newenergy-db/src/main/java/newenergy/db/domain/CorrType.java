@@ -10,25 +10,28 @@ public class CorrType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    //机型编号，从00到zz，索引
     @Column(length = 2)
-    private String type_num;
+    private String typeNum;
 
-    private String type_dtl;
+    //机型信息
+    private String typeDtl;
 
-    private Double rated_flow;
+    //额定流量，单位T/h
+    private Double ratedFlow;
 
     //安全属性：添加时间
-    private LocalDateTime safe_changed_time;
+    private LocalDateTime safeChangedTime;
 
     //安全属性： 添加人id
-    private Integer safe_changed_userid;
+    private Integer safeChangedUserid;
 
     //安全属性：是否删除，1删除，0未删除
     @Column(columnDefinition = "tinyint default 0")
-    private Integer safe_delete;
+    private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private  Integer sage_parent;
+    private  Integer sageParent;
 
     public Integer getId() {
         return id;
@@ -38,59 +41,59 @@ public class CorrType {
         this.id = id;
     }
 
-    public String getType_num() {
-        return type_num;
+    public String getTypeNum() {
+        return typeNum;
     }
 
-    public void setType_num(String type_num) {
-        this.type_num = type_num;
+    public void setTypeNum(String typeNum) {
+        this.typeNum = typeNum;
     }
 
-    public String getType_dtl() {
-        return type_dtl;
+    public String getTypeDtl() {
+        return typeDtl;
     }
 
-    public void setType_dtl(String type_dtl) {
-        this.type_dtl = type_dtl;
+    public void setTypeDtl(String typeDtl) {
+        this.typeDtl = typeDtl;
     }
 
-    public Double getRated_flow() {
-        return rated_flow;
+    public Double getRatedFlow() {
+        return ratedFlow;
     }
 
-    public void setRated_flow(Double rated_flow) {
-        this.rated_flow = rated_flow;
+    public void setRatedFlow(Double ratedFlow) {
+        this.ratedFlow = ratedFlow;
     }
 
-    public LocalDateTime getSafe_changed_time() {
-        return safe_changed_time;
+    public LocalDateTime getSafeChangedTime() {
+        return safeChangedTime;
     }
 
-    public void setSafe_changed_time(LocalDateTime safe_changed_time) {
-        this.safe_changed_time = safe_changed_time;
+    public void setSafeChangedTime(LocalDateTime safeChangedTime) {
+        this.safeChangedTime = safeChangedTime;
     }
 
-    public Integer getSafe_changed_userid() {
-        return safe_changed_userid;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setSafe_changed_userid(Integer safe_changed_userid) {
-        this.safe_changed_userid = safe_changed_userid;
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 
-    public Integer getSafe_delete() {
-        return safe_delete;
+    public Integer getSafeDelete() {
+        return safeDelete;
     }
 
-    public void setSafe_delete(Integer safe_delete) {
-        this.safe_delete = safe_delete;
+    public void setSafeDelete(Integer safeDelete) {
+        this.safeDelete = safeDelete;
     }
 
-    public Integer getSage_parent() {
-        return sage_parent;
+    public Integer getSageParent() {
+        return sageParent;
     }
 
-    public void setSage_parent(Integer sage_parent) {
-        this.sage_parent = sage_parent;
+    public void setSageParent(Integer sageParent) {
+        this.sageParent = sageParent;
     }
 }

@@ -44,27 +44,35 @@ public class LogicOperation<T> {
     }
 
     /**
-     * 逻辑修改
+     * 逻辑修改，支持部分更新（不修改的部分可以设置为空）
      * @param record record中需要包括id
      * @param userid 操作者用户id
      * @param repository 实体类T对应的JpaRepository
      * @return 修改后的新记录
      */
     protected T updateRecord(T record, Integer userid, JpaRepository<T,Integer> repository){
-        Integer id = getId(record);
-        if(Objects.isNull(id))
+        Integer originId = getId(record);
+        if(Objects.isNull(originId))
             return null;
-        T origin = repository.findById(id).orElse(null);
-        if(Objects.isNull(origin))
+        T origin = repository.findById(originId).orElse(null);
+        if(Objects.isNull(origin)) return null;
+        if(getSafeDelete(origin).equals(1)) return null;
+        T backup = (T)getCopy(origin);
+        setId(null,backup);
+        setSafeDelete(1,backup);
+        T backup_saved = repository.save(backup);
+        Integer backupId = getId(backup_saved);
+        try{
+            combine(origin,record);
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error("reflect in method <combine>");
             return null;
-        setSafeDelete(1,origin);
-
-        setSafeDelete(0,record);
-        setSafeChangedTime(LocalDateTime.now(),record);
-        setSafeChangedUserid(userid,record);
-        setSafeParent(id,record);
-        setId(null, record);
-        return repository.save(record);
+        }
+        setSafeParent(backupId,origin);
+        setSafeChangedTime(LocalDateTime.now(),origin);
+        setSafeChangedUserid(userid,origin);
+        return repository.save(origin);
     }
 
     /**
@@ -75,14 +83,19 @@ public class LogicOperation<T> {
      */
     protected void deleteRecord(Integer id, Integer userid, JpaRepository<T,Integer> repository){
         T record = repository.findById(id).orElse(null);
-        if(!Objects.isNull(record)){
-            T copy = (T)getCopy(record);
-            if(!Objects.isNull(copy)){
-                T newRecord = updateRecord(copy,userid,repository);
-                setSafeDelete(1,newRecord);
-                repository.save(newRecord);
-            }
+        if(Objects.isNull(record)) return;
+        if(getSafeDelete(record).equals(1)) return;
+        T update;
+        try{
+            update = (T)getBlank(record);
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error("reflect in method <getblank>");
+            return;
         }
+        setId(id,update);
+        setSafeDelete(1,update);
+        updateRecord(update,userid,repository);
     }
     private Integer getId(T t) {
         Integer result = null;
@@ -109,6 +122,30 @@ public class LogicOperation<T> {
         }
     }
 
+    private void combine(Object origin, Object update) throws Exception{
+        Class<?> cls = origin.getClass();
+        Class<?> cls2 = update.getClass();
+        if(!cls.equals(cls2)){
+            logger.error("update error : type dismatch");
+            return;
+        }
+        Field[] fields = cls.getDeclaredFields();
+        for(Field field : fields){
+            field.setAccessible(true);
+            Object curField = field.get(update);
+            if(!Objects.isNull(curField)){
+                field.set(origin,curField);
+            }
+        }
+    }
+
+    private Object getBlank(Object src) throws  Exception{
+        Object obj;
+        if(Objects.isNull(src)) return null;
+        Class<?> cls = src.getClass();
+        obj = cls.newInstance();
+        return obj;
+    }
 
     private  Object getCopy(Object src){
         Object obj = null;

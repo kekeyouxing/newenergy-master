@@ -32,7 +32,4 @@ public class FaultRecordService {
     public FaultRecord addRecord(FaultRecord record){
         return repository.save(record);
     }
-    /**
-     * TODO 更新故障记录状态
-     */
 }
