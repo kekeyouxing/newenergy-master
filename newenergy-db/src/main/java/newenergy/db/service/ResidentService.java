@@ -74,6 +74,14 @@ public class ResidentService extends LogicOperation<Resident> {
     }
 
     /**
+     * 通过设备号查询所在小区编号
+     * @param register_id
+     * @return String plotNum-小区编号
+     */
+    public String findPlotNumByRegisterid(String register_id){
+        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
+    }
+    /**
      * 修改居民用户表记录
      * @param resident
      * @param userid  操作人id

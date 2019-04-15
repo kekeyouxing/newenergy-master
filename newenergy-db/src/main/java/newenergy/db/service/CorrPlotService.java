@@ -67,4 +67,13 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         };
         return specification;
     }
+
+    /**
+     * 通过小区号获取充值系数
+     * @param plot_num
+     * @return Double plotFactor 充值系数
+     */
+    public Double findPlotFacByPlotNum(String plot_num){
+        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
+    }
 }

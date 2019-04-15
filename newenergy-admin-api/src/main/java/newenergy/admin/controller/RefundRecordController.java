@@ -68,6 +68,9 @@ public class RefundRecordController {
     public Object review(@RequestBody RefundRecord refundRecord,
                          @RequestParam Integer operatorId,
                          @RequestParam Integer ip) throws JSONException {
+            refundRecord.setState(1);
+            refundRecord.setRefundTime(LocalDateTime.now());
+            refundRecord.setRechargeId(operatorId);
             RefundRecord newRecord = refundRecordService.addRefundRecord(refundRecord,operatorId);
             addManualRecord(newRecord.getId(),operatorId,ip,2);
             return ResponseUtil.ok();

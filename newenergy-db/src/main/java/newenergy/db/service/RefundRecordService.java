@@ -56,6 +56,7 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
         }
     }
 
+//    根据注册id,审核状态查询退款记录,当注册id为空,状态为-1时,查询所有
     public List<RefundRecord> findByCondition(String registerId,int state,int safeDelete){
         if (registerId.equals("")&&(state==-1)){
             return repository.findAllBySafeDelete(safeDelete);
@@ -66,10 +67,6 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
         }else {
             return repository.findAllByRegisterIdAndStateAndSafeDelete(registerId,state,safeDelete);
         }
-    }
-
-    public void save(RefundRecord refundRecord){
-        repository.save(refundRecord);
     }
 
 }

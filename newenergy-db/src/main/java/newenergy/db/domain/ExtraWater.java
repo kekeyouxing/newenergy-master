@@ -16,11 +16,11 @@ public class ExtraWater {
     @Column(length = 14)
     private String registerId;//登记号
 
-    private BigDecimal add_volume;//新增水量
+    private BigDecimal addVolume;//新增水量
 
-    private LocalDateTime add_time;//新增用水量时间
+    private LocalDateTime addTime;//新增用水量时间
 
-    private Integer record_id;//对应充值记录id
+    private Integer recordId;//对应充值记录id
 
     public Integer getId() {
         return id;
@@ -38,33 +38,37 @@ public class ExtraWater {
         this.registerId = registerId;
     }
 
-    public BigDecimal getAdd_volume() {
-        return add_volume;
+    public BigDecimal getAddVolume() {
+        return addVolume;
     }
 
-    public void setAdd_volume(BigDecimal add_volume) {
-        this.add_volume = add_volume;
+    public void setAddVolume(BigDecimal addVolume) {
+        this.addVolume = addVolume;
     }
 
-    public LocalDateTime getAdd_time() {
-        return add_time;
+    public LocalDateTime getAddTime() {
+        return addTime;
     }
 
-    public void setAdd_time(LocalDateTime add_time) {
-        this.add_time = add_time;
+    public void setAddTime(LocalDateTime addTime) {
+        this.addTime = addTime;
     }
 
-    public Integer getRecord_id() {
-        return record_id;
+    public Integer getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(Integer recordId) {
+        this.recordId = recordId;
     }
 
     public void setRecord_id(Integer record_id) {
-        this.record_id = record_id;
+        this.recordId = record_id;
     }
 
     public ExtraWater(String registerId, BigDecimal add_volume, Integer record_id) {
         this.registerId = registerId;
-        this.add_volume = add_volume;
-        this.record_id = record_id;
+        this.addVolume = add_volume;
+        this.recordId = record_id;
     }
 }

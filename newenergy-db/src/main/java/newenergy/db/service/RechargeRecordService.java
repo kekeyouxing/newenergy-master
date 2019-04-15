@@ -1,7 +1,9 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.RechargeRecord;
+import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.RechargeRecordRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -25,6 +27,14 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     @Autowired
     private RechargeRecordRepository repository;
 
+    /**
+     * 通过商户订单号获取订单
+     * @param orderSn
+     * @return RechargeRecord
+     */
+    public RechargeRecord findBySn(String orderSn){
+        return repository.findFirstByOrderSn(orderSn);
+    }
     /**
      * 添加记录
      * @param require 不包括id
@@ -69,6 +79,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
 
     }
 
+//    根据批量充值记录id,审核状态查询充值记录,当批量充值id为-1,审核状态为-1,则查询所有的批量充值记录,否则按条件查询
     public List<RechargeRecord> findByBatchRecordAndReviewState(Integer batchRecordId,Integer reviewState,Integer safeDelete){
         if ((batchRecordId==-1)&&(reviewState == -1)){
             return repository.findAllBySafeDelete(safeDelete);
@@ -80,6 +91,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             return repository.findAllByBatchRecordIdAndReviewStateAndSafeDelete(batchRecordId,reviewState,safeDelete);
         }
     }
+
+//    根据id查询批量充值记录
     public RechargeRecord findById(int id){
         if (repository.findAllById(id).size()==0){
             return null;

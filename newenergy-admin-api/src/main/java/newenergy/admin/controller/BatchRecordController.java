@@ -33,12 +33,14 @@ public class BatchRecordController {
     @Autowired
     ManualRecordService manualRecordService;
 
+//    根据id查询批量充值记录
     @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
     public BatchRecord queryBatchRecordById(@RequestParam Integer id){
         System.out.println(id);
         return batchRecordService.queryById(id);
     }
 
+//    根据公司信息查询批量充值记录,若无公司名,则查询所有充值记录
     @RequestMapping(value = "/queryByCompany", method = RequestMethod.GET)
     public List<BatchRecord> list(@RequestParam(defaultValue = "") String company,
                                   @RequestParam(defaultValue = "0") Integer safeDelete){
@@ -49,14 +51,21 @@ public class BatchRecordController {
             return batchRecordService.queryByCompanyAndSafeDelete(company,safeDelete);
     }
 
+//    添加批量充值记录,及充值记录
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Object add(@RequestParam Integer operatorId,
                       @RequestParam Integer ip,
                       @RequestBody BatchAndRecharge batchAndRecharge){
+        batchAndRecharge.getBatchRecord().setRechargeTime(LocalDateTime.now());
+        batchAndRecharge.getBatchRecord().setBatchAdmin(operatorId);
         BatchRecord batchRecord = batchRecordService.addBatchRecord(batchAndRecharge.getBatchRecord(),operatorId);
         for (RechargeRecord rechargeRecord:
              batchAndRecharge.getRechargeRecords()) {
             rechargeRecord.setBatchRecordId(batchRecord.getId());
+            rechargeRecord.setOrderSn(rechargeRecordService.generateOrderSn());
+            rechargeRecord.setRechargeTime(LocalDateTime.now());
+            rechargeRecord.setState(0);
+            rechargeRecord.setDelegate(1);
             rechargeRecordService.addRechargeRecord(rechargeRecord,operatorId);
         }
         addManualRecord(batchRecord.getId(),operatorId,ip,0);

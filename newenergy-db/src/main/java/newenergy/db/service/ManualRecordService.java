@@ -13,15 +13,14 @@ public class ManualRecordService {
     @Autowired
     private ManualRecordRepository manualRecordRepository;
 
+//    查询所有批量充值记录
     public List<ManualRecord> queryAll(){
         return manualRecordRepository.findAll();
     }
 
+//    保存批量充值记录
     public void save(ManualRecord manualRecord){
         manualRecordRepository.save(manualRecord);
     }
 
-    public void deleteById(int id){
-        manualRecordRepository.deleteById(id);
-    }
 }
