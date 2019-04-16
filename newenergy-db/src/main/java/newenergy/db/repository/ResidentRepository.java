@@ -15,4 +15,12 @@ public interface ResidentRepository extends JpaRepository<Resident, Integer>, Jp
      * by Zeng Hui
      */
     Resident findFirstByRegisterIdAndSafeDelete(String registerId, Integer safeDelete);
+    /**
+     * by Zeng Hui
+     */
+    List<Resident> findAllByUserNameAndSafeDelete(String username, Integer safeDelete);
+    /**
+     * by Zeng Hui
+     */
+    List<Resident> findAllByPlotNumAndSafeDelete(String plotNum, Integer safeDelete);
 }
