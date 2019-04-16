@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
  * Created by HUST Corey on 2019-04-11.
  */
 public class PredicateFactory {
-    static class SafePredicate{
+    public static class SafePredicate{
         private LocalDateTime safeChangedTime;
         private Integer safeChangedUserid;
         private Integer safeDelete;
@@ -44,9 +44,12 @@ public class PredicateFactory {
             this.safeParent = safeParent;
         }
     }
+
     public static SafePredicate getAlivePredicate(){
         SafePredicate safePredicate = new SafePredicate();
         safePredicate.setSafeDelete(0);
         return safePredicate;
     }
+
+
 }

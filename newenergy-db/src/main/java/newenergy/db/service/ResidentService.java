@@ -142,4 +142,29 @@ public class ResidentService extends LogicOperation<Resident> {
         return specification;
     }
 
+    /**
+     * by Zeng Hui
+     * 用于故障记录的用户列表
+     * @param resident
+     * @return
+     */
+    public Specification<Resident> findByPlotNumOrSearch(Resident resident){
+        return (root,cq,cb)-> {
+            List<Predicate> predicates = new ArrayList<>();
+            if(resident.getPlotNum()!= null) {
+                predicates.add(cb.equal(root.get("plotNum"), resident.getPlotNum()));
+            }
+            if(resident.getRegisterId() != null){
+                predicates.add(cb.equal(root.get("registerId"), resident.getRegisterId()));
+            }
+            if(resident.getUserName() != null){
+                predicates.add(cb.equal(root.get("userName"), resident.getUserName()));
+            }
+            predicates.add(cb.equal(root.get("safeDelete"), 0));
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+    }
+
+
+
 }

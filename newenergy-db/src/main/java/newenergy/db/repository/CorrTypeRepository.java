@@ -10,4 +10,8 @@ import java.util.List;
 @Repository
 public interface CorrTypeRepository extends JpaRepository<CorrType, Integer>, JpaSpecificationExecutor<CorrType> {
     public List<CorrType> findAllBySafeDelete(Integer safe_delete);
+    /**
+     * by Zeng Hui
+     */
+    public CorrType findFirstByTypeNumAndSafeDelete(String typeNum, Integer safeDelete);
 }
