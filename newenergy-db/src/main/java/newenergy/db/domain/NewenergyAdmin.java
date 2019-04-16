@@ -4,7 +4,6 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "admin_user")
 public class NewenergyAdmin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

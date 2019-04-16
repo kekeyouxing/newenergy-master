@@ -6,8 +6,8 @@ public class AdminManager {
 
     private static NewenergyAdmin admin = null;
 
-    public static Integer getAdminId(){
-        return admin.getId();
+    public static NewenergyAdmin getAdmin(){
+        return admin;
     }
 
     public static void setAdmin(NewenergyAdmin oldAdmin){

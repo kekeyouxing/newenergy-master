@@ -10,6 +10,4 @@ import java.util.List;
 @Repository
 public interface NewenergyAdminRepository extends JpaRepository<NewenergyAdmin, Integer> , JpaSpecificationExecutor<NewenergyAdmin> {
 
-    public List<NewenergyAdmin> getAllByUsernameAndDeletedIsFalse(String username);
-
 }
