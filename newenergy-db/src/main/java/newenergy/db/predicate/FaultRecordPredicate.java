@@ -1,4 +1,4 @@
-package newenergy.db.template;
+package newenergy.db.predicate;
 
 import java.util.List;
 

@@ -1,14 +1,19 @@
 package newenergy.admin.controller;
 
+import newenergy.db.constant.AdminConstant;
 import newenergy.db.domain.*;
+import newenergy.db.predicate.CorrPlotAdminPredicate;
+import newenergy.db.repository.NewenergyAdminRepository;
+import newenergy.db.repository.NewenergyRoleRepository;
+import newenergy.db.service.CorrPlotAdminService;
 import newenergy.db.service.FaultRecordService;
-import newenergy.db.template.FaultRecordPredicate;
+import newenergy.db.predicate.FaultRecordPredicate;
+import newenergy.db.service.NewenergyAdminService;
+import newenergy.db.service.NewenergyRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +30,8 @@ public class FaultRecordController {
     @Autowired
     private FaultRecordService faultRecordService;
 
+    @Autowired
+    private CorrPlotAdminService corrPlotAdminService;
     /**
      *  信息确认
      * @param id
@@ -136,12 +143,37 @@ public class FaultRecordController {
      * @param id
      * @return
      */
-    @RequestMapping(value = "test")
+    @Autowired
+    NewenergyRoleRepository newenergyRoleRepository;
+    @Autowired
+    NewenergyAdminRepository newenergyAdminRepository;
+    @RequestMapping(value = "test",method = RequestMethod.POST)
     public Map<String,Object> test(Integer id){
         Map<String,Object> ret = new HashMap<>();
-        NewenergyAdmin res = faultRecordService.getNewenergyAdmin(id);
-        ret.put("res",res);
+//        NewenergyRole role = new NewenergyRole();
+//        role.setEnable(true);
+//        role.setDeleted(false);
+//        role.setAddTime(LocalDateTime.now());
+//        role.setUpdateTime(LocalDateTime.now());
+//        role.setName("维修人员");
+//        role.setDescription("接收故障提醒，维修设备");
+//        NewenergyRole addedRole = newenergyRoleRepository.save(role);
+        NewenergyAdmin admin = new NewenergyAdmin();
+        admin.setDeleted(false);
+        admin.setAddTime(LocalDateTime.now());
+        admin.setUsername("servicer"+LocalDateTime.now().toString());
+        admin.setRealName("运营人员姓名"+LocalDateTime.now().toString());
+        admin.setPhone("13312340000");
+        Integer[] roleids = new Integer[]{
+                AdminConstant.ROLE_MONITOR
+        };
+        admin.setRoleIds(roleids);
+        newenergyAdminRepository.save(admin);
         return ret;
+    }
+    @RequestMapping(value = "test2",method = RequestMethod.POST)
+    public void test2(Integer id,String plotNum) {
+        corrPlotAdminService.deleteARecord(plotNum,id);
     }
 
     /**
@@ -230,5 +262,47 @@ public class FaultRecordController {
         ret.put("records",list);
         return ret;
     }
+
+    @RequestMapping(value = "group/search",method = RequestMethod.POST)
+    public Map<String,Object> groupSearch(Integer id, String plotDtl,String monitorName,String servicerName,Integer page, Integer limit){
+        Map<String,Object> ret = new HashMap<>();
+        CorrPlotAdminPredicate predicate = new CorrPlotAdminPredicate();
+        predicate.setPlotName(plotDtl);
+        predicate.setMonitorName(monitorName);
+        predicate.setServicerName(servicerName);
+        Page<CorrPlotAdmin> res = corrPlotAdminService.findByPredicateWithAive(predicate,PageRequest.of(page-1,limit),Sort.by(Sort.Direction.ASC,"plotNum"));
+        ret.put("total",res.getTotalElements());
+        List<Map<String,Object>> list = new ArrayList<>();
+        res.forEach(e->{
+            Map<String,Object> tmp = new HashMap<>();
+            tmp.put("plotNum",e.getPlotNum());
+            tmp.put("plotDtl",corrPlotAdminService.getPlotdtl(e.getPlotNum()));
+            tmp.put("monitorName",corrPlotAdminService.getAdminName(e.getMonitorId()));
+            tmp.put("servicerName",corrPlotAdminService.getAdminName(e.getServicerId()));
+            list.add(tmp);
+        });
+        ret.put("list",list);
+        return ret;
+    }
+    @RequestMapping(value = "group/userinfo",method = RequestMethod.POST)
+    public Map<String,Object> getAdminInfo(Integer id){
+        Map<String,Object> ret = new HashMap<>();
+        ret.put("servicers",corrPlotAdminService.getServicers());
+        ret.put("monitors",corrPlotAdminService.getMonitors());
+        return ret;
+    }
+    @RequestMapping(value = "group/update",method = RequestMethod.POST)
+    public CorrPlotAdmin updateAdminInfo(Integer id, String plotNum, Integer updateMonitor,Integer updateServicer){
+        CorrPlotAdminPredicate predicate = new CorrPlotAdminPredicate();
+        predicate.setPlotNum(plotNum);
+        Page<CorrPlotAdmin> results = corrPlotAdminService.findByPredicateWithAive(predicate,null,null);
+        if(results.getTotalElements() != 1) return null;
+        CorrPlotAdmin corrPlotAdmin = results.get().findFirst().orElse(null);
+
+        corrPlotAdmin.setMonitorId(updateMonitor);
+        corrPlotAdmin.setServicerId(updateServicer);
+        return corrPlotAdminService.updateARecord(corrPlotAdmin,id);
+    }
+
 
 }
