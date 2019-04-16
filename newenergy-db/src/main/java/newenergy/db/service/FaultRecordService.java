@@ -1,23 +1,22 @@
 package newenergy.db.service;
 
+import newenergy.db.constant.AdminConstant;
 import newenergy.db.domain.*;
+import newenergy.db.predicate.PredicateExecutor;
 import newenergy.db.repository.*;
-import newenergy.db.template.FaultRecordPredicate;
-import newenergy.db.template.PredicateFactory;
+import newenergy.db.predicate.FaultRecordPredicate;
+import newenergy.db.predicate.PredicateFactory;
+import newenergy.db.template.Searchable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ import java.util.List;
  * Created by HUST Corey on 2019-03-27.
  */
 @Service
-public class FaultRecordService {
+public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPredicate> {
     @Autowired
     private FaultRecordRepository repository;
     @Autowired
@@ -47,82 +46,12 @@ public class FaultRecordService {
      */
     public final Integer warranty = 1;
 
-    public NewenergyAdmin getNewenergyAdmin(Integer id){
-        return newenergyAdminRepository.findById(id).orElse(null);
+    public FaultRecord addRecord(FaultRecord record){
+        return repository.save(record);
     }
 
-    public Resident getResident(String registerId){
-        return residentRepository.findFirstByRegisterIdAndSafeDelete(registerId,0);
-    }
-    public CorrAddress getCorrAddress(String addressNum){
-        return corrAddressRepository.findByAddressNumAndSafeDelete(addressNum,0);
-    }
-    public CorrPlotAdmin getCorrPlotAdmin(String plotNum){
-        return corrPlotAdminRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
-    }
-    public CorrType getCorrType(String typeNum){
-        return corrTypeRepository.findFirstByTypeNumAndSafeDelete(typeNum,0);
-    }
-    public CorrPlot getCorrPlot(String plotNum){
-        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
-    }
-    public String getCorrAddressStr(CorrAddress corrAddress){
-        return String.format("%s小区%d栋%d单元",
-                getCorrPlot(corrAddress.getAddressPlot()).getPlotDtl(),
-                corrAddress.getAddressBlock(),
-                corrAddress.getAddressUnit());
-    }
-    /**
-     * 默认不分页，排序按照id递增
-     * @param specification 故障记录查询条件，可为null
-     * @return
-     */
-    private Page<FaultRecord> findBySpecificate(Specification<FaultRecord> specification){
-        return findBySpecificate(specification,null,null);
-    }
-
-    /**
-     * 排序按照id递增
-     * @param specification 故障记录查询条件，可为null
-     * @param pageable 分页（从0开始），可为null
-     * @return
-     */
-    private Page<FaultRecord> findBySpecificate(Specification<FaultRecord> specification, Pageable pageable){
-        return findBySpecificate(specification,pageable,null);
-    }
-
-    /**
-     *
-     * @param specification 故障记录查询条件
-     * @param pageable 分页（从0开始），可为null
-     * @param sort 排序（默认按照id递增），可为null
-     * @return
-     */
-    Page<FaultRecord> findBySpecificate(Specification<FaultRecord> specification, Pageable pageable, Sort sort){
-        Sort newSort = null;
-        Pageable newPageable = null;
-        if(pageable == null){
-            newSort = sort==null?Sort.by(Sort.Direction.ASC, "id"):sort;
-            newPageable = PageRequest.of(0,(int)repository.count(),newSort);
-        }else{
-            if(sort != null){
-                newPageable = PageRequest.of(pageable.getPageNumber(),pageable.getPageSize(),sort);
-            }else{
-                newPageable = pageable;
-            }
-        }
-        return repository.findAll(specification,newPageable);
-    }
-
-    Specification<FaultRecord> addAlive(Specification<FaultRecord> other){
-        Specification<FaultRecord> specification = (root,cq,cb)->
-                cb.equal(root.get("safeDelete").as(Integer.class), PredicateFactory.getAlivePredicate().getSafeDelete());
-
-        return other==null?specification:specification.and(other);
-    }
-
-
-    Specification<FaultRecord> addConditioin(FaultRecordPredicate predicate, Specification<FaultRecord> other){
+    @Override
+    public Specification<FaultRecord> addConditioin(FaultRecordPredicate predicate, Specification<FaultRecord> other){
         Specification<FaultRecord> specification = (root,cq,cb)->{
             List<Predicate> conditions = new ArrayList<>();
             if(predicate.getId() != null)
@@ -155,10 +84,11 @@ public class FaultRecordService {
         return other==null?specification:specification.and(other);
     }
 
-    public Page<FaultRecord> findByPredicate(FaultRecordPredicate predicate,Pageable pageable, Sort sort){
-        Specification<FaultRecord> cond = addConditioin(predicate,null);
-        return findBySpecificate(cond,pageable,sort);
+    @Override
+    public JpaSpecificationExecutor<FaultRecord> getRepository() {
+        return repository;
     }
+
     /**
      *
      * @param userid 用户id
@@ -180,9 +110,11 @@ public class FaultRecordService {
              *
              * 8 运营人员
              */
-            if(i == 9 || i == 6 || i == 1)
+            if(i == AdminConstant.ROLE_FAULTLEADER
+                    || i == AdminConstant.ROLE_AUDIT
+                    || i == AdminConstant.ROLE_ADMIN)
                 return ret;
-            if(i == 8)
+            if(i == AdminConstant.ROLE_MONITOR)
                 hasAccess = true;
         }
         if(!hasAccess)
@@ -215,9 +147,30 @@ public class FaultRecordService {
         specification = (specification==null?specification:specification.and(searchCondition));
         return residentRepository.findAll(specification,PageRequest.of(page,limit,Sort.by(Sort.Direction.ASC,"registerId")));
     }
+    public NewenergyAdmin getNewenergyAdmin(Integer id){
 
-
-    public FaultRecord addRecord(FaultRecord record){
-        return repository.save(record);
+        return newenergyAdminRepository.findById(id).orElse(null);
     }
+    public Resident getResident(String registerId){
+        return residentRepository.findFirstByRegisterIdAndSafeDelete(registerId,0);
+    }
+    public CorrAddress getCorrAddress(String addressNum){
+        return corrAddressRepository.findByAddressNumAndSafeDelete(addressNum,0);
+    }
+    public CorrPlotAdmin getCorrPlotAdmin(String plotNum){
+        return corrPlotAdminRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+    }
+    public CorrType getCorrType(String typeNum){
+        return corrTypeRepository.findFirstByTypeNumAndSafeDelete(typeNum,0);
+    }
+    public CorrPlot getCorrPlot(String plotNum){
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+    }
+    public String getCorrAddressStr(CorrAddress corrAddress){
+        return String.format("%s小区%d栋%d单元",
+                getCorrPlot(corrAddress.getAddressPlot()).getPlotDtl(),
+                corrAddress.getAddressBlock(),
+                corrAddress.getAddressUnit());
+    }
+
 }

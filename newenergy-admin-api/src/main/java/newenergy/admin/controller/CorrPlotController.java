@@ -3,6 +3,7 @@ package newenergy.admin.controller;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrPlot;
+import newenergy.db.service.CorrPlotAdminService;
 import newenergy.db.service.CorrPlotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,12 @@ import java.util.Map;
 public class CorrPlotController {
     @Autowired
     private CorrPlotService corrPlotService;
+
+    /**
+     * by Zeng Hui
+     */
+    @Autowired
+    private CorrPlotAdminService corrPlotAdminService;
 
     GetNumCode getNumCode = new GetNumCode();
 
@@ -62,6 +69,12 @@ public class CorrPlotController {
         String plot_num = getNumCode.getTwoNum(corrPlots.size());
         corrPlot.setPlotNum(plot_num);
         CorrPlot corrPlot1 = corrPlotService.addCorrPlot(corrPlot, userid);
+
+        /**
+         * by Zeng Hui
+         */
+        corrPlotAdminService.addARecord(corrPlot1,userid);
+
         return ResponseUtil.ok(corrPlot1);
     }
 
@@ -80,6 +93,12 @@ public class CorrPlotController {
             return ResponseUtil.badArgument();
         }
         corrPlotService.deleteCorrPlot(id, userid);
+
+        /**
+         * by Zeng Hui
+         */
+        corrPlotAdminService.deleteARecord(corrPlot.getPlotNum(),userid);
+
         return ResponseUtil.ok();
     }
 
