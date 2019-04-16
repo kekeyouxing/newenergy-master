@@ -3,6 +3,7 @@ package newenergy.db.service;
 import newenergy.db.domain.Resident;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
+import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -74,6 +75,33 @@ public class ResidentService extends LogicOperation<Resident> {
     }
 
     /**
+     * 根据登记号查找居民用户
+     * @param registerId  登记号
+     * @return
+     */
+    public Resident fingByRegisterId(String registerId) {
+        return residentRepository.findByRegisterIdAndSafeDelete(registerId, 0);
+    }
+
+    /**
+     * 根据小区编号和登记号查找居民用户
+     * @param plotNum  小区编号
+     * @param registerId   登记号
+     * @param page
+     * @param limit
+     * @return
+     */
+    public Page<Resident> findByPlotNumAndRegisterId(String plotNum, String registerId, Integer page, Integer limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+
+        Resident resident = new Resident();
+        resident.setPlotNum(plotNum);
+        resident.setRegisterId(registerId);
+        Specification specification = findSearch(resident);
+        return residentRepository.findAll(specification, pageable);
+    }
+
+    /**
      * 修改居民用户表记录
      * @param resident
      * @param userid  操作人id
@@ -126,6 +154,12 @@ public class ResidentService extends LogicOperation<Resident> {
                 }
                 if(resident.getRoomNum()!=null) {
                     predicates.add(criteriaBuilder.equal(root.get("room_num"), resident.getRoomNum()));
+                }
+                if(resident.getPlotNum()!=null) {
+                    predicates.add(criteriaBuilder.equal(root.get("plotNum"), resident.getPlotNum()));
+                }
+                if(resident.getRegisterId()!=null) {
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));

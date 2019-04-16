@@ -54,6 +54,16 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
         deleteRecord(id,userid,repository);
     }
 
+    /**
+     * 根据登记号查找有效的充值记录
+     * @param registerId
+     * @return
+     */
+    public List<RechargeRecord> findByRegisterId(String registerId) {
+        return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId, 0, 0);
+    }
+
+
     public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, int safeDelete, int state){
 //        safeDelete默认为0，registerid默认“”，state默认-1，为默认值时，插叙你所有类型，否则，查询指定类型
         if (registerId.equals("")&&(state==-1)){

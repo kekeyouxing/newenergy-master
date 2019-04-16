@@ -12,4 +12,5 @@ public interface ResidentRepository extends JpaRepository<Resident, Integer>, Jp
     Resident findFirstByRegisterId(String register_id);
     Resident findFirstByUserNameAndRegisterIdAndSafeDelete(String username, String registerId, Integer safeDelete);
     List<Resident> findByPlotNumAndSafeDelete(String plotNum, Integer safeDelete);
+    Resident findByRegisterIdAndSafeDelete(String registerId, Integer safeDelete);
 }
