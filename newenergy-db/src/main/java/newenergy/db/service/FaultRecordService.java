@@ -47,8 +47,8 @@ public class FaultRecordService {
      */
     public final Integer warranty = 1;
 
-    public List<FaultRecord> getRecordsByRegisterId(String registerId){
-        return repository.findAllByRegisterId(registerId);
+    public NewenergyAdmin getNewenergyAdmin(Integer id){
+        return newenergyAdminRepository.findById(id).orElse(null);
     }
 
     public Resident getResident(String registerId){
@@ -168,37 +168,31 @@ public class FaultRecordService {
      * 有部分小区权限的返回 List ，List里的小区编号为有权限的小区
      */
     public List<String> getPlotLimit(Integer userid){
-        /**
-         * TODO 调用权限管理的接口
-         */
-//        NewenergyAdmin user = newenergyAdminRepository.findById(userid).orElse(null);
-//        if(user == null) return null;
-//        List<String> ret = new ArrayList<>();
-//        boolean hasAccess = false;
-//        for(int i : user.getRoleIds()){
-//            /**
-//             * 9 故障领导
-//             * 6 审计人员
-//             * 1 admin
-//             *
-//             * 8 运营人员
-//             */
-//            if(i == 9 || i == 6 || i == 1)
-//                return ret;
-//            if(i == 8)
-//                hasAccess = true;
-//        }
-//        if(!hasAccess)
-//            return null;
-//        List<CorrPlotAdmin> plotAdmins =
-//                corrPlotAdminRepository.findAllByMonitorIdAndSafeDelete(userid,0);
-//        plotAdmins.forEach(plotAdmin->{
-//            ret.add(plotAdmin.getPlotNum());
-//        });
-//
-//        return ret;
+        NewenergyAdmin user = newenergyAdminRepository.findById(userid).orElse(null);
+        if(user == null) return null;
         List<String> ret = new ArrayList<>();
-        ret.add("12");
+        boolean hasAccess = false;
+        for(int i : user.getRoleIds()){
+            /**
+             * 9 故障领导
+             * 6 审计人员
+             * 1 admin
+             *
+             * 8 运营人员
+             */
+            if(i == 9 || i == 6 || i == 1)
+                return ret;
+            if(i == 8)
+                hasAccess = true;
+        }
+        if(!hasAccess)
+            return null;
+        List<CorrPlotAdmin> plotAdmins =
+                corrPlotAdminRepository.findAllByMonitorIdAndSafeDelete(userid,0);
+        plotAdmins.forEach(plotAdmin->{
+            ret.add(plotAdmin.getPlotNum());
+        });
+
         return ret;
     }
 
@@ -218,22 +212,11 @@ public class FaultRecordService {
         resident.setRegisterId(registerId);
         resident.setUserName(username);
         Specification<Resident> searchCondition = residentService.findByPlotNumOrSearch(resident);
-        specification = specification.and(searchCondition);
+        specification = (specification==null?specification:specification.and(searchCondition));
         return residentRepository.findAll(specification,PageRequest.of(page,limit,Sort.by(Sort.Direction.ASC,"registerId")));
     }
 
-//    public List<FaultRecord> getRecordsByMonitorId(Integer id){
-//        return repository.findAllByMonitorId(id);
-//    }
-//    public List<FaultRecord> getRecordsByServiverId(Integer id){
-//        return repository.findAllByServicerId(id);
-//    }
-//    public List<FaultRecord> getRecordsByState(Integer state){
-//        return repository.findAllByState(state);
-//    }
-//    public List<FaultRecord> getRecordsByResult(Integer result){
-//        return repository.findAllByResult(result);
-//    }
+
     public FaultRecord addRecord(FaultRecord record){
         return repository.save(record);
     }

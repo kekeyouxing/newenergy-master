@@ -36,9 +36,6 @@ public class FaultRecordController {
         Resident resident = faultRecordService.getResident(registerId);
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
-        /**
-         * TODO  根据售后人员的userid获得售后人员姓名
-         */
         Map<String,Object> map = new HashMap<>();
         map.put("registerId",registerId);
         map.put("username",resident.getUserName());
@@ -46,7 +43,11 @@ public class FaultRecordController {
         map.put("roomNum",resident.getRoomNum());
         map.put("phone",resident.getPhone());
         //暂时使用用户id代替用户姓名
-        map.put("servicerName",corrPlotAdmin.getServicerId());
+        Integer serviceId = corrPlotAdmin.getServicerId();
+        NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
+        String servicerName = null;
+        if(admin != null) servicerName = admin.getRealName();
+        map.put("servicerName",servicerName);
         return map;
     }
 
@@ -118,10 +119,11 @@ public class FaultRecordController {
             tmp.put("phenomeon",record.getPhenomenon());
             tmp.put("solution",record.getSolution());
             tmp.put("finishTime",record.getFinishTime());
-            /**
-             * TODO 根据售后人员id获得售后人员姓名
-             */
-            tmp.put("servicer",record.getServicerId());
+            Integer serviceId = record.getServicerId();
+            NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
+            String servicerName = null;
+            if(admin != null) servicerName = admin.getRealName();
+            tmp.put("servicer",servicerName);
             tmp.put("remark",record.getResult());
             records.add(tmp);
         });
@@ -134,18 +136,13 @@ public class FaultRecordController {
      * @param id
      * @return
      */
-//    @RequestMapping(value = "test")
-//    public Map<String,Object> test(Integer id, String registerId){
-//        Map<String,Object> ret = new HashMap<>();
-//        List<FaultRecord> list = new ArrayList<>();
-//        FaultRecordPredicate predicate = new FaultRecordPredicate();
-//        predicate.setRegisterId(registerId);
-//        Specification<FaultRecord> cond = faultRecordService.addConditioin(predicate,null);
-//        Page<FaultRecord> records = faultRecordService.findBySpecificate(cond,null,null);
-//        records.forEach(list::add);
-//        ret.put("list",list);
-//        return ret;
-//    }
+    @RequestMapping(value = "test")
+    public Map<String,Object> test(Integer id){
+        Map<String,Object> ret = new HashMap<>();
+        NewenergyAdmin res = faultRecordService.getNewenergyAdmin(id);
+        ret.put("res",res);
+        return ret;
+    }
 
     /**
      * 所有用户的售后记录明细
@@ -209,11 +206,14 @@ public class FaultRecordController {
             tmp.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
             tmp.put("roomNum",resident.getRoomNum());
             tmp.put("phone",resident.getPhone());
-            /**
-             * TODO 根据id获取维修人员姓名 和 联系方式
-             */
-            tmp.put("servicerName",record.getServicerId());
-            tmp.put("servicerPhone",record.getServicerId());
+            NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(record.getServicerId());
+            String name = null, phone = null;
+            if(admin != null){
+                name = admin.getRealName();
+                phone = admin.getPhone();
+            }
+            tmp.put("servicerName",name);
+            tmp.put("servicerPhone",phone);
             Integer state = null;
             if(record.getState() == 2){
                 if(record.getResult() == 0) state = 3;//成功

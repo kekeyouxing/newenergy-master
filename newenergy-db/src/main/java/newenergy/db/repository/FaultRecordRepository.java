@@ -11,9 +11,4 @@ import java.util.List;
  */
 public interface FaultRecordRepository extends JpaRepository<FaultRecord,Integer>
                                                 , JpaSpecificationExecutor<FaultRecord> {
-    public List<FaultRecord> findAllByRegisterId(String id);
-    public List<FaultRecord> findAllByMonitorId(Integer id);
-    public List<FaultRecord> findAllByServicerId(Integer id);
-    public List<FaultRecord> findAllByState(Integer id);
-    public List<FaultRecord> findAllByResult(Integer id);
 }
