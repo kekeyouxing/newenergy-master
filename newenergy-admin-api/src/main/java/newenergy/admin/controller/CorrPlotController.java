@@ -5,6 +5,7 @@ import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.service.CorrPlotAdminService;
 import newenergy.db.service.CorrPlotService;
+import newenergy.db.service.DeviceRequireService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +28,8 @@ public class CorrPlotController {
      */
     @Autowired
     private CorrPlotAdminService corrPlotAdminService;
+    @Autowired
+    private DeviceRequireService deviceRequireService;
 
     GetNumCode getNumCode = new GetNumCode();
 
@@ -72,8 +75,11 @@ public class CorrPlotController {
 
         /**
          * by Zeng Hui
+         * 添加小区信息的时候，
+         * 在"数据对应表-小区管理人员"和"实时流量需求表"添加记录
          */
         corrPlotAdminService.addARecord(corrPlot1,userid);
+        deviceRequireService.addPlot(corrPlot.getPlotNum(),userid);
 
         return ResponseUtil.ok(corrPlot1);
     }
@@ -96,8 +102,11 @@ public class CorrPlotController {
 
         /**
          * by Zeng Hui
+         * 添加小区信息的时候，
+         * 在"数据对应表-小区管理人员"和"实时流量需求表"添加记录
          */
         corrPlotAdminService.deleteARecord(corrPlot.getPlotNum(),userid);
+        deviceRequireService.deletePlot(corrPlot.getPlotNum(),userid);
 
         return ResponseUtil.ok();
     }

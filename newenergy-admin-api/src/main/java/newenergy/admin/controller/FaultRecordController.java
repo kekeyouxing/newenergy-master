@@ -1,15 +1,14 @@
 package newenergy.admin.controller;
 
 import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
+import newenergy.db.predicate.DeviceRequirePredicate;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.repository.NewenergyRoleRepository;
-import newenergy.db.service.CorrPlotAdminService;
-import newenergy.db.service.FaultRecordService;
+import newenergy.db.service.*;
 import newenergy.db.predicate.FaultRecordPredicate;
-import newenergy.db.service.NewenergyAdminService;
-import newenergy.db.service.NewenergyRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Created by HUST Corey on 2019-04-13.
@@ -32,6 +32,9 @@ public class FaultRecordController {
 
     @Autowired
     private CorrPlotAdminService corrPlotAdminService;
+
+    @Autowired
+    private DeviceRequireService deviceRequireService;
     /**
      *  信息确认
      * @param id
@@ -173,7 +176,7 @@ public class FaultRecordController {
     }
     @RequestMapping(value = "test2",method = RequestMethod.POST)
     public void test2(Integer id,String plotNum) {
-        corrPlotAdminService.deleteARecord(plotNum,id);
+
     }
 
     /**
@@ -302,6 +305,46 @@ public class FaultRecordController {
         corrPlotAdmin.setMonitorId(updateMonitor);
         corrPlotAdmin.setServicerId(updateServicer);
         return corrPlotAdminService.updateARecord(corrPlotAdmin,id);
+    }
+    @RequestMapping(value = "require/search",method = RequestMethod.POST)
+    public Map<String,Object> requireSearch(Integer id,String plotDtl,Integer page,Integer limit){
+        Map<String,Object> ret = new HashMap<>();
+        DeviceRequirePredicate predicate = new DeviceRequirePredicate();
+        predicate.setPlotDtl(plotDtl);
+        Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,PageRequest.of(page-1,limit),Sort.by(Sort.Direction.ASC,"plotNum"));
+        DeviceRequire setting = deviceRequireService.getSetting();
+
+        LocalDateTime updateTime = null;
+        Integer updateLoop = null;
+        if(setting != null){
+            updateTime = setting.getUpdateTime();
+            updateLoop = setting.getUpdateLoop();
+        }
+        ret.put("total",plots.getTotalElements()-1);
+        ret.put("updateTime",updateTime);
+        ret.put("updateLoop",updateLoop);
+        List<Map<String,Object>> plotlist = new ArrayList<>();
+        plots.get()
+            .filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS))
+            .forEach(plot->{
+                Map<String,Object> tmp = new HashMap<>();
+                tmp.put("plotDtl",deviceRequireService.getPlotDtl(plot.getPlotNum()));
+                tmp.put("requireVolume",plot.getRequireVolume());
+                plotlist.add(tmp);
+            });
+        ret.put("list",plotlist);
+        return ret;
+    }
+    @RequestMapping(value = "require/update",method = RequestMethod.POST)
+    public Integer requireUpdate(Integer id, Integer updateLoop){
+        DeviceRequire setting = deviceRequireService.getSetting();
+        if(setting == null) return 1;
+        setting.setUpdateLoop(updateLoop);
+        return deviceRequireService.setSetting(setting,id)==null?1:0;
+    }
+    @RequestMapping(value = "require/start")
+    public void startCron(){
+        deviceRequireService.updateCron();
     }
 
 

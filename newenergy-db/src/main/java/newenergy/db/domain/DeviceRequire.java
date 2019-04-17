@@ -38,11 +38,11 @@ public class DeviceRequire {
         this.id = id;
     }
 
-    public String getPlotInfo() {
+    public String getPlotNum() {
         return plotNum;
     }
 
-    public void setPlotInfo(String plotNum) {
+    public void setPlotNum(String plotNum) {
         this.plotNum = plotNum;
     }
 

@@ -32,5 +32,14 @@ public interface Searchable<T,S> {
         Specification<T> cond = addConditioin(predicate,PredicateFactory.getAliveSpecification());
         return PredicateExecutor.findBySpecification(getRepository(),cond,pageable,sort);
     }
+    default T findOneByPredicate(S predicate, Pageable pageable, Sort sort) {
+        Page<T> allRes = findByPredicate(predicate,pageable,sort);
+        return allRes.get().findFirst().orElse(null);
+    }
+    default T findOneByPredicateWithAive(S predicate, Pageable pageable, Sort sort){
+        Page<T> allRes = findByPredicateWithAive(predicate,pageable,sort);
+        return allRes.get().findFirst().orElse(null);
+    }
+
     JpaSpecificationExecutor<T> getRepository();
 }
