@@ -45,4 +45,7 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire> {
         deleteRecord(id,userid,repository);
     }
 
+
+
+
 }
