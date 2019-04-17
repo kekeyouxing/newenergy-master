@@ -26,7 +26,8 @@ public class NewenergyAdminService {
 
     public List<NewenergyAdmin> findAdmin(String username) {
 
-        return adminRepository.getAllByUsernameAndDeletedIsFalse(username);
+        Specification specification = getListSpecification(username);
+        return adminRepository.findAll(specification);
 
     }
     public Page<NewenergyAdmin> querySelective(String username, Integer page, Integer size){
@@ -38,7 +39,6 @@ public class NewenergyAdminService {
         return adminRepository.findAll(specification, pageable);
 
     }
-
     private Specification<NewenergyRole> getListSpecification(String username){
 
         //动态条件

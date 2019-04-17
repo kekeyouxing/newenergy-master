@@ -48,7 +48,7 @@ public class CorrPumpController {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrPump.getPumpNum());
             option.put("plot", corrPump.getPumpPlot());
-            option.put("pump", corrPump.getPumpDlt() + "号机房");
+            option.put("pump", corrPump.getPumpDlt());
             options.add(option);
         }
         return ResponseUtil.ok(options);

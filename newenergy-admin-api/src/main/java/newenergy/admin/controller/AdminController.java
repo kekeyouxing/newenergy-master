@@ -47,7 +47,7 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:create")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="添加")
     @PostMapping("/create")
-    public Object create(@AdminLoginUser Integer userId, @RequestBody NewenergyAdmin admin) {
+    public Object create(@AdminLoginUser NewenergyAdmin adminLogin, @RequestBody NewenergyAdmin admin) {
         Object error = validate(admin);
         if (error != null) {
             return error;
@@ -64,7 +64,7 @@ public class AdminController {
         String encodedPassword = encoder.encode(rawPassword);
 
         admin.setPassword(encodedPassword);
-        admin.setAddUserid(userId);
+        admin.setAddUserid(adminLogin.getId());
         admin.setAddTime(LocalDateTime.now());
         admin.setUpdateTime(LocalDateTime.now());
         admin.setDeleted(false);
@@ -102,7 +102,7 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:update")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="编辑")
     @PostMapping("/update")
-    public Object update(@AdminLoginUser Integer userId, @RequestBody NewenergyAdmin admin) {
+    public Object update(@AdminLoginUser NewenergyAdmin adminLogin, @RequestBody NewenergyAdmin admin) {
         Object error = validate(admin);
         if (error != null) {
             return error;
@@ -118,7 +118,7 @@ public class AdminController {
         String encodedPassword = encoder.encode(rawPassword);
 
         admin.setPassword(encodedPassword);
-        admin.setUpdateUserid(userId);
+        admin.setUpdateUserid(adminLogin.getId());
         admin.setUpdateTime(LocalDateTime.now());
 
         if (adminService.updateById(admin) == null) {

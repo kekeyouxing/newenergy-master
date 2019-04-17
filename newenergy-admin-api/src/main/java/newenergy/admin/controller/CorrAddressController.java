@@ -50,9 +50,9 @@ public class CorrAddressController {
         for(CorrAddress corrAddress: corrAddresses) {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrAddress.getAddressNum());
-            option.put("plot", corrAddress.getAddressPlot());
-            option.put("block", corrAddress.getAddressBlock()+"栋");
-            option.put("unit", corrAddress.getAddressUnit() + "单元");
+            option.put("label", corrAddress.getAddressPlot());
+            option.put("block", corrAddress.getAddressBlock());
+            option.put("unit", corrAddress.getAddressUnit());
             options.add(option);
         }
         return ResponseUtil.ok(options);
