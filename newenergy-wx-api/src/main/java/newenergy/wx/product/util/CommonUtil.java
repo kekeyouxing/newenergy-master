@@ -42,7 +42,7 @@ public class CommonUtil {
      * @param appsecret
      * @return
      */
-    public static Token getToken(String appid,String appsecret){
+    public static Token getAccessToken(String appid,String appsecret){
         Token token  = null;
         String requestUrl = token_url.replace("AppID",appid).replace("APPSECRET",appsecret);
         //发起GET请求获取凭证

@@ -78,8 +78,8 @@ public class ResidentService extends LogicOperation<Resident> {
      * @param register_id
      * @return String plotNum-小区编号
      */
-    public String findPlotNumByRegisterid(String register_id){
-        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
+    public String findPlotNumByRegisterid(String register_id,Integer safe_delete){
+        return residentRepository.findFirstByRegisterIdAndSafeDelete(register_id,safe_delete).getPlotNum();
     }
     /**
      * 修改居民用户表记录

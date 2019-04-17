@@ -73,9 +73,9 @@ public class WxOrderService {
         order = new RechargeRecord();
         order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
-        String plot_num = residentService.findPlotNumByRegisterid(deviceid);
+        String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
-        BigDecimal plot_factor = new BigDecimal(corrPlotService.findPlotFacByPlotNum(plot_num));
+        BigDecimal plot_factor = new BigDecimal(corrPlotService.findPlotFacByPlotNum(plot_num,0));
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
         BigDecimal recharge_volumn = acturalAmount.multiply(plot_factor);
         order.setOrderSn(rechargeRecordService.generateOrderSn());
