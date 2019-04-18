@@ -19,9 +19,7 @@ public class NewenergyAdmin {
 
     private LocalDateTime lastLoginTime;
 
-    private LocalDateTime addTime;
-
-    private LocalDateTime updateTime;
+    private LocalDateTime safeChangedTime;
 
     private String openid;
 
@@ -31,11 +29,11 @@ public class NewenergyAdmin {
 
     private String email;
 
-    private Integer addUserid;
+    private Integer safeChangedUserid;
 
-    private Integer updateUserid;
+    private Integer safeParent;
 
-    private Boolean deleted;
+    private Integer safeDelete;
 
     private Integer[] roleIds;
 
@@ -79,28 +77,20 @@ public class NewenergyAdmin {
         this.lastLoginTime = lastLoginTime;
     }
 
-    public LocalDateTime getAddTime() {
-        return addTime;
+    public LocalDateTime getSafeChangedTime() {
+        return safeChangedTime;
     }
 
-    public void setAddTime(LocalDateTime addTime) {
-        this.addTime = addTime;
+    public void setSafeChangedTime(LocalDateTime safeChangedTime) {
+        this.safeChangedTime = safeChangedTime;
     }
 
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
+    public Integer getSafeDelete() {
+        return safeDelete;
     }
 
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
+    public void setSafeDelete(Integer safeDelete) {
+        this.safeDelete = safeDelete;
     }
 
     public Integer[] getRoleIds() {
@@ -151,19 +141,19 @@ public class NewenergyAdmin {
         this.openid = openid;
     }
 
-    public Integer getAddUserid() {
-        return addUserid;
+    public Integer getSafeChangedUserid() {
+        return safeChangedUserid;
     }
 
-    public void setAddUserid(Integer addUserid) {
-        this.addUserid = addUserid;
+    public void setSafeChangedUserid(Integer safeChangedUserid) {
+        this.safeChangedUserid = safeChangedUserid;
     }
 
-    public Integer getUpdateUserid() {
-        return updateUserid;
+    public Integer getSafeParent() {
+        return safeParent;
     }
 
-    public void setUpdateUserid(Integer updateUserid) {
-        this.updateUserid = updateUserid;
+    public void setSafeParent(Integer safeParent) {
+        this.safeParent = safeParent;
     }
 }
