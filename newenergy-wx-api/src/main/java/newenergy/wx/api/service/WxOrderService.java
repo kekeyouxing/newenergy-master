@@ -54,12 +54,24 @@ public class WxOrderService {
     @Autowired
     private CorrPlotService corrPlotService;
 
+    /**
+     * 提交充值申请
+     * @author yangq
+     *
+     * @param openid
+     * @param body
+     * @param request
+     * @return
+     */
     @Transactional
-    public Object submit(String body,HttpServletRequest request){
+    public Object submit(String openid,String body,HttpServletRequest request){
+        if (openid == null || openid.isEmpty()){
+            return ResponseUtil.unauthz();
+        }
         if(body == null){
             return ResponseUtil.badArgument();
         }
-        String openid = JacksonUtil.parseString(body,"openid");
+//        String openid = JacksonUtil.parseString(body,"openid");
         String amount = JacksonUtil.parseString(body,"amount");
         String deviceid = JacksonUtil.parseString(body,"deviceid");
         String nickName = JacksonUtil.parseString(body,"nickName");
@@ -100,6 +112,14 @@ public class WxOrderService {
         return ResponseUtil.ok(result);
     }
 
+    /**
+     * 充值完成的回调
+     *
+     * @author yangq
+     * @param request
+     * @param response
+     * @return
+     */
     @Transactional
     public Object payNotify(HttpServletRequest request, HttpServletResponse response){
         String xmlResult = null;
