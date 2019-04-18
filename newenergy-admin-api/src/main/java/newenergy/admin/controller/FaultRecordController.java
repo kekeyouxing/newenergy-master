@@ -146,13 +146,13 @@ public class FaultRecordController {
      * @param id
      * @return
      */
-    @Autowired
-    NewenergyRoleRepository newenergyRoleRepository;
-    @Autowired
-    NewenergyAdminRepository newenergyAdminRepository;
-    @RequestMapping(value = "test",method = RequestMethod.POST)
-    public Map<String,Object> test(Integer id){
-        Map<String,Object> ret = new HashMap<>();
+//    @Autowired
+//    NewenergyRoleRepository newenergyRoleRepository;
+//    @Autowired
+//    NewenergyAdminRepository newenergyAdminRepository;
+//    @RequestMapping(value = "test",method = RequestMethod.POST)
+//    public Map<String,Object> test(Integer id){
+//        Map<String,Object> ret = new HashMap<>();
 //        NewenergyRole role = new NewenergyRole();
 //        role.setEnable(true);
 //        role.setDeleted(false);
@@ -161,19 +161,19 @@ public class FaultRecordController {
 //        role.setName("维修人员");
 //        role.setDescription("接收故障提醒，维修设备");
 //        NewenergyRole addedRole = newenergyRoleRepository.save(role);
-        NewenergyAdmin admin = new NewenergyAdmin();
-        admin.setDeleted(false);
-        admin.setAddTime(LocalDateTime.now());
-        admin.setUsername("servicer"+LocalDateTime.now().toString());
-        admin.setRealName("运营人员姓名"+LocalDateTime.now().toString());
-        admin.setPhone("13312340000");
-        Integer[] roleids = new Integer[]{
-                AdminConstant.ROLE_MONITOR
-        };
-        admin.setRoleIds(roleids);
-        newenergyAdminRepository.save(admin);
-        return ret;
-    }
+//        NewenergyAdmin admin = new NewenergyAdmin();
+//        admin.setDeleted(false);
+//        admin.setAddTime(LocalDateTime.now());
+//        admin.setUsername("servicer"+LocalDateTime.now().toString());
+//        admin.setRealName("运营人员姓名"+LocalDateTime.now().toString());
+//        admin.setPhone("13312340000");
+//        Integer[] roleids = new Integer[]{
+//                AdminConstant.ROLE_MONITOR
+//        };
+//        admin.setRoleIds(roleids);
+//        newenergyAdminRepository.save(admin);
+//        return ret;
+//    }
     @RequestMapping(value = "test2",method = RequestMethod.POST)
     public void test2(Integer id,String plotNum) {
 

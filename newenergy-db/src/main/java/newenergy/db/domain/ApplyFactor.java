@@ -18,7 +18,9 @@ public class ApplyFactor {
     private BigDecimal originFactor;
     private BigDecimal updateFactor;
     private Integer laborId;
+    private Integer checkId;
     private LocalDateTime applyTime;
+    private LocalDateTime checkTime;
     private Integer state;
 
     public Integer getId() {
@@ -75,5 +77,21 @@ public class ApplyFactor {
 
     public void setState(Integer state) {
         this.state = state;
+    }
+
+    public Integer getCheckId() {
+        return checkId;
+    }
+
+    public void setCheckId(Integer checkId) {
+        this.checkId = checkId;
+    }
+
+    public LocalDateTime getCheckTime() {
+        return checkTime;
+    }
+
+    public void setCheckTime(LocalDateTime checkTime) {
+        this.checkTime = checkTime;
     }
 }
