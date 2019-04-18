@@ -56,8 +56,16 @@ public class CorrTypeController {
     @PostMapping("create")
     public Object create(@RequestBody CorrType corrType, @RequestParam Integer userid) {
         List<CorrType> corrTypes = corrTypeService.findAll();
-        String type_num = getNumCode.getTwoNum(corrTypes.size());
-        corrType.setTypeNum(type_num);
+        List<String> typeNums = new ArrayList<>();
+        for(CorrType corrType1: corrTypes) {
+            typeNums.add(corrType1.getTypeNum());
+        }
+        for(int i=0; i<1296; i++) {
+            String num = getNumCode.getTwoNum(i);
+            if(num.compareTo(typeNums.get(i))==-1) {
+                corrType.setTypeNum(num);
+            }
+        }
         CorrType corrType1 = corrTypeService.addCorrType(corrType, userid);
         return ResponseUtil.ok(corrType1);
     }

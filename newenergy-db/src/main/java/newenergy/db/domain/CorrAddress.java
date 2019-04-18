@@ -22,6 +22,8 @@ public class CorrAddress {
 
     private Integer addressUnit;
 
+    private String addressDtl;
+
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
 
@@ -105,5 +107,13 @@ public class CorrAddress {
 
     public void setSageParent(Integer sageParent) {
         this.sageParent = sageParent;
+    }
+
+    public String getAddressDtl() {
+        return addressDtl;
+    }
+
+    public void setAddressDtl(String addressDtl) {
+        this.addressDtl = addressDtl;
     }
 }

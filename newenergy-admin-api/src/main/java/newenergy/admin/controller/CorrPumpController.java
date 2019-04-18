@@ -47,8 +47,8 @@ public class CorrPumpController {
         for(CorrPump corrPump : corrPumps) {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrPump.getPumpNum());
-            option.put("plot", corrPump.getPumpPlot());
-            option.put("pump", corrPump.getPumpDlt());
+            option.put("plot", corrPump.getPlot());
+            option.put("pump", corrPump.getPump());
             options.add(option);
         }
         return ResponseUtil.ok(options);
@@ -58,9 +58,8 @@ public class CorrPumpController {
     @PostMapping("/create")
     //改成小区+机房，数据库多加一个字段，编号为4位
     public Object create(@RequestBody CorrPump corrPump, @RequestParam Integer userid){
-        List<CorrPump> corrPumps = corrPumpService.findAll();
-        String plot_num = corrPlotService.fingPlotNum(corrPump.getPumpPlot());
-        String pump_num = plot_num + getNumCode.getTwoNum(corrPumps.size());
+        String plot_num = corrPlotService.findPlotNum(corrPump.getPlot());
+        String pump_num = plot_num + getNumCode.getTwoNum(corrPump.getPump());
         corrPump.setPumpNum(pump_num);
         CorrPump corrPump1 = corrPumpService.addCorrPump(corrPump, userid);
         return ResponseUtil.ok(corrPump1);

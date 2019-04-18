@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class RemainWaterService{
@@ -24,4 +25,7 @@ public class RemainWaterService{
         remainWaterRespository.saveAndFlush(remainWater);
     }
 
+    public List<RemainWater> findAll() {
+        return remainWaterRespository.findAll();
+    }
 }

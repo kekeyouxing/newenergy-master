@@ -61,9 +61,10 @@ public class CorrAddressController {
     //新增地址信息表数据
     @PostMapping("/create")
     public Object create(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
-        String plot_num = corrPlotService.fingPlotNum(corrAddress.getAddressPlot());
+        String plot_num = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
         String adress_num = getNumCode.getAddressNum(plot_num, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
         corrAddress.setAddressNum(adress_num);
+        corrAddress.setAddressDtl(corrAddress.getAddressPlot()+corrAddress.getAddressBlock()+"栋"+corrAddress.getAddressUnit()+"单元");
         CorrAddress corrAddress1 = corrAddressService.addCorrAddress(corrAddress, userid);
         return ResponseUtil.ok(corrAddress1);
     }

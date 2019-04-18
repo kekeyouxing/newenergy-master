@@ -1,6 +1,7 @@
 package newenergy.db.domain;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,7 @@ public class CorrPlot {
     private String plotDtl;
 
     //充值系数，元/吨
-    private Double plotFactor;
+    private BigDecimal plotFactor;
 
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
@@ -57,11 +58,11 @@ public class CorrPlot {
         this.plotDtl = plotDtl;
     }
 
-    public Double getPlotFactor() {
+    public BigDecimal getPlotFactor() {
         return plotFactor;
     }
 
-    public void setPlotFactor(Double plotFactor) {
+    public void setPlotFactor(BigDecimal plotFactor) {
         this.plotFactor = plotFactor;
     }
 
