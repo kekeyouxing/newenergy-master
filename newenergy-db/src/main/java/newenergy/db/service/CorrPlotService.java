@@ -77,8 +77,8 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @param plot_num
      * @return Double plotFactor 充值系数
      */
-    public BigDecimal findPlotFacByPlotNum(String plot_num){
-        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
+    public BigDecimal findPlotFacByPlotNum(String plot_num,Integer safe_delete){
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plot_num,safe_delete).getPlotFactor();
     }
 
     /**
@@ -87,14 +87,14 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @param limit
      * @return
      */
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit){
-        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.ASC,"plotNum"));
-        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb)->{
+    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit) {
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "plotNum"));
+        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
-            if(predicate.getPlotDtl() != null){
+            if (predicate.getPlotDtl() != null) {
                 lists.add(cb.equal(root.get("plotDtl").as(String.class), predicate.getPlotDtl()));
             }
-            if(predicate.getPlotNum() != null){
+            if (predicate.getPlotNum() != null) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
             Predicate[] arr = new Predicate[lists.size()];
@@ -102,5 +102,5 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         };
         specification = specification.and(PredicateFactory.getAliveSpecification());
         return corrPlotRepository.findAll(specification, pageable);
-
+    }
 }
