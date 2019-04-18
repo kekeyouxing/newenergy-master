@@ -134,7 +134,7 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
          * TODO
          * 每 updateLoop 秒 -> 分钟
          */
-        String cron = scheduledService.getCronByRate(null,null,DeviceRequireGlobal.updateLoop.get());
+        String cron = scheduledService.getCronByRate(null,DeviceRequireGlobal.updateLoop.get(),null);
         System.out.println("changed to " + cron);
         if(future == null){
             future = scheduledService.startCron(runnable,cron);

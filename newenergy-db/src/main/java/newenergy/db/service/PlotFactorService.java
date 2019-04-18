@@ -2,6 +2,7 @@ package newenergy.db.service;
 
 import newenergy.db.constant.ApplyFactorConstant;
 import newenergy.db.constant.ResultConstant;
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.NewenergyAdmin;
@@ -85,7 +86,9 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         /**
          * TODO 待修改deleted
          */
-        NewenergyAdmin admin = newenergyAdminRepository.findFirstByIdAndDeleted(id,false);
+//        NewenergyAdmin admin = newenergyAdminRepository.findFirstByIdAndDeleted(id,false);
+        NewenergyAdmin admin = newenergyAdminRepository.findFirstByIdAndSafeDelete(id, SafeConstant.SAFE_ALIVE);
+
         return admin==null?null:admin.getRealName();
     }
 

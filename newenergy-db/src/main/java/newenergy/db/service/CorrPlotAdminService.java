@@ -58,8 +58,8 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
          * TODO
          * 待修改
          */
-//        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
-        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification2(),Sort.by(Sort.Direction.ASC,"id"));
+        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
+//        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification2(),Sort.by(Sort.Direction.ASC,"id"));
         System.out.println("monitor:"+admins.size());
         List<Map<String,Object>> ret = new ArrayList<>();
         admins.forEach(admin -> {
@@ -136,22 +136,22 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
             }
             if(predicate.getMonitorName() != null){
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getMonitorName(),false);
+//                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getMonitorName(),false);
                 /**
                  * TODO
                  * 待更改属性名
                  */
-                //List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(),0);
+                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(),0);
                 admins.forEach(admin->{
                     list.add(cb.equal(root.get("monitorId").as(String.class),admin.getId()));
                 });
             }
             if(predicate.getServicerName() != null){
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getServicerName(),false);
+//                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getServicerName(),false);
                 /**
                  * 待更改属性名
                  */
-                //List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getServicerName(),0);
+                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getServicerName(),0);
                 admins.forEach(admin->{
                     list.add(cb.equal(root.get("servicerId").as(String.class),admin.getId()));
                 });

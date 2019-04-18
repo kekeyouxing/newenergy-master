@@ -152,7 +152,8 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         /**
          * TODO 待修改deleted
          */
-        return newenergyAdminRepository.findFirstByIdAndDeleted(id, false);
+//        return newenergyAdminRepository.findFirstByIdAndDeleted(id, false);
+        return newenergyAdminRepository.findFirstByIdAndSafeDelete(id,SafeConstant.SAFE_ALIVE);
     }
     public Resident getResident(String registerId){
         return residentRepository.findFirstByRegisterIdAndSafeDelete(registerId,0);
