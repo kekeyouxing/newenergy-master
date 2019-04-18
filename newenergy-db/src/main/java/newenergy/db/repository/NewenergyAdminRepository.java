@@ -13,10 +13,15 @@ public interface NewenergyAdminRepository extends JpaRepository<NewenergyAdmin, 
     /**
      * by Zeng Hui
      */
-    List<NewenergyAdmin> findAllByRealNameAndDeleted(String realName, Boolean deleted);
+//    List<NewenergyAdmin> findAllByRealNameAndDeleted(String realName, Boolean deleted);
+//    NewenergyAdmin findFirstByIdAndDeleted(Integer id, Boolean deleted);
+
     /**
+     * TODO
      * by Zeng Hui
      * 待修改
      */
-    //List<NewenergyAdmin> findAllByRealNameAndSafeDelete(String realName,Integer safeDelete);
+    List<NewenergyAdmin> findAllByRealNameAndSafeDelete(String realName,Integer safeDelete);
+    NewenergyAdmin findFirstByIdAndSafeDelete(Integer id, Integer safeDelete);
+
 }

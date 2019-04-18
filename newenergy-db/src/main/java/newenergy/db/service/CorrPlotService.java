@@ -1,12 +1,15 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.CorrPlot;
+import newenergy.db.predicate.CorrPlotPredicate;
+import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -75,5 +78,28 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      */
     public Double findPlotFacByPlotNum(String plot_num,Integer safe_delete){
         return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plot_num,safe_delete).getPlotFactor();
+    }
+
+    /**
+     * by Zeng Hui
+     * @param page start with 0
+     * @param limit
+     * @return
+     */
+    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit){
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.ASC,"plotNum"));
+        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb)->{
+            List<Predicate> lists = new ArrayList<>();
+            if(predicate.getPlotDtl() != null){
+                lists.add(cb.equal(root.get("plotDtl").as(String.class), predicate.getPlotDtl()));
+            }
+            if(predicate.getPlotNum() != null){
+                lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
+            }
+            Predicate[] arr = new Predicate[lists.size()];
+            return cb.and(lists.toArray(arr));
+        };
+        specification = specification.and(PredicateFactory.getAliveSpecification());
+        return corrPlotRepository.findAll(specification, pageable);
     }
 }

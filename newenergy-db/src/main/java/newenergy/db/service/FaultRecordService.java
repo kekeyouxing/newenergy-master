@@ -1,6 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.PredicateExecutor;
 import newenergy.db.repository.*;
@@ -148,8 +149,11 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         return residentRepository.findAll(specification,PageRequest.of(page,limit,Sort.by(Sort.Direction.ASC,"registerId")));
     }
     public NewenergyAdmin getNewenergyAdmin(Integer id){
-
-        return newenergyAdminRepository.findById(id).orElse(null);
+        /**
+         * TODO 待修改deleted
+         */
+//        return newenergyAdminRepository.findFirstByIdAndDeleted(id, false);
+        return newenergyAdminRepository.findFirstByIdAndSafeDelete(id,SafeConstant.SAFE_ALIVE);
     }
     public Resident getResident(String registerId){
         return residentRepository.findFirstByRegisterIdAndSafeDelete(registerId,0);
