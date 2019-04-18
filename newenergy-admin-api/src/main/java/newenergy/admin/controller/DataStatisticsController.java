@@ -3,8 +3,12 @@ package newenergy.admin.controller;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.Resident;
+import newenergy.db.domain.StatisticConsume;
+import newenergy.db.domain.StatisticPlotRecharge;
 import newenergy.db.service.RechargeRecordService;
 import newenergy.db.service.ResidentService;
+import newenergy.db.service.StatisticConsumeService;
+import newenergy.db.service.StatisticPlotRechargeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +37,12 @@ public class DataStatisticsController {
     @Autowired
     RechargeRecordService rechargeRecordService;
 
+    @Autowired
+    StatisticConsumeService statisticConsumeService;
+
+    @Autowired
+    StatisticPlotRechargeService statisticPlotRechargeService;
+
     /**
      * 获取消费统计表数据
      * @param plotNum  小区编号
@@ -38,14 +53,45 @@ public class DataStatisticsController {
      */
     @GetMapping("/getConsumeData")
     public Object getConsumeData(@RequestParam String plotNum,
-                          @RequestParam List<Integer> interval,
+                          @RequestParam BigDecimal[] interval,
                           @RequestParam String year,
                           @RequestParam String month) {
-        List<Resident> residents = residentService.findByPlotNum(plotNum);
-        for(Resident resident: residents) {
-
+        if(plotNum==null||year==null||month==null||interval.length==0) {
+            return ResponseUtil.badArgument();
         }
-        return null;
+        List<Resident> residents = residentService.findByPlotNum(plotNum);
+        Integer[] households = new Integer[interval.length+1];
+        String[] proportion = new String[interval.length+1];
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime currentTime = LocalDateTime.parse(year +"-"+ month, df);
+
+        for(Resident resident: residents) {
+            StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), currentTime);
+            BigDecimal curUsed = statisticConsume.getCurUsed();
+            if(curUsed.compareTo(interval[0])==-1) {
+                households[0]+=1;
+            }
+            if((curUsed.compareTo(interval[interval.length-1])==1)
+                    ||(curUsed.compareTo(interval[interval.length-1])==0)) {
+                households[interval.length] += 1;
+            }
+            for(int i=1; i<interval.length; i++) {
+                if(((curUsed.compareTo(interval[i-1])==1)||(curUsed.compareTo(interval[i-1])==0))
+                        &&(curUsed.compareTo(interval[i])==-1)) {
+                    households[i]+=1;
+                }
+            }
+        }
+        DecimalFormat nf = (DecimalFormat) NumberFormat.getCurrencyInstance();
+        nf.applyPattern("00%");
+        nf.setMaximumFractionDigits(2);
+        for (int i=0; i<households.length; i++) {
+            proportion[i] = nf.format(households[i]/residents.size());
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("households", households);
+        data.put("proportion", proportion);
+        return ResponseUtil.ok(data);
     }
 
     /**
@@ -59,9 +105,20 @@ public class DataStatisticsController {
     @GetMapping("/getPlotData")
     public Object getPlotData(@RequestParam String year,
                               @RequestParam String month,
-                              @RequestParam String page,
-                              @RequestParam String limit) {
-        return null;
+                              @RequestParam(defaultValue = "0") Integer page,
+                              @RequestParam(defaultValue = "10") Integer limit,
+                              @RequestParam String plotNum) {
+        if(year==null||month==null) {
+            return ResponseUtil.badArgument();
+        }
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime curTime = LocalDateTime.parse(year +"-"+ month, df);
+        Page<StatisticPlotRecharge> pagePlotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime, plotNum, page, limit);
+        List<StatisticPlotRecharge> plotRecharges = pagePlotRecharges.getContent();
+        Map<String, Object> data = new HashMap<>();
+        data.put("total", pagePlotRecharges.getTotalElements());
+        data.put("plotRecharges", plotRecharges);
+        return ResponseUtil.ok(data);
     }
 
     /**

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +49,16 @@ public class ResidentController {
         //生成登记号
         resident.initRegisterId();
         List<Resident> residents_device = residentService.queryDevice(resident.getAddressNum(), resident.getRoomNum());
-        String device_seq = getNumCode.getOneNum(residents_device.size());
-        resident.setDeviceSeq(device_seq);
+        List<String> deviceSeqs = new ArrayList<>();
+        for (Resident resident1:residents_device) {
+            deviceSeqs.add(resident1.getDeviceSeq());
+        }
+        for(int i=0; i<36; i++) {
+            String num = getNumCode.getOneNum(i);
+            if(num.compareTo(deviceSeqs.get(i))==-1) {
+                resident.setDeviceSeq(num);
+            }
+        }
         Resident resident1 = residentService.addResident(resident, userid);
         return ResponseUtil.ok(resident1);
     }

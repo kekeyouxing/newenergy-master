@@ -24,7 +24,7 @@ public class CorrTypeService extends LogicOperation<CorrType> {
 
     //获取所有未删除数据
     public List<CorrType> findAll() {
-        return corrTypeRepository.findAllBySafeDelete(0);
+        return corrTypeRepository.findAllBySafeDeleteOrderByTypeNum(0);
     }
 
     //根据机型信息获取纪录

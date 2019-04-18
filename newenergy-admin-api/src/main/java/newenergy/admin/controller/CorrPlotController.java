@@ -59,8 +59,16 @@ public class CorrPlotController {
         System.out.println("增加啦");
         System.out.println(corrPlot.getPlotDtl());
         List<CorrPlot> corrPlots = corrPlotService.findAll();
-        String plot_num = getNumCode.getTwoNum(corrPlots.size());
-        corrPlot.setPlotNum(plot_num);
+        List<String> plotNums = new ArrayList<>();
+        for (CorrPlot plot: corrPlots) {
+            plotNums.add(plot.getPlotNum());
+        }
+        for(int i=0; i<1296; i++) {
+            String num = getNumCode.getTwoNum(i);
+            if(num.compareTo(plotNums.get(i))==-1) {
+                corrPlot.setPlotNum(num);
+            }
+        }
         CorrPlot corrPlot1 = corrPlotService.addCorrPlot(corrPlot, userid);
         return ResponseUtil.ok(corrPlot1);
     }

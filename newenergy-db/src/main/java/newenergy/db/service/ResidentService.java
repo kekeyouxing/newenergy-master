@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +43,8 @@ public class ResidentService extends LogicOperation<Resident> {
         Resident resident = new Resident();
         resident.setAddressNum(address_num);
         resident.setRoomNum(room_num);
-        List<Resident> residents = residentRepository.findAll(findSearch(resident));
+        Sort sort = new Sort(Sort.Direction.ASC, "deviceSeq");
+        List<Resident> residents = residentRepository.findAll(findSearch(resident), sort);
         return residents;
     }
 
@@ -135,17 +137,17 @@ public class ResidentService extends LogicOperation<Resident> {
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
                 if(user_name!=null){
-                    predicates.add(criteriaBuilder.like(root.get("user_name"), "%"+user_name+"%"));
+                    predicates.add(criteriaBuilder.like(root.get("userName"), "%"+user_name+"%"));
                 }
                 if(address_nums.size()!=0) {
-                    Path<Object> path = root.get("address_num");
+                    Path<Object> path = root.get("addressNum");
                     CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
                     for(String address_num: address_nums) {
                         in.value(address_num);
                     }
                     predicates.add(criteriaBuilder.and(in));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
@@ -158,10 +160,10 @@ public class ResidentService extends LogicOperation<Resident> {
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
                 if(resident.getAddressNum()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("address_num"), resident.getAddressNum()));
+                    predicates.add(criteriaBuilder.equal(root.get("addressNum"), resident.getAddressNum()));
                 }
                 if(resident.getRoomNum()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("room_num"), resident.getRoomNum()));
+                    predicates.add(criteriaBuilder.equal(root.get("roomNum"), resident.getRoomNum()));
                 }
                 if(resident.getPlotNum()!=null) {
                     predicates.add(criteriaBuilder.equal(root.get("plotNum"), resident.getPlotNum()));

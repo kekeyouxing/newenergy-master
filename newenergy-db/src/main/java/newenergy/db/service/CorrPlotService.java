@@ -14,6 +14,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
     private CorrPlotRepository corrPlotRepository;
 
     public List<CorrPlot> findAll() {
-        return corrPlotRepository.findAllBySafeDelete(0);
+        return corrPlotRepository.findAllBySafeDeleteOrderByPlotNum(0);
     }
 
     //根据小区地址搜索
@@ -34,7 +35,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
     }
 
     //根据小区地址搜索小区编号
-    public String fingPlotNum(String plot_dlt) {
+    public String findPlotNum(String plot_dlt) {
         return corrPlotRepository.findByPlotDtlAndSafeDelete(plot_dlt, 0).getPlotNum();
     }
 
@@ -73,7 +74,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @param plot_num
      * @return Double plotFactor 充值系数
      */
-    public Double findPlotFacByPlotNum(String plot_num){
+    public BigDecimal findPlotFacByPlotNum(String plot_num){
         return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
     }
 }
