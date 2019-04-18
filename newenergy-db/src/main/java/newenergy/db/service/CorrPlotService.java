@@ -1,6 +1,5 @@
 package newenergy.db.service;
 
-import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.predicate.PredicateFactory;
@@ -78,8 +77,8 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @param plot_num
      * @return Double plotFactor 充值系数
      */
-    public BigDecimal findPlotFacByPlotNum(String plot_num){
-        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plot_num, SafeConstant.SAFE_ALIVE).getPlotFactor();
+    public BigDecimal findPlotFacByPlotNum(String plot_num,Integer safe_delete){
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plot_num,safe_delete).getPlotFactor();
     }
 
     /**

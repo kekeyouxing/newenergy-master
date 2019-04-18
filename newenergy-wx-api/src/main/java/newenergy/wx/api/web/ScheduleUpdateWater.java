@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import sun.swing.MenuItemLayoutHelper;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -39,7 +38,7 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
-    @Scheduled(cron = "0/5 * * * * ?")
+//    @Scheduled(cron = "0/5 * * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
@@ -83,7 +82,7 @@ public class ScheduleUpdateWater {
      */
     @Transactional
     @Async
-    @Scheduled(cron = "0 0 0 1 1/1 ? *")
+//    @Scheduled(cron = "0 0 0 1 1/1 ? *")
     public void updateConsume() {
         List<RemainWater> remainWaters = remainWaterService.findAll();
         for(RemainWater remainWater: remainWaters) {

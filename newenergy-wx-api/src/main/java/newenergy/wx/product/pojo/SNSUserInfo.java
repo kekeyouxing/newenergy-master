@@ -1,32 +1,30 @@
 package newenergy.wx.product.pojo;
 
+import java.util.List;
+
 /**
- * 微信用户的基本信息
+ * 通过网页授权获取的用户信息
  *
  * @author yangq
  * @date 2019-04-17
  */
-public class WeixinUserInfo {
+public class SNSUserInfo {
     //用户标识
     private String openId;
-    //关注状态（1是关注，0是未关注）
-    private int subscribe;
-    //用户关注时间，为时间戳。如果用户多次关注，则取最后关注时间
-    private String subscribeTime;
-    //昵称
+    //用户昵称
     private String nickname;
-    //用户性别（1是男性，2是女性，0是未知）
+    //性别（1是男性，2是女性，0是未知）
     private int sex;
-    //用户所在国家
+    //国家
     private String country;
-    //用户所在省份
+    //省份
     private String province;
-    //用户所在城市
+    //城市
     private String city;
-    //用户的语言，简体中文为zh_CN
-    private String language;
-    //用户头像
+    //用户头像链接
     private String headImgUrl;
+    //用户特权信息
+    private List<String> privilegeList;
 
     public String getOpenId() {
         return openId;
@@ -34,22 +32,6 @@ public class WeixinUserInfo {
 
     public void setOpenId(String openId) {
         this.openId = openId;
-    }
-
-    public int getSubscribe() {
-        return subscribe;
-    }
-
-    public void setSubscribe(int subscribe) {
-        this.subscribe = subscribe;
-    }
-
-    public String getSubscribeTime() {
-        return subscribeTime;
-    }
-
-    public void setSubscribeTime(String subscribeTime) {
-        this.subscribeTime = subscribeTime;
     }
 
     public String getNickname() {
@@ -92,19 +74,19 @@ public class WeixinUserInfo {
         this.city = city;
     }
 
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
     public String getHeadImgUrl() {
         return headImgUrl;
     }
 
     public void setHeadImgUrl(String headImgUrl) {
         this.headImgUrl = headImgUrl;
+    }
+
+    public List<String> getPrivilegeList() {
+        return privilegeList;
+    }
+
+    public void setPrivilegeList(List<String> privilegeList) {
+        this.privilegeList = privilegeList;
     }
 }
