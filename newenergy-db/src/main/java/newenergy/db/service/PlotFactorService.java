@@ -108,8 +108,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         /**
          * TODO 等待修改类型
          */
-        BigDecimal originFactor = BigDecimal.valueOf(res.getPlotFactor());
-        applyFactor.setOriginFactor(originFactor);
+        applyFactor.setOriginFactor(res.getPlotFactor());
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
     }
     @Override
