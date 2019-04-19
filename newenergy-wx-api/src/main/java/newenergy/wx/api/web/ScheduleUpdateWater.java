@@ -2,6 +2,8 @@ package newenergy.wx.api.web;
 
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Async;
@@ -21,6 +23,8 @@ import java.util.List;
 @EnableScheduling
 @EnableAsync
 public class ScheduleUpdateWater {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private RemainWaterService remainWaterService;
 
@@ -36,6 +40,9 @@ public class ScheduleUpdateWater {
     @Autowired
     private ResidentService residentService;
 
+    @Autowired
+    private RechargeRecordService rechargeRecordService;
+
     @Transactional
     @Async
 //    @Scheduled(cron = "0/5 * * * * ?")
@@ -43,9 +50,10 @@ public class ScheduleUpdateWater {
         List<ExtraWater> sortedExtraWaterList = extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
             BigDecimal addVolume = extraWater.getAddVolume();
+            RechargeRecord rechargeRecord = rechargeRecordService.findById(extraWater.getRecordId());
             RemainWater remainWater = remainWaterService.findByRegisterId(extraWater.getRegisterId());
             if (isTrustworthy(remainWater)){
-                updateReaminwater(remainWater,addVolume);
+                updateVolume(rechargeRecord,remainWater,addVolume);
                 extraWaterService.deleteRecord(extraWater);
             }
         }
@@ -65,12 +73,31 @@ public class ScheduleUpdateWater {
     }
 
     /**
-     * 更新剩余水量表
+     * 更新剩余水量表,更改为updateVolume方法
      * 此处应该加上对日期的判断，比如是否为新的月份，后续添加
      */
+//    @Transactional
+//    public void updateReaminwater(RemainWater remainWater,BigDecimal addVolume){
+//        remainWater.setRemainVolume(remainWater.getRemainVolume().add(addVolume));
+//        remainWater.setUpdateTime(LocalDateTime.now());
+//        remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
+//        remainWaterService.updateRemainWater(remainWater);
+//    }
+
+    /**
+     * 更新水量表
+     * @param rechargeRecord 更改充值记录表的剩余流量和更新流量
+     * @param remainWater 更改剩余水量表的剩余流量和新增流量
+     * @param addVolume 新增水量
+     */
     @Transactional
-    public void updateReaminwater(RemainWater remainWater,BigDecimal addVolume){
-        remainWater.setRemainVolume(remainWater.getRemainVolume().add(addVolume));
+    public void updateVolume(RechargeRecord rechargeRecord,RemainWater remainWater,BigDecimal addVolume){
+        BigDecimal remainVolume = remainWater.getRemainVolume();
+        BigDecimal updatedVolume = remainVolume.add(addVolume);
+        rechargeRecord.setRemainVolume(remainVolume);
+        rechargeRecord.setUpdatedVolume(updatedVolume);
+        rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
+        remainWater.setRemainVolume(updatedVolume);
         remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
         remainWaterService.updateRemainWater(remainWater);

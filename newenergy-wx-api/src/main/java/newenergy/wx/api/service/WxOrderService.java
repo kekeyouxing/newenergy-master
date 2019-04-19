@@ -159,17 +159,18 @@ public class WxOrderService {
 
         order.setTransactionId(payId);
         order.setRechargeTime(LocalDateTime.now());
-        rechargeRecordService.updateRechargeRecord(order,null);
+        order = rechargeRecordService.updateRechargeRecord(order,null);
+        int recordId = order.getId();
 
         //TODO 发送邮件和短信通知，这里采用异步发送
 
-        ExtraWater extraWater = null;
-        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),null);
+//        ExtraWater extraWater = null;
+//        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
 //        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
 //        extraWater.setRegisterId(order.getRegister_id());
 //        extraWater.setRecord_id(null);
 //        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
-        extraWaterService.add(extraWater);
+        extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
 
