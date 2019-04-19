@@ -15,6 +15,7 @@ public class BatchRecord {
     private String company;
     private LocalDateTime rechargeTime;
     private Integer batchAdmin;
+    private String imgUrl;
     private LocalDateTime safeChangedTime;
     private Integer safeChangedUserid;
     private Integer safeDelete;
@@ -52,7 +53,13 @@ public class BatchRecord {
         this.batchAdmin = batchAdmin;
     }
 
+    public String getImgUrl() {
+        return imgUrl;
+    }
 
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 
     public Integer getSafeChangedUserid() {
         return safeChangedUserid;

@@ -13,6 +13,8 @@ spring:
         hbm2ddl:
            auto: update
 
+  mvc:
+    static-path-pattern: /admin/image/**
 
-
-
+  resources:
+    static-locations: file:F://images/
