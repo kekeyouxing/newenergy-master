@@ -18,11 +18,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,19 +81,9 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                     });
                 }
             }
-            if(predicate.getFinishTime() != null){
-                LocalDateTime cond = predicate.getFinishTime();
-                LocalDateTime start = LocalDateTime.of(cond.getYear(),cond.getMonth(),1,0,0);
-                LocalDateTime end = LocalDateTime.of(cond.plusMonths(1).getYear(),cond.plusMonths(1).getMonth(),1,0,0);
-
-                conditions.add(cb.between(root.get("finishTime").as(LocalDateTime.class),start,end));
-            }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));
         };
-
-
-
         return other==null?specification:specification.and(other);
     }
 
