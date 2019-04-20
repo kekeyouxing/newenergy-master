@@ -12,6 +12,7 @@ import newenergy.db.repository.ApplyFactorRepository;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,14 +80,11 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         return corrPlotService.findAllCorrPlotWithAlive(predicate,page,limit);
     }
     public String getPlotDtl(String plotNum){
-        CorrPlot corrPlot = corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+        CorrPlot corrPlot = corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,SafeConstant.SAFE_ALIVE);
         return corrPlot==null?null:corrPlot.getPlotDtl();
     }
     public String getAdminName(Integer id){
-        /**
-         * TODO 待修改deleted
-         */
-//        NewenergyAdmin admin = newenergyAdminRepository.findFirstByIdAndDeleted(id,false);
+
         NewenergyAdmin admin = newenergyAdminRepository.findFirstByIdAndSafeDelete(id, SafeConstant.SAFE_ALIVE);
 
         return admin==null?null:admin.getRealName();
@@ -105,9 +103,6 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         Page<CorrPlot> allRes = findAllCorrPlotWithAlive(predicate,0,1);
         CorrPlot res = allRes.get().findFirst().orElse(null);
         if(res == null) return ResultConstant.ERR;
-        /**
-         * TODO 等待修改类型
-         */
         BigDecimal originFactor = res.getPlotFactor();
         applyFactor.setOriginFactor(originFactor);
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
@@ -118,14 +113,16 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
             @Override
             public Predicate toPredicate(Root<ApplyFactor> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> lists = new ArrayList<>();
-                if(predicate.getPlotDtl() != null){
+                if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
                     CorrPlotPredicate corrPlotPredicate = new CorrPlotPredicate();
                     corrPlotPredicate.setPlotDtl(predicate.getPlotDtl());
                     Page<CorrPlot> allRes = findAllCorrPlotWithAlive(corrPlotPredicate,0,1);
                     CorrPlot res = allRes.get().findFirst().orElse(null);
+                    String plotNum = "";
                     if(res != null){
-                        lists.add(criteriaBuilder.equal(root.get("plotNum").as(String.class),res.getPlotNum()));
+                        plotNum = res.getPlotNum();
                     }
+                    lists.add(criteriaBuilder.equal(root.get("plotNum").as(String.class),plotNum));
                 }
                 if(predicate.getState() != null){
                     lists.add(criteriaBuilder.equal(root.get("state").as(Integer.class),predicate.getState()));

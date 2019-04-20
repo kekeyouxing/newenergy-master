@@ -26,7 +26,8 @@ public class PredicateExecutor {
         Pageable newPageable = null;
         if(pageable == null){
             newSort = sort==null?Sort.by(Sort.Direction.ASC, "id"):sort;
-            newPageable = PageRequest.of(0,(int)(repository).count(specification),newSort);
+            int limit = 1;
+            newPageable = PageRequest.of(0,Math.max(limit,(int)(repository).count(specification)),newSort);
         }else{
             if(sort != null){
                 newPageable = PageRequest.of(pageable.getPageNumber(),pageable.getPageSize(),sort);

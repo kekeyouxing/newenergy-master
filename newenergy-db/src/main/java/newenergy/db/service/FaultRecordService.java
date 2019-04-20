@@ -8,6 +8,7 @@ import newenergy.db.repository.*;
 import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +44,8 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
     private NewenergyAdminRepository newenergyAdminRepository;
     @Autowired
     private ResidentService residentService;
+    @Autowired
+    private CorrPumpRepository corrPumpRepository;
     /**
      * 默认质保期1年
      */
@@ -57,7 +61,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             List<Predicate> conditions = new ArrayList<>();
             if(predicate.getId() != null)
                 conditions.add(cb.equal(root.get("id").as(Integer.class),predicate.getId()));
-            if(predicate.getRegisterId() != null)
+            if(!StringUtilCorey.emptyCheck(predicate.getRegisterId()))
                 conditions.add(cb.equal(root.get("registerId").as(String.class),predicate.getRegisterId()));
             if(predicate.getState() != null)
                 conditions.add(cb.equal(root.get("state").as(Integer.class),predicate.getState()));
@@ -65,19 +69,29 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 conditions.add(cb.equal(root.get("monitorId").as(Integer.class),predicate.getMonitorId()));
             if(predicate.getServicerId() != null)
                 conditions.add(cb.equal(root.get("servicerId").as(Integer.class),predicate.getServicerId()));
-            if(predicate.getUsername() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getUsername())){
                 List<Resident> residents = residentRepository.findAllByUserNameAndSafeDelete(predicate.getUsername(),0);
                 residents.forEach(resident -> {
                     conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
                 });
+                /**
+                 * TODO 模糊查找
+                 */
             }
             if(predicate.getPlots() != null){
                 for(String plot : predicate.getPlots()){
+                    if(!StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
                         conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
                     });
                 }
+            }
+            if(predicate.getFinishTime() != null){
+                LocalDateTime cond = predicate.getFinishTime();
+                LocalDateTime start = LocalDateTime.of(cond.getYear(),cond.getMonth(),1,0,0);
+                LocalDateTime end = LocalDateTime.of(cond.plusMonths(1).getYear(),cond.plusMonths(1).getMonth(),1,0,0);
+                conditions.add(cb.between(root.get("finishTime").as(LocalDateTime.class),start,end));
             }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));
@@ -149,17 +163,13 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         return residentRepository.findAll(specification,PageRequest.of(page,limit,Sort.by(Sort.Direction.ASC,"registerId")));
     }
     public NewenergyAdmin getNewenergyAdmin(Integer id){
-        /**
-         * TODO 待修改deleted
-         */
-//        return newenergyAdminRepository.findFirstByIdAndDeleted(id, false);
         return newenergyAdminRepository.findFirstByIdAndSafeDelete(id,SafeConstant.SAFE_ALIVE);
     }
     public Resident getResident(String registerId){
         return residentRepository.findFirstByRegisterIdAndSafeDelete(registerId,0);
     }
     public CorrAddress getCorrAddress(String addressNum){
-        return corrAddressRepository.findByAddressNumAndSafeDelete(addressNum,0);
+        return corrAddressRepository.findFirstByAddressNumAndSafeDelete(addressNum,0);
     }
     public CorrPlotAdmin getCorrPlotAdmin(String plotNum){
         return corrPlotAdminRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
@@ -167,14 +177,21 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
     public CorrType getCorrType(String typeNum){
         return corrTypeRepository.findFirstByTypeNumAndSafeDelete(typeNum,0);
     }
+    public CorrPump getCorrPump(String pumpNum){
+        return corrPumpRepository.findFirstByPumpNumAndSafeDelete(pumpNum,SafeConstant.SAFE_ALIVE);
+    }
     public CorrPlot getCorrPlot(String plotNum){
-        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,SafeConstant.SAFE_ALIVE);
     }
-    public String getCorrAddressStr(CorrAddress corrAddress){
-        return String.format("%s小区%d栋%d单元",
-                getCorrPlot(corrAddress.getAddressPlot()).getPlotDtl(),
-                corrAddress.getAddressBlock(),
-                corrAddress.getAddressUnit());
-    }
+//    public String getCorrAddressStr(CorrAddress corrAddress){
+//        String ret = "";
+//        if(corrAddress == null) return ret;
+//        CorrPlot corrPlot = getCorrPlot(corrAddress.getAddressPlot());
+//        if(corrPlot == null) return ret;
+//        return String.format("%s小区%d栋%d单元",
+//                corrPlot.getPlotDtl(),
+//                corrAddress.getAddressBlock(),
+//                corrAddress.getAddressUnit());
+//    }
 
 }

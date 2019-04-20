@@ -13,5 +13,5 @@ public interface CorrAddressRepository extends JpaRepository<CorrAddress, Intege
     /**
      * by Zeng Hui
      */
-    CorrAddress findByAddressNumAndSafeDelete(String addressNum, Integer safeDelete);
+    CorrAddress findFirstByAddressNumAndSafeDelete(String addressNum, Integer safeDelete);
 }
