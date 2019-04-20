@@ -2,6 +2,8 @@ package newenergy.admin.controller;
 
 import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.DeviceRequireConstant;
+import newenergy.db.constant.FaultRecordConstant;
+import newenergy.db.constant.ResultConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
 import newenergy.db.predicate.DeviceRequirePredicate;
@@ -68,13 +70,18 @@ public class FaultRecordController {
     public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto){
         Integer id = dto.getId();
         String registerId = dto.getRegisterId();
+        Map<String,Object> ret = new HashMap<>();
+        Map<String,Object> map = new HashMap<>();
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident==null) return map;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
-        Map<String,Object> map = new HashMap<>();
         map.put("registerId",registerId);
         map.put("username",resident.getUserName());
-        map.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+        String addressDtl = "";
+        if(corrAddress!=null)
+            addressDtl = corrAddress.getAddressDtl();
+        map.put("addressDtl",addressDtl);
         map.put("roomNum",resident.getRoomNum());
         map.put("phone",resident.getPhone());
         //暂时使用用户id代替用户姓名
@@ -83,7 +90,25 @@ public class FaultRecordController {
         String servicerName = null;
         if(admin != null) servicerName = admin.getRealName();
         map.put("servicerName",servicerName);
-        return map;
+        ret.put("userinfo",map);
+
+        Map<String,Object> info = new HashMap<>();
+        info.put("area",resident.getArea());
+        info.put("buyTime",resident.getBuyTime());
+        CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
+        info.put("typeDtl",corrType.getTypeDtl());
+        info.put("ratedFlow",resident.getRatedFlow());
+        info.put("deviceNum",resident.getDeviceNum());
+        info.put("deviceSeq",resident.getDeviceSeq());
+        info.put("installTime",resident.getInstallTime());
+        info.put("receiveTime",resident.getReceiveTime());
+        String pumpNum = resident.getPumpNum();
+        CorrPump corrPump = pumpNum==null?null:faultRecordService.getCorrPump(pumpNum);
+        String pumpDtl = corrPump==null?"":corrPump.getPumpDtl();
+        info.put("pumpDtl",pumpDtl);
+
+        ret.put("info",info);
+        return ret;
     }
 
     private static class AddDTO{
@@ -132,6 +157,7 @@ public class FaultRecordController {
         faultRecord.setRegisterId(registerId);
         faultRecord.setMonitorId(id);
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident == null) return ResultConstant.ERR;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
         faultRecord.setServicerId(corrPlotAdmin.getServicerId());
@@ -181,11 +207,15 @@ public class FaultRecordController {
         Map<String, Object> ret = new HashMap<>();
         Map<String, Object> userinfo = new HashMap<>();
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident==null) return ret;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
         userinfo.put("registerId",registerId);
         userinfo.put("username",resident.getUserName());
-        userinfo.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+        String addressDtl = "";
+        if(corrAddress != null)
+            addressDtl = corrAddress.getAddressDtl();
+        userinfo.put("addressDtl",addressDtl);
         userinfo.put("roomNum",resident.getRoomNum());
         userinfo.put("phone",resident.getPhone());
 
@@ -218,6 +248,7 @@ public class FaultRecordController {
             records.add(tmp);
         });
         ret.put("records",records);
+
         return ret;
     }
 
@@ -336,7 +367,8 @@ public class FaultRecordController {
             e.put("username",resident.getUserName());
             String addressNum = resident.getAddressNum();
             CorrAddress corrAddress = faultRecordService.getCorrAddress(addressNum);
-            e.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+            String addressDtl = corrAddress==null?"":corrAddress.getAddressDtl();
+            e.put("addressDtl",addressDtl);
             e.put("roomNum",resident.getRoomNum());
             e.put("phone",resident.getPhone());
             list.add(e);
@@ -431,7 +463,10 @@ public class FaultRecordController {
             Resident resident = faultRecordService.getResident(record.getRegisterId());
             CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
             tmp.put("username",resident.getUserName());
-            tmp.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+            String addressDtl = "";
+            if(corrAddress != null)
+                addressDtl = corrAddress.getAddressDtl();
+            tmp.put("addressDtl",addressDtl);
             tmp.put("roomNum",resident.getRoomNum());
             tmp.put("phone",resident.getPhone());
             NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(record.getServicerId());
@@ -443,16 +478,17 @@ public class FaultRecordController {
             tmp.put("servicerName",name);
             tmp.put("servicerPhone",phone);
             Integer state = null;
-            if(record.getState() == 2){
-                if(record.getResult() == 0) state = 3;//成功
-                if(record.getResult() == 1) state = 1;//超时未响应
-                if(record.getResult() == 2) state = 4;//失败
-            }else if(record.getState() == 0){
+            if( FaultRecordConstant.STATE_FINISH.equals(record.getState()) ){
+                if( FaultRecordConstant.RESULT_SUCCESS.equals(record.getResult()) ) state = 3;//成功
+                if( FaultRecordConstant.RESULT_TIMEOUT.equals(record.getResult()) ) state = 1;//超时未响应
+                if( FaultRecordConstant.RESULT_FAILED.equals(record.getResult()) ) state = 4;//失败
+            }else if( FaultRecordConstant.STATE_WAIT.equals(record.getState()) ){
                 state = 0; //待响应
-            }else if(record.getState() == 1){
+            }else if( FaultRecordConstant.STATE_DURING.equals(record.getState()) ){
                 state = 2; //维修中
             }
             tmp.put("state",state);
+            tmp.put("faultTime",record.getFaultTime());
             list.add(tmp);
         });
         ret.put("records",list);

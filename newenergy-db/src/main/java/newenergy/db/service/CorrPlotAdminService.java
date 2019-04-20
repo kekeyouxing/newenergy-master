@@ -6,6 +6,7 @@ import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPlotAdmin;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
+import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.CorrPlotAdminRepository;
 import newenergy.db.repository.CorrPlotRepository;
@@ -42,6 +43,10 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     private CorrPlotRepository corrPlotRepository;
     @Autowired
     private NewenergyAdminRepository newenergyAdminRepository;
+    @Autowired
+    private CorrPlotService corrPlotService;
+    @Autowired
+    private FaultRecordService faultRecordService;
 
     public String getPlotdtl(String plotNum){
         if(plotNum == null) return null;
@@ -139,14 +144,21 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 list.add(cb.equal(root.get("plotNum").as(String.class),predicate.getPlotNum()));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getPlotName())){
-                CorrPlot corrPlot = corrPlotRepository.findByPlotDtlAndSafeDelete(predicate.getPlotName(),0);
-
+                CorrPlotPredicate corrPlotPredicate = new CorrPlotPredicate();
+                corrPlotPredicate.setPlotDtl(predicate.getPlotName());
+                Page<CorrPlot> allRes = corrPlotService.findAllCorrPlotWithAlive(corrPlotPredicate,
+                        Pageable.unpaged().getPageNumber(),
+                        Pageable.unpaged().getPageSize());
+                CorrPlot corrPlot = allRes.get().findFirst().orElse(null);
                 String plotNum = corrPlot==null?"":corrPlot.getPlotNum();
                 list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getMonitorName())){
 //                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getMonitorName(),false);
                 List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(), SafeConstant.SAFE_ALIVE);
+                /**
+                 * TODO
+                 */
                 admins.forEach(admin->{
                     list.add(cb.equal(root.get("monitorId").as(String.class),admin.getId()));
                 });

@@ -1,5 +1,6 @@
 package newenergy.db.predicate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -13,6 +14,18 @@ public  class FaultRecordPredicate{
     private Integer monitorId;
     private Integer servicerId;
     private List<String> plots;
+    /**
+     * 查询finishTime所在月的维修记录
+     */
+    private LocalDateTime finishTime;
+
+    public LocalDateTime getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
+    }
 
     public List<String> getPlots() {
         return plots;

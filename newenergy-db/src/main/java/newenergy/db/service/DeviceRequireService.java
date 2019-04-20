@@ -164,6 +164,9 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
             List<Predicate> list = new ArrayList<>();
             if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
                 CorrPlot plot = corrPlotRepository.findByPlotDtlAndSafeDelete(predicate.getPlotDtl(),SafeConstant.SAFE_ALIVE);
+                /**
+                 * TODO 模糊查找
+                 */
                 String plotNum = "";
                 if(plot != null)
                     plotNum =  plot.getPlotNum();

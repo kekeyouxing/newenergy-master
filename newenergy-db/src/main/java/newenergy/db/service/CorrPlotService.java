@@ -93,7 +93,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
             if (!StringUtilCorey.emptyCheck(predicate.getPlotDtl())) {
-                lists.add(cb.equal(root.get("plotDtl").as(String.class), predicate.getPlotDtl()));
+                lists.add(cb.like(root.get("plotDtl").as(String.class), StringUtilCorey.getMod(predicate.getPlotDtl())));
             }
             if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));

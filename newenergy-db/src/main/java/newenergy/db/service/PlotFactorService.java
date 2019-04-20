@@ -122,7 +122,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                     if(res != null){
                         plotNum = res.getPlotNum();
                     }
-                    lists.add(criteriaBuilder.equal(root.get("plotNum").as(String.class),res.getPlotNum()));
+                    lists.add(criteriaBuilder.equal(root.get("plotNum").as(String.class),plotNum));
                 }
                 if(predicate.getState() != null){
                     lists.add(criteriaBuilder.equal(root.get("state").as(Integer.class),predicate.getState()));
