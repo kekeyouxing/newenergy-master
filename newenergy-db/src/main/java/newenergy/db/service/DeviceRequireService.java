@@ -12,6 +12,7 @@ import newenergy.db.task.DeviceRequireRunnable;
 import newenergy.db.task.ScheduledService;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -161,11 +162,16 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
         Specification<DeviceRequire> specification =
         (Root<DeviceRequire> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> list = new ArrayList<>();
-            if(predicate.getPlotDtl() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
                 CorrPlot plot = corrPlotRepository.findByPlotDtlAndSafeDelete(predicate.getPlotDtl(),SafeConstant.SAFE_ALIVE);
-                list.add(cb.equal(root.get("plotNum").as(String.class),plot.getPlotNum()));
+                String plotNum = "";
+                if(plot != null)
+                    plotNum =  plot.getPlotNum();
+                list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
+
+
             }
-            if(predicate.getPlotNum() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getPlotNum())){
                 list.add(cb.equal(root.get("plotNum").as(String.class),predicate.getPlotNum()));
             }
             Predicate[] arr = new Predicate[list.size()];

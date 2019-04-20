@@ -44,13 +44,13 @@ public class BatchRecordService extends LogicOperation<BatchRecord> {
     }
 
 //    查询所有批量充值记录
-    public List<BatchRecord> findAll(int safeDelete){
-        return repository.findAllBySafeDelete(safeDelete);
+    public List<BatchRecord> findAll(){
+        return repository.findAllBySafeDelete(0);
     }
 
 //   根据公司查询批量充值记录
-    public List<BatchRecord> queryByCompanyAndSafeDelete(String company, Integer safeDelete){
-        return repository.findAllByCompanyAndSafeDelete(company,safeDelete);
+    public List<BatchRecord> queryByCompanyAndSafeDelete(String company){
+        return repository.findAllByCompanyAndSafeDelete(company,0);
     }
 
 //    根据id查询批量充值记录

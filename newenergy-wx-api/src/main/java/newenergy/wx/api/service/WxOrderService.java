@@ -54,12 +54,24 @@ public class WxOrderService {
     @Autowired
     private CorrPlotService corrPlotService;
 
+    /**
+     * 提交充值申请
+     * @author yangq
+     *
+     * @param openid
+     * @param body
+     * @param request
+     * @return
+     */
     @Transactional
-    public Object submit(String body,HttpServletRequest request){
+    public Object submit(String openid,String body,HttpServletRequest request){
+        if (openid == null || openid.isEmpty()){
+            return ResponseUtil.unauthz();
+        }
         if(body == null){
             return ResponseUtil.badArgument();
         }
-        String openid = JacksonUtil.parseString(body,"openid");
+//        String openid = JacksonUtil.parseString(body,"openid");
         String amount = JacksonUtil.parseString(body,"amount");
         String deviceid = JacksonUtil.parseString(body,"deviceid");
         String nickName = JacksonUtil.parseString(body,"nickName");
@@ -75,7 +87,7 @@ public class WxOrderService {
         order.setAmount(acturalAmount.intValue());
         String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
-        BigDecimal plot_factor = new BigDecimal(corrPlotService.findPlotFacByPlotNum(plot_num,0));
+        BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num,0);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
         BigDecimal recharge_volumn = acturalAmount.multiply(plot_factor);
         order.setOrderSn(rechargeRecordService.generateOrderSn());
@@ -100,6 +112,14 @@ public class WxOrderService {
         return ResponseUtil.ok(result);
     }
 
+    /**
+     * 充值完成的回调
+     *
+     * @author yangq
+     * @param request
+     * @param response
+     * @return
+     */
     @Transactional
     public Object payNotify(HttpServletRequest request, HttpServletResponse response){
         String xmlResult = null;
@@ -139,17 +159,18 @@ public class WxOrderService {
 
         order.setTransactionId(payId);
         order.setRechargeTime(LocalDateTime.now());
-        rechargeRecordService.updateRechargeRecord(order,null);
+        order = rechargeRecordService.updateRechargeRecord(order,null);
+        int recordId = order.getId();
 
         //TODO 发送邮件和短信通知，这里采用异步发送
 
-        ExtraWater extraWater = null;
-        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),null);
+//        ExtraWater extraWater = null;
+//        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
 //        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
 //        extraWater.setRegisterId(order.getRegister_id());
 //        extraWater.setRecord_id(null);
 //        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
-        extraWaterService.add(extraWater);
+        extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
 

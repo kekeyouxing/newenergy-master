@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
-@RequestMapping("/refundRecord")
+@RequestMapping("/admin/refundRecord")
 @Validated
 public class RefundRecordController {
 
@@ -38,13 +38,10 @@ public class RefundRecordController {
 
     }
 //通过注册id，状态查询订单
-    @RequestMapping(value = "/findRefundRecord", method = RequestMethod.GET)
-    public List<RefundRecord> list(@RequestParam(defaultValue = "") String registerId,
-                                   @RequestParam(defaultValue = "-1") Integer state,
-                                   @RequestParam(defaultValue = "0") Integer safeDelete
-                                   ){
-        return refundRecordService.findByCondition(registerId,state,safeDelete);
-
+    @RequestMapping(value = "/findByCondition", method = RequestMethod.GET)
+    public List<RefundRecord> list(@RequestParam(required = false) String registerId,
+                                   @RequestParam(required = false) Integer state){
+        return refundRecordService.findByCondition(registerId,state);
     }
 
     //    审核退款记录
