@@ -8,6 +8,7 @@ import newenergy.db.repository.*;
 import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -57,7 +58,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             List<Predicate> conditions = new ArrayList<>();
             if(predicate.getId() != null)
                 conditions.add(cb.equal(root.get("id").as(Integer.class),predicate.getId()));
-            if(predicate.getRegisterId() != null)
+            if(!StringUtilCorey.emptyCheck(predicate.getRegisterId()))
                 conditions.add(cb.equal(root.get("registerId").as(String.class),predicate.getRegisterId()));
             if(predicate.getState() != null)
                 conditions.add(cb.equal(root.get("state").as(Integer.class),predicate.getState()));
@@ -65,7 +66,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 conditions.add(cb.equal(root.get("monitorId").as(Integer.class),predicate.getMonitorId()));
             if(predicate.getServicerId() != null)
                 conditions.add(cb.equal(root.get("servicerId").as(Integer.class),predicate.getServicerId()));
-            if(predicate.getUsername() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getUsername())){
                 List<Resident> residents = residentRepository.findAllByUserNameAndSafeDelete(predicate.getUsername(),0);
                 residents.forEach(resident -> {
                     conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
@@ -73,6 +74,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             }
             if(predicate.getPlots() != null){
                 for(String plot : predicate.getPlots()){
+                    if(!StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
                         conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
@@ -149,10 +151,6 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         return residentRepository.findAll(specification,PageRequest.of(page,limit,Sort.by(Sort.Direction.ASC,"registerId")));
     }
     public NewenergyAdmin getNewenergyAdmin(Integer id){
-        /**
-         * TODO 待修改deleted
-         */
-//        return newenergyAdminRepository.findFirstByIdAndDeleted(id, false);
         return newenergyAdminRepository.findFirstByIdAndSafeDelete(id,SafeConstant.SAFE_ALIVE);
     }
     public Resident getResident(String registerId){
@@ -168,7 +166,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         return corrTypeRepository.findFirstByTypeNumAndSafeDelete(typeNum,0);
     }
     public CorrPlot getCorrPlot(String plotNum){
-        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,SafeConstant.SAFE_ALIVE);
     }
     public String getCorrAddressStr(CorrAddress corrAddress){
         return String.format("%s小区%d栋%d单元",

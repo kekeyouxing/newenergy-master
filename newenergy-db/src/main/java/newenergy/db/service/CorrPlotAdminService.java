@@ -1,6 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPlotAdmin;
 import newenergy.db.domain.NewenergyAdmin;
@@ -11,6 +12,7 @@ import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -73,8 +75,8 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         return ret;
     }
     public List<Map<String,Object>> getServicers(){
-//        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
-        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification2(),Sort.by(Sort.Direction.ASC,"id"));
+        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
+//        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification2(),Sort.by(Sort.Direction.ASC,"id"));
         System.out.println("servicer:"+admins.size());
         List<Map<String,Object>> ret = new ArrayList<>();
         admins.forEach(admin -> {
@@ -110,6 +112,9 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         return super.addRecord(record,userid,repository);
     }
     public CorrPlotAdmin updateARecord(CorrPlotAdmin corrPlotAdmin, Integer userid){
+        /**
+         * TODO 更新设备信息表
+         */
         return super.updateRecord(corrPlotAdmin,userid,repository);
     }
     public void deleteARecord(String plotNum, Integer userid){
@@ -120,6 +125,9 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         res.forEach(e->{
             super.deleteRecord(e.getId(),userid,repository);
         });
+        /**
+         * TODO 更新设备信息表
+         */
     }
 
     @Override
@@ -127,31 +135,25 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         Specification<CorrPlotAdmin> specification =
         (Root<CorrPlotAdmin> root, CriteriaQuery<?> cq, CriteriaBuilder cb)->{
             List<Predicate> list = new ArrayList<>();
-            if(predicate.getPlotNum() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getPlotNum())){
                 list.add(cb.equal(root.get("plotNum").as(String.class),predicate.getPlotNum()));
             }
-            if(predicate.getPlotName() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getPlotName())){
                 CorrPlot corrPlot = corrPlotRepository.findByPlotDtlAndSafeDelete(predicate.getPlotName(),0);
-                String plotNum = corrPlot.getPlotNum();
+
+                String plotNum = corrPlot==null?"":corrPlot.getPlotNum();
                 list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
             }
-            if(predicate.getMonitorName() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getMonitorName())){
 //                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getMonitorName(),false);
-                /**
-                 * TODO
-                 * 待更改属性名
-                 */
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(),0);
+                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(), SafeConstant.SAFE_ALIVE);
                 admins.forEach(admin->{
                     list.add(cb.equal(root.get("monitorId").as(String.class),admin.getId()));
                 });
             }
-            if(predicate.getServicerName() != null){
+            if(!StringUtilCorey.emptyCheck(predicate.getServicerName())){
 //                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getServicerName(),false);
-                /**
-                 * 待更改属性名
-                 */
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getServicerName(),0);
+                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getServicerName(),SafeConstant.SAFE_ALIVE);
                 admins.forEach(admin->{
                     list.add(cb.equal(root.get("servicerId").as(String.class),admin.getId()));
                 });
