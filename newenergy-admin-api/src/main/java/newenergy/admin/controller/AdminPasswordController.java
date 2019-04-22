@@ -1,8 +1,8 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.core.util.bcrypt.BCryptPasswordEncoder;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.NewenergyAdminService;
 import org.apache.shiro.SecurityUtils;
@@ -24,7 +24,7 @@ public class AdminPasswordController {
 
     //@RequiresAuthentication
     @PostMapping("/password")
-    public Object create(@RequestBody String body){
+    public Object create(@AdminLoginUser NewenergyAdmin adminLogin, @RequestBody String body){
         String oldPassword = JacksonUtil.parseString(body, "oldPassword");
         String newPassword = JacksonUtil.parseString(body, "newPassword");
 
@@ -38,15 +38,13 @@ public class AdminPasswordController {
         Subject currentUser = SecurityUtils.getSubject();
         NewenergyAdmin admin = (NewenergyAdmin) currentUser.getPrincipal();
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        if (!encoder.matches(oldPassword, admin.getPassword())) {
+        if (!newPassword.equals(admin.getPassword())) {
             return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, "账号密码不对");
         }
 
-        String encodedNewPassword = encoder.encode(newPassword);
-        admin.setPassword(encodedNewPassword);
+        admin.setPassword(newPassword);
 
-        adminService.updateById(admin);
+        adminService.updateById(admin, adminLogin.getId());
         return ResponseUtil.ok();
     }
 }

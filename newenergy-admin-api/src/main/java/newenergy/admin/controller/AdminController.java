@@ -4,7 +4,6 @@ import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.core.util.bcrypt.BCryptPasswordEncoder;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.NewenergyAdminService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -60,16 +59,10 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
-        admin.setAddUserid(adminLogin.getId());
-        admin.setAddTime(LocalDateTime.now());
-        admin.setUpdateTime(LocalDateTime.now());
-        admin.setDeleted(false);
+        admin.setPassword(rawPassword);
 
-        adminService.add(admin);
+        adminService.add(admin, adminLogin.getId());
         return ResponseUtil.ok(admin);
 
     }
@@ -78,10 +71,8 @@ public class AdminController {
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="详情")
     @GetMapping("/read")
     public Object read(@NotNull Integer id) {
-
         NewenergyAdmin admin = adminService.findById(id);
         return ResponseUtil.ok(admin);
-
     }
 
     private Object validate(NewenergyAdmin admin) {
@@ -90,7 +81,7 @@ public class AdminController {
             return ResponseUtil.badArgument();
         }
         if (!RegexUtil.isUsername(name)) {
-            return ResponseUtil.fail(ADMIN_INVALID_NAME, "管理员名称不符合规定");
+            return ResponseUtil.fail(ADMIN_INVALID_NAME, "管理员名称不符合规定\n长度不小于6\n字符范围 a-z A-Z 0-9 _ 中文");
         }
         String password = admin.getPassword();
         if (StringUtils.isEmpty(password) || password.length() < 6) {
@@ -114,14 +105,10 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
-        admin.setUpdateUserid(adminLogin.getId());
-        admin.setUpdateTime(LocalDateTime.now());
+        admin.setPassword(rawPassword);
 
-        if (adminService.updateById(admin) == null) {
+        if (adminService.updateById(admin, adminLogin.getId()) == null) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -131,13 +118,13 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:delete")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="删除")
     @PostMapping("/delete")
-    public Object delete(@RequestBody NewenergyAdmin admin) {
+    public Object delete(@AdminLoginUser NewenergyAdmin adminLogin,@RequestBody NewenergyAdmin admin) {
         Integer anotherAdminId = admin.getId();
         if (anotherAdminId == null) {
             return ResponseUtil.badArgument();
         }
 
-        adminService.deleteById(anotherAdminId);
+        adminService.deleteById(anotherAdminId, adminLogin.getId());
         return ResponseUtil.ok();
     }
 }
