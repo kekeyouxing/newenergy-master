@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/rechargeRecord")
+@RequestMapping("/admin/rechargeRecord")
 @Validated
 public class RechargeRecordController {
 
@@ -25,26 +25,21 @@ public class RechargeRecordController {
     @Autowired
     ManualRecordService manualRecordService;
 
+//    根据id查询批量充值记录
     @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
     public RechargeRecord findById(@RequestParam Integer id){
         System.out.println(id);
         return rechargeRecordService.findById(id);
     }
 
-//根据订单状态和注册号查充值记录
-    @RequestMapping(value = "/findByRechargeRecord", method = RequestMethod.GET)
-    public List<RechargeRecord> findByRegisterId(@RequestParam(defaultValue = "") String registerId,
-                                                 @RequestParam(defaultValue = "0") Integer safeDelete,
-                                                 @RequestParam(defaultValue = "-1") Integer state){
-            return rechargeRecordService.findByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
-    }
-
-//    根据批量充值订单和审核状态查询批量充值记录
-    @RequestMapping(value = "/findByBatchRecord", method = RequestMethod.GET)
-    public List<RechargeRecord> findByBatchRelative(@RequestParam(defaultValue = "-1") Integer batchRecordId,
-                                                    @RequestParam(defaultValue = "-1") Integer reviewState,
-                                                    @RequestParam(defaultValue = "0") Integer safeDelete){
-        return rechargeRecordService.findByBatchRecordAndReviewState(batchRecordId,reviewState,safeDelete);
+//    根据批量充值id，审核状态，注册id，订单状态查询批量充值记录
+    @RequestMapping(value = "/findByConditions", method = RequestMethod.GET)
+    public List<RechargeRecord> findByConditions(@RequestParam(required = false) Integer batchRecordId,
+                                                 @RequestParam(required = false) Integer reviewState,
+                                                 @RequestParam(required = false) String registerId,
+                                                 @RequestParam(required = false) Integer state
+                                                 ){
+        return rechargeRecordService.findByConditions(batchRecordId,reviewState,registerId,state);
     }
 
     //    充值订单审核

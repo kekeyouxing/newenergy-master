@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +30,51 @@ public class PlotFactorController {
     @Autowired
     PlotFactorService plotFactorService;
 
+    private static class SearchDTO{
+        Integer id;
+        Integer page;
+        Integer limit;
+        String plotDtl;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+
+        public String getPlotDtl() {
+            return plotDtl;
+        }
+
+        public void setPlotDtl(String plotDtl) {
+            this.plotDtl = plotDtl;
+        }
+    }
     @RequestMapping(value = "search", method = RequestMethod.POST)
-    public Map<String,Object> searchFactor(Integer id, Integer page,Integer limit,String plotDtl){
+    public Map<String,Object> searchFactor(@RequestBody SearchDTO dto){
+        Integer id = dto.getId();
+        Integer page = dto.getPage();
+        Integer limit = dto.getLimit();
+        String plotDtl = dto.getPlotDtl();
+
         Map<String,Object> ret = new HashMap<>();
         CorrPlotPredicate predicate = new CorrPlotPredicate();
         predicate.setPlotDtl(plotDtl);
@@ -47,12 +91,88 @@ public class PlotFactorController {
         ret.put("list",list);
         return ret;
     }
+    private static class UpdateDTO{
+        Integer id;
+        String plotNum;
+        BigDecimal updateFactor;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPlotNum() {
+            return plotNum;
+        }
+
+        public void setPlotNum(String plotNum) {
+            this.plotNum = plotNum;
+        }
+
+        public BigDecimal getUpdateFactor() {
+            return updateFactor;
+        }
+
+        public void setUpdateFactor(BigDecimal updateFactor) {
+            this.updateFactor = updateFactor;
+        }
+    }
     @RequestMapping(value = "update",method = RequestMethod.POST)
-    public Integer updateFactor(Integer id, String plotNum, BigDecimal updateFactor){
+    public Integer updateFactor(@RequestBody UpdateDTO dto){
+        Integer id = dto.getId();
+        String plotNum = dto.getPlotNum();
+        BigDecimal updateFactor = dto.getUpdateFactor();
+
         return plotFactorService.applyUpdateFactor(id,plotNum,updateFactor);
     }
+    private static class ApplySearchDTO{
+        Integer id;
+        String plotDtl;
+        Integer page;
+        Integer limit;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPlotDtl() {
+            return plotDtl;
+        }
+
+        public void setPlotDtl(String plotDtl) {
+            this.plotDtl = plotDtl;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+    }
     @RequestMapping(value = "apply/search",method = RequestMethod.POST)
-    public Map<String,Object> searchApply(Integer id, String plotDtl, Integer page, Integer limit){
+    public Map<String,Object> searchApply(@RequestBody ApplySearchDTO dto){
+        Integer id = dto.getId();
+        String plotDtl = dto.getPlotDtl();
+        Integer page = dto.getPage();
+        Integer limit = dto.getLimit();
+
         Map<String,Object> ret = new HashMap<>();
         ApplyFactorPredicate predicate = new ApplyFactorPredicate();
         predicate.setPlotDtl(plotDtl);

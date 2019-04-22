@@ -6,6 +6,8 @@ import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+
 
 /**
  * 通用工具类
@@ -29,7 +31,6 @@ public class CommonUtil {
         JSONObject jsonObject = null;
         try{
             //创建SSLContext对象，并使用我们指定的信任管理器初始化
-
         }catch (Exception e){
             log.error("https请求异常：{}",e);
         }
@@ -59,5 +60,20 @@ public class CommonUtil {
             }
         }
         return token;
+    }
+
+    /**
+     * URL编码（utf-8）
+     * @param source
+     * @return
+     */
+    public static String urlEncodeUTF8(String source){
+        String result = source;
+        try{
+            result = java.net.URLEncoder.encode(source,"utf-8");
+        }catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+        return result;
     }
 }

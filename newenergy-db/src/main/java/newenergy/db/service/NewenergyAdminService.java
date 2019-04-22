@@ -3,8 +3,11 @@ package newenergy.db.service;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.domain.NewenergyRole;
 import newenergy.db.domain.Resident;
+import newenergy.db.predicate.AdminPredicate;
+import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.template.LogicOperation;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -80,4 +83,46 @@ public class NewenergyAdminService extends LogicOperation<NewenergyAdmin> {
         deleteRecord(id, userId, adminRepository);
 
     }
+
+    /**
+     * by Zeng Hui
+     * @param predicate 条件
+     * @param pageable 分页
+     * @param sort 排序
+     * @return
+     */
+    public Page<NewenergyAdmin> findByPredicateWithAlive(AdminPredicate predicate,Pageable pageable,Sort sort) {
+        Specification<NewenergyAdmin> specification = new Specification<NewenergyAdmin>() {
+            @Override
+            public Predicate toPredicate(Root<NewenergyAdmin> root, CriteriaQuery<?> cq, CriteriaBuilder cb) {
+                List<Predicate> list = new ArrayList<>();
+                if (!StringUtilCorey.emptyCheck(predicate.getRealName())) {
+                    list.add(cb.like(root.get("realName").as(String.class), StringUtilCorey.getMod(predicate.getRealName())));
+                }
+                if (predicate.getIds() != null) {
+                    List<Predicate> subList = new ArrayList<>();
+                    for (Integer id : predicate.getIds()) {
+                        subList.add(cb.equal(root.get("id").as(Integer.class), id));
+                    }
+                    Predicate[] subArr = new Predicate[subList.size()];
+                    list.add(cb.or(subList.toArray(subArr)));
+                }
+                Predicate[] arr = new Predicate[list.size()];
+                arr = list.toArray(arr);
+                return cb.and(list.toArray(arr));
+            }
+        };
+        specification = specification.and(PredicateFactory.getAliveSpecification());
+        if(pageable != null){
+            if(sort != null){
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+            }else{
+                pageable = PageRequest.of(pageable.getPageNumber(),pageable.getPageSize());
+            }
+        }else{
+            pageable = Pageable.unpaged();
+        }
+        return adminRepository.findAll(specification,pageable);
+    }
+
 }

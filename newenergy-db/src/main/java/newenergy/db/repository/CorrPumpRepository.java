@@ -10,4 +10,8 @@ import java.util.List;
 @Repository
 public interface CorrPumpRepository extends JpaRepository<CorrPump, Integer>, JpaSpecificationExecutor<CorrPump> {
     public List<CorrPump> findAllBySafeDelete(Integer safe_delete);
+    /**
+     * by Zeng Hui
+     */
+    public CorrPump findFirstByPumpNumAndSafeDelete(String pumpNum, Integer safeDelete);
 }

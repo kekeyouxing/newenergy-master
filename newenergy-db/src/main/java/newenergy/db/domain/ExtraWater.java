@@ -22,6 +22,8 @@ public class ExtraWater {
 
     private Integer recordId;//对应充值记录id
 
+    private Integer addAmount;//新增充值金额
+
     public Integer getId() {
         return id;
     }
@@ -62,13 +64,18 @@ public class ExtraWater {
         this.recordId = recordId;
     }
 
-    public void setRecord_id(Integer record_id) {
-        this.recordId = record_id;
+    public Integer getAddAmount() {
+        return addAmount;
     }
 
-    public ExtraWater(String registerId, BigDecimal add_volume, Integer record_id) {
+    public void setAddAmount(Integer addAmount) {
+        this.addAmount = addAmount;
+    }
+
+    public ExtraWater(String registerId, BigDecimal addVolume, Integer recordId, Integer addAmount) {
         this.registerId = registerId;
-        this.addVolume = add_volume;
-        this.recordId = record_id;
+        this.addVolume = addVolume;
+        this.recordId = recordId;
+        this.addAmount = addAmount;
     }
 }
