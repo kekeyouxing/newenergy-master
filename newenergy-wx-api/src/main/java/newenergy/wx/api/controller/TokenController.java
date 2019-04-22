@@ -28,7 +28,7 @@ public class TokenController {
         msgs.add(nonce);
         msgs.add(timestamp);
         /**
-         * 配置的Token
+         * TODO 配置的Token
          */
         msgs.add("hgdr_hust");
         Collections.sort(msgs);
