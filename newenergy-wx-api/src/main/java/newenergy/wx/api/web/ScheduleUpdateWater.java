@@ -114,7 +114,7 @@ public class ScheduleUpdateWater {
      */
     @Transactional
     @Async
-    //@Scheduled(cron = "0 0 0 1 1/1 ?")
+//    @Scheduled(cron = "0 0 0 1 1/1 ?")
     public void updateConsume() {
         List<RemainWater> remainWaters = remainWaterService.findAll();
         for(RemainWater remainWater: remainWaters) {
@@ -141,7 +141,7 @@ public class ScheduleUpdateWater {
      */
     @Transactional
     @Async
-    @Scheduled(cron = "0 30 0 1 1/1 ?")
+    //@Scheduled(cron = "0 30 0 1 1/1 ?")
     public void updatePlotRecharge() {
         List<CorrPlot> plots = corrPlotService.findAll();
         for(CorrPlot plot: plots) {
