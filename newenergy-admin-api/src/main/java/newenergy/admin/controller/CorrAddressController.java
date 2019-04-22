@@ -28,12 +28,19 @@ public class CorrAddressController {
 
     GetNumCode getNumCode = new GetNumCode();
 
-    //获取搜索列表
+
+    /**
+     * 获取数据相关表-地址表全部纪录，可根据搜索条件查找
+     * @param addressDtl
+     * @param page
+     * @param limit
+     * @return
+     */
     @GetMapping("/list")
-    public Object list(String address_dlt,
+    public Object list(String addressDtl,
                        @RequestParam(defaultValue = "0") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
-        Page<CorrAddress> pageAddress = corrAddressService.querySelective(address_dlt, page, limit);
+        Page<CorrAddress> pageAddress = corrAddressService.querySelective(addressDtl, page-1, limit);
         List<CorrAddress> corrAddresses = pageAddress.getContent();
         int total = pageAddress.getNumberOfElements();
         Map<String, Object> data = new HashMap<>();
@@ -42,7 +49,10 @@ public class CorrAddressController {
         return ResponseUtil.ok(data);
     }
 
-    //获取地址下拉框选项
+    /**
+     * 获取地址下拉框选项
+     * @return
+     */
     @GetMapping("/options")
     public Object options() {
         List<CorrAddress> corrAddresses = corrAddressService.findAll();
@@ -58,25 +68,41 @@ public class CorrAddressController {
         return ResponseUtil.ok(options);
     }
 
-    //新增地址信息表数据
+    /**
+     * 新增地址表
+     * @param corrAddress
+     * @param userid
+     * @return
+     */
     @PostMapping("/create")
     public Object create(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
-        String plot_num = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
-        String adress_num = getNumCode.getAddressNum(plot_num, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
-        corrAddress.setAddressNum(adress_num);
-        corrAddress.setAddressDtl(corrAddress.getAddressPlot()+corrAddress.getAddressBlock()+"栋"+corrAddress.getAddressUnit()+"单元");
+        String plotNum = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
+        String adressNum = getNumCode.getAddressNum(plotNum, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
+        corrAddress.setAddressNum(adressNum);
+        corrAddress.initAddressDtl();
         CorrAddress corrAddress1 = corrAddressService.addCorrAddress(corrAddress, userid);
         return ResponseUtil.ok(corrAddress1);
     }
 
-    //修改地址信息表数据
+    /**
+     * 修改地址表
+     * @param corrAddress
+     * @param userid
+     * @return
+     */
     @PostMapping("/update")
     public Object update(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+        corrAddress.initAddressDtl();
         corrAddressService.updateCorrAddress(corrAddress, userid);
         return ResponseUtil.ok();
     }
 
-    //删除地址信息表数据
+    /**
+     * 删除地址表数据
+     * @param corrAddress
+     * @param userid
+     * @return
+     */
     @PostMapping("/delete")
     public Object delete(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
         Integer id = corrAddress.getId();

@@ -13,6 +13,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,30 +31,36 @@ public class StatisticPlotRechargeService {
      * @param limit
      * @return
      */
-    public Page<StatisticPlotRecharge> curPlotRecharge(LocalDateTime curTime, String plotNum, Integer page, Integer limit) {
-        StatisticPlotRecharge plotRecharge = new StatisticPlotRecharge();
-        plotRecharge.setPlotNum(plotNum);
-        plotRecharge.setUpdateTime(curTime);
+    public Page<StatisticPlotRecharge> curPlotRecharge(LocalDate curTime, String plotNum, Integer page, Integer limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        Specification<StatisticPlotRecharge> specification = querySelection(plotRecharge);
+        Specification<StatisticPlotRecharge> specification = querySelection(plotNum, curTime);
         return statisticPlotRechargeRepository.findAll(specification, pageable);
     }
 
     /**
-     * 多条件查找
+     * 生成小区充值及消费月报表
      * @param plotRecharge
      * @return
      */
-    public Specification<StatisticPlotRecharge> querySelection(StatisticPlotRecharge plotRecharge) {
+    public StatisticPlotRecharge addPlotRecharge(StatisticPlotRecharge plotRecharge) {
+        return statisticPlotRechargeRepository.save(plotRecharge);
+    }
+
+    /**
+     * 多条件查找
+     * @param plotNum
+     * @return
+     */
+    public Specification<StatisticPlotRecharge> querySelection(String plotNum, LocalDate curTime) {
         Specification<StatisticPlotRecharge> specification = new Specification<StatisticPlotRecharge>() {
             @Override
             public Predicate toPredicate(Root<StatisticPlotRecharge> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(plotRecharge.getPlotNum()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("plotNum"), plotRecharge.getPlotNum()));
+                if(plotNum!=null) {
+                    predicates.add(criteriaBuilder.equal(root.get("plotNum"), plotNum));
                 }
-                if(plotRecharge.getUpdateTime()!=null) {
-                    predicates.add(criteriaBuilder.like(root.get("updateTime"), plotRecharge.getUpdateTime()+"%"));
+                if(curTime!=null) {
+                    predicates.add(criteriaBuilder.like(root.get("updateTime"), curTime+"%"));
                 }
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }

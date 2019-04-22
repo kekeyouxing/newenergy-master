@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
@@ -26,10 +27,10 @@ public class ResidentService extends LogicOperation<Resident> {
     * @Param address_nums 装机地址模糊查询对应编号
     * @return 返回十页的resident数据
     */
-    public Page<Resident> querySelective(String user_name, List<String> address_nums, Integer page, Integer size) {
+    public Page<Resident> querySelective(String userName, List<String> addressNums, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Specification specification = getListSpecification(user_name, address_nums);
+        Specification specification = getListSpecification(userName, addressNums);
 
         return residentRepository.findAll(specification, pageable);
     }
@@ -130,19 +131,19 @@ public class ResidentService extends LogicOperation<Resident> {
         deleteRecord(id, userid, residentRepository);
     }
 
-    private Specification<Resident> getListSpecification(String user_name, List<String> address_nums) {
+    private Specification<Resident> getListSpecification(String userName, List<String> addressNums) {
         //动态添加搜索条件
         Specification<Resident> specification = new Specification<Resident>() {
             @Override
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(user_name!=null){
-                    predicates.add(criteriaBuilder.like(root.get("userName"), "%"+user_name+"%"));
+                if(!StringUtils.isEmpty(userName)){
+                    predicates.add(criteriaBuilder.like(root.get("userName"), "%"+userName+"%"));
                 }
-                if(address_nums.size()!=0) {
+                if(addressNums.size()!=0) {
                     Path<Object> path = root.get("addressNum");
                     CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
-                    for(String address_num: address_nums) {
+                    for(String address_num: addressNums) {
                         in.value(address_num);
                     }
                     predicates.add(criteriaBuilder.and(in));
@@ -159,19 +160,19 @@ public class ResidentService extends LogicOperation<Resident> {
             @Override
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(resident.getAddressNum()!=null) {
+                if(!StringUtils.isEmpty(resident.getAddressNum())) {
                     predicates.add(criteriaBuilder.equal(root.get("addressNum"), resident.getAddressNum()));
                 }
-                if(resident.getRoomNum()!=null) {
+                if(!StringUtils.isEmpty(resident.getRoomNum())) {
                     predicates.add(criteriaBuilder.equal(root.get("roomNum"), resident.getRoomNum()));
                 }
-                if(resident.getPlotNum()!=null) {
+                if(!StringUtils.isEmpty(resident.getPlotNum())) {
                     predicates.add(criteriaBuilder.equal(root.get("plotNum"), resident.getPlotNum()));
                 }
-                if(resident.getRegisterId()!=null) {
+                if(!StringUtils.isEmpty(resident.getRegisterId())) {
                     predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };

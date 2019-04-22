@@ -1,6 +1,8 @@
 package newenergy.db.domain;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,7 +13,7 @@ public class Resident {
     private Integer id;
 
     //登记号
-    @Column(unique = true, length = 14)
+    @Column(length = 14)
     private String registerId;
 
     //用户姓名
@@ -30,7 +32,7 @@ public class Resident {
     private String roomNum;
 
     //机型编号，见数据对应表-机型
-    @Column(length = 2)
+    @Column(length = 4)
     private String typeNum;
 
     //装机序号，第几台机器（0-z）
@@ -45,23 +47,22 @@ public class Resident {
     private String phone;
 
     //房间面积
-    private Double area;
+    private BigDecimal area;
 
     //额定流量，单位T/h
-    private Double ratedFlow;
+    private BigDecimal ratedFlow;
 
     //机器编码
-    @Column(unique = true)
     private String deviceNum;
 
     //购机日期
-    private LocalDateTime buyTime;
+    private LocalDate buyTime;
 
     //安装设备日期
-    private LocalDateTime installTime;
+    private LocalDate installTime;
 
     //验收设备日期
-    private LocalDateTime receiveTime;
+    private LocalDate receiveTime;
 
     //微信openid
     private String openid;
@@ -101,7 +102,7 @@ public class Resident {
 
     public void initRegisterId() {
         this.registerId = this.getAddressNum() + this.getRoomNum() + this.getTypeNum() + this.getDeviceSeq()
-                + this.getPumpNum();
+                + this.getPumpNum().substring(2);
     }
 
     public String getUserName() {
@@ -168,19 +169,19 @@ public class Resident {
         this.phone = phone;
     }
 
-    public Double getArea() {
+    public BigDecimal getArea() {
         return area;
     }
 
-    public void setArea(Double area) {
+    public void setArea(BigDecimal area) {
         this.area = area;
     }
 
-    public Double getRatedFlow() {
+    public BigDecimal getRatedFlow() {
         return ratedFlow;
     }
 
-    public void setRatedFlow(Double ratedFlow) {
+    public void setRatedFlow(BigDecimal ratedFlow) {
         this.ratedFlow = ratedFlow;
     }
 
@@ -192,27 +193,27 @@ public class Resident {
         this.deviceNum = deviceNum;
     }
 
-    public LocalDateTime getBuyTime() {
+    public LocalDate getBuyTime() {
         return buyTime;
     }
 
-    public void setBuyTime(LocalDateTime buyTime) {
+    public void setBuyTime(LocalDate buyTime) {
         this.buyTime = buyTime;
     }
 
-    public LocalDateTime getInstallTime() {
+    public LocalDate getInstallTime() {
         return installTime;
     }
 
-    public void setInstallTime(LocalDateTime installTime) {
+    public void setInstallTime(LocalDate installTime) {
         this.installTime = installTime;
     }
 
-    public LocalDateTime getReceiveTime() {
+    public LocalDate getReceiveTime() {
         return receiveTime;
     }
 
-    public void setReceiveTime(LocalDateTime receiveTime) {
+    public void setReceiveTime(LocalDate receiveTime) {
         this.receiveTime = receiveTime;
     }
 

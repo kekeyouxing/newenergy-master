@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -26,8 +27,20 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
     @Autowired
     private CorrPlotRepository corrPlotRepository;
 
+    /**
+     * 查询所有小区，按照小区编号排序
+     * @return
+     */
     public List<CorrPlot> findAll() {
         return corrPlotRepository.findAllBySafeDeleteOrderByPlotNum(0);
+    }
+
+    /**
+     * 查询所有小区，按照小区名称排序
+     * @return
+     */
+    public List<CorrPlot> findAllOrderByPlot() {
+        return corrPlotRepository.findAllBySafeDeleteOrderByPlotDtl(0);
     }
 
     //根据小区地址搜索
@@ -38,8 +51,8 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
     }
 
     //根据小区地址搜索小区编号
-    public String findPlotNum(String plot_dlt) {
-        return corrPlotRepository.findByPlotDtlAndSafeDelete(plot_dlt, 0).getPlotNum();
+    public String findPlotNum(String plotDtl) {
+        return corrPlotRepository.findByPlotDtlAndSafeDelete(plotDtl, 0).getPlotNum();
     }
 
     //新增数据
@@ -57,15 +70,15 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         deleteRecord(id, userid, corrPlotRepository);
     }
 
-    private Specification<CorrPlot> getListSpecification(String plot_dlt) {
+    private Specification<CorrPlot> getListSpecification(String plotDtl) {
         Specification<CorrPlot> specification = new Specification<CorrPlot>() {
             @Override
             public Predicate toPredicate(Root<CorrPlot> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(plot_dlt!=null) {
-                    predicates.add(criteriaBuilder.like(root.get("plot_dlt"), "%"+plot_dlt+"%"));
+                if(!StringUtils.isEmpty(plotDtl)) {
+                    predicates.add(criteriaBuilder.like(root.get("plotDtl"), "%"+plotDtl+"%"));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
@@ -78,7 +91,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @return Double plotFactor 充值系数
      */
     public BigDecimal findPlotFacByPlotNum(String plot_num){
-        return corrPlotRepository.findFirstByPlotNum(plot_num).getPlotFactor();
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plot_num, 0).getPlotFactor();
     }
 
     /**
@@ -87,14 +100,14 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
      * @param limit
      * @return
      */
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit){
-        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.ASC,"plotNum"));
-        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb)->{
+    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit) {
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "plotNum"));
+        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
-            if(predicate.getPlotDtl() != null){
+            if (predicate.getPlotDtl() != null) {
                 lists.add(cb.equal(root.get("plotDtl").as(String.class), predicate.getPlotDtl()));
             }
-            if(predicate.getPlotNum() != null){
+            if (predicate.getPlotNum() != null) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
             Predicate[] arr = new Predicate[lists.size()];
@@ -102,5 +115,6 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         };
         specification = specification.and(PredicateFactory.getAliveSpecification());
         return corrPlotRepository.findAll(specification, pageable);
+    }
 
 }

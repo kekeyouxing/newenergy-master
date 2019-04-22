@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -54,19 +55,17 @@ public class DataStatisticsController {
     @GetMapping("/getConsumeData")
     public Object getConsumeData(@RequestParam String plotNum,
                           @RequestParam BigDecimal[] interval,
-                          @RequestParam String year,
-                          @RequestParam String month) {
+                          @RequestParam Integer year,
+                          @RequestParam Integer month) {
         if(plotNum==null||year==null||month==null||interval.length==0) {
             return ResponseUtil.badArgument();
         }
         List<Resident> residents = residentService.findByPlotNum(plotNum);
         Integer[] households = new Integer[interval.length+1];
         String[] proportion = new String[interval.length+1];
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime currentTime = LocalDateTime.parse(year +"-"+ month, df);
-
+        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
         for(Resident resident: residents) {
-            StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), currentTime);
+            StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
             BigDecimal curUsed = statisticConsume.getCurUsed();
             if(curUsed.compareTo(interval[0])==-1) {
                 households[0]+=1;
@@ -103,16 +102,15 @@ public class DataStatisticsController {
      * @return
      */
     @GetMapping("/getPlotData")
-    public Object getPlotData(@RequestParam String year,
-                              @RequestParam String month,
+    public Object getPlotData(@RequestParam Integer year,
+                              @RequestParam Integer month,
                               @RequestParam(defaultValue = "0") Integer page,
                               @RequestParam(defaultValue = "10") Integer limit,
                               @RequestParam String plotNum) {
         if(year==null||month==null) {
             return ResponseUtil.badArgument();
         }
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime curTime = LocalDateTime.parse(year +"-"+ month, df);
+        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
         Page<StatisticPlotRecharge> pagePlotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime, plotNum, page, limit);
         List<StatisticPlotRecharge> plotRecharges = pagePlotRecharges.getContent();
         Map<String, Object> data = new HashMap<>();
@@ -157,5 +155,31 @@ public class DataStatisticsController {
         data.put("rechargeRecords", rechargeRecords);
         return ResponseUtil.ok(data);
     }
+
+
+    /**
+     * 获取用户消费明细月报表
+     * @param year
+     * @param month
+     * @param plotNum   按小区查询
+     * @param page
+     * @param limit
+     * @return
+     */
+    @GetMapping("/getConsumeDetail")
+    public Object getConsumeDetail(@RequestParam Integer year,
+                                @RequestParam Integer month,
+                                @RequestParam String plotNum,
+                                @RequestParam(defaultValue = "0") Integer page,
+                                @RequestParam(defaultValue = "10") Integer limit) {
+        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
+        Page<StatisticConsume> pageConsume = statisticConsumeService.getCurConsume(page, limit, curTime, plotNum);
+        List<StatisticConsume> listConsume = pageConsume.getContent();
+        Map<String, Object> data = new HashMap<>();
+        data.put("total", pageConsume.getTotalElements());
+        data.put("consumeDetail", listConsume);
+        return ResponseUtil.ok(data);
+    }
+
 
 }

@@ -113,6 +113,10 @@ public class CorrAddress {
         return addressDtl;
     }
 
+    public void initAddressDtl(){
+        this.addressDtl =  addressPlot+addressBlock+"栋"+addressUnit+"单元";
+    }
+
     public void setAddressDtl(String addressDtl) {
         this.addressDtl = addressDtl;
     }

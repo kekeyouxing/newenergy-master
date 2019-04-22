@@ -1,8 +1,12 @@
 package newenergy.db.service;
 
+import newenergy.db.domain.Resident;
 import newenergy.db.domain.StatisticConsume;
 import newenergy.db.repository.StatisticConsumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +14,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,22 +24,36 @@ public class StatisticConsumeService {
     @Autowired
     private StatisticConsumeRepository statisticConsumeRepository;
 
+    @Autowired
+    private ResidentService residentService;
+
     /**
      * 根据登记号查找当期用水量月表
      * @param registerId   登记号
      * @param currentTime   当期时间
      * @return   每个月统计一次，只有一条记录
      */
-    public StatisticConsume findByRegisterIdAndUpdateTime(String registerId, LocalDateTime currentTime) {
-        StatisticConsume statisticConsume = new StatisticConsume();
-        statisticConsume.setRegisterId(registerId);
-        statisticConsume.setUpdateTime(currentTime);
-        Specification<StatisticConsume> specification = querySelection(statisticConsume);
+    public StatisticConsume findByRegisterIdAndUpdateTime(String registerId, LocalDate currentTime) {
+        Specification<StatisticConsume> specification = querySelection(registerId, currentTime,null);
         List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification);
         if(consumes.size()==1) {
             return consumes.get(0);
         }
         return null;
+    }
+
+    /**
+     * 查找用户用水量月表中当期所有纪录
+     * @param page
+     * @param limit
+     * @param curTime
+     * @param plotNum  不为空时，按照小区查找
+     * @return
+     */
+    public Page<StatisticConsume> getCurConsume(Integer page, Integer limit,LocalDate curTime, String plotNum) {
+        Pageable pageable = PageRequest.of(page, limit);
+        Specification<StatisticConsume> specification = querySelection(null, curTime, plotNum);
+        return statisticConsumeRepository.findAll(specification, pageable);
     }
 
     /**
@@ -48,19 +67,27 @@ public class StatisticConsumeService {
 
     /**
      * 多条件查找功能
-     * @param statisticConsume  赋值了查找条件的对象
+     * @param registerId  登记号
+     * @Param curTime 当期时间
+     * @Param plotNum 小区编号
      * @return
      */
-    public Specification<StatisticConsume> querySelection(StatisticConsume statisticConsume) {
+    public Specification<StatisticConsume> querySelection(String registerId, LocalDate curTime, String plotNum) {
         Specification<StatisticConsume> specification = new Specification<StatisticConsume>() {
             @Override
             public Predicate toPredicate(Root<StatisticConsume> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(statisticConsume.getRegisterId()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("registerId"), statisticConsume.getRegisterId()));
+                if(registerId!=null) {
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"), registerId));
                 }
-                if(statisticConsume.getUpdateTime()!=null) {
-                    predicates.add(criteriaBuilder.like(root.get("updateTime"), statisticConsume.getUpdateTime()+"%"));
+                if(plotNum!=null) {
+                    List<Resident> residents = residentService.findByPlotNum(plotNum);
+                    for(Resident resident: residents) {
+                        predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
+                    }
+                }
+                if(curTime!=null) {
+                    predicates.add(criteriaBuilder.like(root.get("updateTime"), curTime+"%"));
                 }
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }

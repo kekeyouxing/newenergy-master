@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -29,10 +30,19 @@ public class CorrPumpService extends LogicOperation<CorrPump> {
 
 
     //根据小区信息获取分页数据
-    public Page<CorrPump> querySelective(String pump_dlt, Integer page, Integer limit) {
+    public Page<CorrPump> querySelective(String pumpDtl, Integer page, Integer limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        Specification specification = getListSpecification(pump_dlt);
+        Specification specification = getListSpecification(pumpDtl, null);
         return corrPumpRepository.findAll(specification, pageable);
+    }
+
+    /**
+     * 根据小区编号查找所在小区机房
+     * @param plotNum
+     * @return
+     */
+    public List<CorrPump> findByPlotNum(String plotNum) {
+        return corrPumpRepository.findAll(getListSpecification(null, plotNum));
     }
 
     //新增纪录
@@ -50,15 +60,18 @@ public class CorrPumpService extends LogicOperation<CorrPump> {
         deleteRecord(id, userid, corrPumpRepository);
     }
 
-    private Specification<CorrPump> getListSpecification(String pump_dlt) {
+    private Specification<CorrPump> getListSpecification(String pumpDtl, String plotNum) {
         Specification<CorrPump> specification = new Specification<CorrPump>() {
             @Override
             public Predicate toPredicate(Root<CorrPump> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(pump_dlt!=null) {
-                    predicates.add(criteriaBuilder.like(root.get("pump_dlt"), "%"+pump_dlt+"%"));
+                if(!StringUtils.isEmpty(pumpDtl)) {
+                    predicates.add(criteriaBuilder.like(root.get("pumpDtl"), "%"+pumpDtl+"%"));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                if(!StringUtils.isEmpty(plotNum)) {
+                    predicates.add(criteriaBuilder.like(root.get("pumpNum"), plotNum+"%"));
+                }
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };

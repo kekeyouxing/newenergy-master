@@ -23,6 +23,8 @@ public class StatisticConsume {
 
     private BigDecimal curUsed;
 
+    private Integer curAmount;
+
     private LocalDateTime updateTime;
 
     public Integer getId() {
@@ -79,5 +81,13 @@ public class StatisticConsume {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getCurAmount() {
+        return curAmount;
+    }
+
+    public void setCurAmount(Integer curAmount) {
+        this.curAmount = curAmount;
     }
 }

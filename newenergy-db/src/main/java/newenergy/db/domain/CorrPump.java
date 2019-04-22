@@ -11,7 +11,7 @@ public class CorrPump {
     private Integer id;
 
     //所属机房编号，见数据对应表-机房
-    @Column(length = 2)
+    @Column(length = 4)
     private String pumpNum;
 
     //机房所在小区

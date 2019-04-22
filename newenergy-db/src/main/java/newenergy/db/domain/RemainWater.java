@@ -23,6 +23,7 @@ public class RemainWater {
     private LocalDateTime updateTime;
     private BigDecimal remainVolume;
     private BigDecimal curRecharge;
+    private Integer curAmount;
     private BigDecimal curFirstRemain;
 
     public Integer getId() {
@@ -63,6 +64,15 @@ public class RemainWater {
 
     public void setCurRecharge(BigDecimal curRecharge) {
         this.curRecharge = curRecharge;
+    }
+
+
+    public Integer getCurAmount() {
+        return curAmount;
+    }
+
+    public void setCurAmount(Integer curAmount) {
+        this.curAmount = curAmount;
     }
 
     public BigDecimal getCurFirstRemain() {
