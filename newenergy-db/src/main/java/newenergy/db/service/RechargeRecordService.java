@@ -70,45 +70,17 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId, 0, 0);
+        return repository.findAll(findAllByConditions(null,null,registerId,null));
     }
 
-
-    public List<RechargeRecord> findByRegisterIdAndSafeDeleteAndState(String registerId, int safeDelete, int state){
-//        safeDelete默认为0，registerid默认“”，state默认-1，为默认值时，插叙你所有类型，否则，查询指定类型
-        if (registerId.equals("")&&(state==-1)){
-            return repository.findAllBySafeDelete(safeDelete);
-        }else if (registerId.equals("")){
-            return repository.findAllBySafeDeleteAndState(safeDelete,state);
-        }else if (state==-1){
-            System.out.println(registerId);
-            return repository.findAllByRegisterIdAndSafeDelete(registerId,safeDelete);
-        }else {
-            return repository.findAllByRegisterIdAndSafeDeleteAndState(registerId,safeDelete,state);
-        }
-
-    }
-
-//    根据批量充值记录id,审核状态查询充值记录,当批量充值id为-1,审核状态为-1,则查询所有的批量充值记录,否则按条件查询
-    public List<RechargeRecord> findByBatchRecordAndReviewState(Integer batchRecordId,Integer reviewState,Integer safeDelete){
-        if ((batchRecordId==-1)&&(reviewState == -1)){
-            return repository.findAllBySafeDelete(safeDelete);
-        }else if (batchRecordId==-1){
-            return repository.findAllByReviewStateAndSafeDelete(reviewState,safeDelete);
-        }else if (reviewState==-1){
-            return repository.findAllByBatchRecordIdAndSafeDelete(batchRecordId,safeDelete);
-        }else {
-            return repository.findAllByBatchRecordIdAndReviewStateAndSafeDelete(batchRecordId,reviewState,safeDelete);
-        }
-    }
-
+    /**
+     * 根据id查询批量单挑充值记录
+     * @param id
+     * @return
+     */
 //    根据id查询批量充值记录
     public RechargeRecord findById(int id){
-        if (repository.findAllById(id).size()==0){
-            return null;
-        }else {
-            return repository.findAllById(id).get(0);
-        }
+        return repository.findFirstById(id);
     }
 
     //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性
@@ -135,6 +107,18 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     }
 
     /**
+     * 根据批量充值id，审核状态，注册id，状态查询批量充值记录
+     * @param batchRecordId
+     * @param reviewState
+     * @param registerId
+     * @param state
+     * @return
+     */
+    public List<RechargeRecord> findByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state){
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state));
+    }
+
+    /**
      * 在一定时间范围内的、登记号为registerId的充值记录的 specification
      * 安全属性safe_delete为0
      * @param registerId 登记号
@@ -142,6 +126,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param endDateTime 结束时间
      * @return
      */
+    
     private Specification<RechargeRecord> registerId_timeInterval_spec(String registerId, LocalDateTime startDateTime, LocalDateTime endDateTime){
         Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
             @Override
@@ -161,5 +146,37 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             }
         };
         return specification;
+    }
+
+    /**
+     * 根据批量虫子id，审核状态，注册id，订单状态查询充值订单
+     * @param batchRecordId
+     * @param reviewState
+     * @param registerId
+     * @param state
+     * @return
+     */
+    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state){
+        Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
+            @Override
+            public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                List<Predicate> predicates = new ArrayList<>();
+                if (batchRecordId != null){
+                    predicates.add(criteriaBuilder.equal(root.get("batchRecordId"),batchRecordId));
+                }
+                if (registerId != null){
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"),registerId));
+                }
+                if (reviewState != null){
+                    predicates.add(criteriaBuilder.equal(root.get("reviewState"),reviewState));
+                }
+                if (state != null){
+                    predicates.add(criteriaBuilder.equal(root.get("state"),state));
+                }
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
+                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+            }
+        };
+        return  specification;
     }
 }

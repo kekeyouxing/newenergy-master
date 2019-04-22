@@ -2,6 +2,8 @@ package newenergy.admin.controller;
 
 import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.DeviceRequireConstant;
+import newenergy.db.constant.FaultRecordConstant;
+import newenergy.db.constant.ResultConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
 import newenergy.db.predicate.DeviceRequirePredicate;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Created by HUST Corey on 2019-04-13.
@@ -35,21 +39,49 @@ public class FaultRecordController {
 
     @Autowired
     private DeviceRequireService deviceRequireService;
+
+    private static class UserinfoDTO{
+        Integer id;
+        String registerId;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+    }
     /**
      *  信息确认
-     * @param id
-     * @param registerId
+     *  id
+     *  registerId
      * @return
      */
     @RequestMapping(value = "userinfo",method = RequestMethod.POST)
-    public Map<String,Object> userinfo(Integer id, String registerId){
+    public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto){
+        Integer id = dto.getId();
+        String registerId = dto.getRegisterId();
+        Map<String,Object> ret = new HashMap<>();
+        Map<String,Object> map = new HashMap<>();
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident==null) return map;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
-        Map<String,Object> map = new HashMap<>();
         map.put("registerId",registerId);
         map.put("username",resident.getUserName());
-        map.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+        String addressDtl = "";
+        if(corrAddress!=null)
+            addressDtl = corrAddress.getAddressDtl();
+        map.put("addressDtl",addressDtl);
         map.put("roomNum",resident.getRoomNum());
         map.put("phone",resident.getPhone());
         //暂时使用用户id代替用户姓名
@@ -58,22 +90,74 @@ public class FaultRecordController {
         String servicerName = null;
         if(admin != null) servicerName = admin.getRealName();
         map.put("servicerName",servicerName);
-        return map;
+        ret.put("userinfo",map);
+
+        Map<String,Object> info = new HashMap<>();
+        info.put("area",resident.getArea());
+        info.put("buyTime",resident.getBuyTime());
+        CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
+        info.put("typeDtl",corrType.getTypeDtl());
+        info.put("ratedFlow",resident.getRatedFlow());
+        info.put("deviceNum",resident.getDeviceNum());
+        info.put("deviceSeq",resident.getDeviceSeq());
+        info.put("installTime",resident.getInstallTime());
+        info.put("receiveTime",resident.getReceiveTime());
+        String pumpNum = resident.getPumpNum();
+        CorrPump corrPump = pumpNum==null?null:faultRecordService.getCorrPump(pumpNum);
+        String pumpDtl = corrPump==null?"":corrPump.getPumpDtl();
+        info.put("pumpDtl",pumpDtl);
+
+        ret.put("info",info);
+        return ret;
     }
 
+    private static class AddDTO{
+        Integer id;
+        String registerId;
+        String phenomeon;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+
+        public String getPhenomeon() {
+            return phenomeon;
+        }
+
+        public void setPhenomeon(String phenomeon) {
+            this.phenomeon = phenomeon;
+        }
+    }
     /**
      * 确认新增故障记录
-     * @param id
-     * @param registerId
-     * @param phenomeon
+     *  id
+     *  registerId
+     *  phenomeon
      * @return
      */
     @RequestMapping(value = "add",method = RequestMethod.POST)
-    public Integer addRecord(Integer id, String registerId, String phenomeon){
+    public Integer addRecord(@RequestBody AddDTO dto){
+        Integer id = dto.getId();
+        String registerId = dto.getRegisterId();
+        String phenomeon = dto.getPhenomeon();
+
         FaultRecord faultRecord = new FaultRecord();
         faultRecord.setRegisterId(registerId);
         faultRecord.setMonitorId(id);
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident == null) return ResultConstant.ERR;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
         faultRecord.setServicerId(corrPlotAdmin.getServicerId());
@@ -90,22 +174,48 @@ public class FaultRecordController {
     }
 
 
+    private static class UserDtlDTO{
+        Integer id;
+        String registerId;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+    }
     /**
      * 查看用户详情（售后记录明细表）：
-     * @param id
-     * @param registerId
+     *  id
+     *  registerId
      * @return
      */
     @RequestMapping(value = "userdtl",method = RequestMethod.POST)
-    public Map<String,Object> userDtl(Integer id, String registerId){
+    public Map<String,Object> userDtl(@RequestBody UserDtlDTO dto){
+        Integer id = dto.getId();
+        String registerId = dto.getRegisterId();
         Map<String, Object> ret = new HashMap<>();
         Map<String, Object> userinfo = new HashMap<>();
         Resident resident = faultRecordService.getResident(registerId);
+        if(resident==null) return ret;
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
         CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
         userinfo.put("registerId",registerId);
         userinfo.put("username",resident.getUserName());
-        userinfo.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+        String addressDtl = "";
+        if(corrAddress != null)
+            addressDtl = corrAddress.getAddressDtl();
+        userinfo.put("addressDtl",addressDtl);
         userinfo.put("roomNum",resident.getRoomNum());
         userinfo.put("phone",resident.getPhone());
 
@@ -138,12 +248,13 @@ public class FaultRecordController {
             records.add(tmp);
         });
         ret.put("records",records);
+
         return ret;
     }
 
     /**
      * test
-     * @param id
+     * id
      * @return
      */
 //    @Autowired
@@ -174,22 +285,72 @@ public class FaultRecordController {
 //        newenergyAdminRepository.save(admin);
 //        return ret;
 //    }
-    @RequestMapping(value = "test2",method = RequestMethod.POST)
-    public void test2(Integer id,String plotNum) {
 
+
+    private static class ListUsersDTO{
+        Integer id;
+        Integer page;
+        Integer limit;
+        String registerId;
+        String username;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
     }
-
     /**
      * 所有用户的售后记录明细
-     * @param id
-     * @param page
-     * @param limit
-     * @param registerId
-     * @param username
+     *  id
+     *  page
+     *  limit
+     *  registerId
+     *  username
      * @return
      */
     @RequestMapping(value = "list/users",method = RequestMethod.POST)
-    public Map<String,Object> listUsers(Integer id, Integer page, Integer limit, String registerId, String username){
+    public Map<String,Object> listUsers(@RequestBody ListUsersDTO dto){
+        Integer id = dto.getId();
+        Integer page = dto.getPage();
+        Integer limit = dto.getLimit();
+        String registerId = dto.getRegisterId();
+        String username = dto.getUsername();
+
         Map<String,Object> ret = new HashMap<>();
         List<Map<String,Object>> list = new ArrayList<>();
         List<String> plots = faultRecordService.getPlotLimit(id);
@@ -206,7 +367,8 @@ public class FaultRecordController {
             e.put("username",resident.getUserName());
             String addressNum = resident.getAddressNum();
             CorrAddress corrAddress = faultRecordService.getCorrAddress(addressNum);
-            e.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+            String addressDtl = corrAddress==null?"":corrAddress.getAddressDtl();
+            e.put("addressDtl",addressDtl);
             e.put("roomNum",resident.getRoomNum());
             e.put("phone",resident.getPhone());
             list.add(e);
@@ -214,8 +376,71 @@ public class FaultRecordController {
         ret.put("records",list);
         return ret;
     }
+    private static class RecordsDTO{
+        Integer id;
+        Integer type;
+        String registerId;
+        String username;
+        Integer page;
+        Integer limit;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getType() {
+            return type;
+        }
+
+        public void setType(Integer type) {
+            this.type = type;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+    }
     @RequestMapping(value = "records",method = RequestMethod.POST)
-    public Map<String,Object> listRecords(Integer id, Integer type, String registerId, String username,Integer page, Integer limit){
+    public Map<String,Object> listRecords(@RequestBody RecordsDTO dto){
+        Integer id = dto.getId();
+        Integer type = dto.getType();
+        String registerId = dto.getRegisterId();
+        String username = dto.getUsername();
+        Integer page = dto.getPage();
+        Integer limit = dto.getLimit();
+
         Map<String,Object> ret = new HashMap<>();
         List<Map<String,Object>> list = new ArrayList<>();
         FaultRecordPredicate predicate = new FaultRecordPredicate();
@@ -238,7 +463,10 @@ public class FaultRecordController {
             Resident resident = faultRecordService.getResident(record.getRegisterId());
             CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
             tmp.put("username",resident.getUserName());
-            tmp.put("addressDtl",faultRecordService.getCorrAddressStr(corrAddress));
+            String addressDtl = "";
+            if(corrAddress != null)
+                addressDtl = corrAddress.getAddressDtl();
+            tmp.put("addressDtl",addressDtl);
             tmp.put("roomNum",resident.getRoomNum());
             tmp.put("phone",resident.getPhone());
             NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(record.getServicerId());
@@ -250,24 +478,87 @@ public class FaultRecordController {
             tmp.put("servicerName",name);
             tmp.put("servicerPhone",phone);
             Integer state = null;
-            if(record.getState() == 2){
-                if(record.getResult() == 0) state = 3;//成功
-                if(record.getResult() == 1) state = 1;//超时未响应
-                if(record.getResult() == 2) state = 4;//失败
-            }else if(record.getState() == 0){
+            if( FaultRecordConstant.STATE_FINISH.equals(record.getState()) ){
+                if( FaultRecordConstant.RESULT_SUCCESS.equals(record.getResult()) ) state = 3;//成功
+                if( FaultRecordConstant.RESULT_TIMEOUT.equals(record.getResult()) ) state = 1;//超时未响应
+                if( FaultRecordConstant.RESULT_FAILED.equals(record.getResult()) ) state = 4;//失败
+            }else if( FaultRecordConstant.STATE_WAIT.equals(record.getState()) ){
                 state = 0; //待响应
-            }else if(record.getState() == 1){
+            }else if( FaultRecordConstant.STATE_DURING.equals(record.getState()) ){
                 state = 2; //维修中
             }
             tmp.put("state",state);
+            tmp.put("faultTime",record.getFaultTime());
             list.add(tmp);
         });
         ret.put("records",list);
         return ret;
     }
+    private static class GroupSearchDTO{
+        Integer id;
+        String plotDtl;
+        String monitorName;
+        String servicerName;
+        Integer page;
+        Integer limit;
 
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPlotDtl() {
+            return plotDtl;
+        }
+
+        public void setPlotDtl(String plotDtl) {
+            this.plotDtl = plotDtl;
+        }
+
+        public String getMonitorName() {
+            return monitorName;
+        }
+
+        public void setMonitorName(String monitorName) {
+            this.monitorName = monitorName;
+        }
+
+        public String getServicerName() {
+            return servicerName;
+        }
+
+        public void setServicerName(String servicerName) {
+            this.servicerName = servicerName;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+    }
     @RequestMapping(value = "group/search",method = RequestMethod.POST)
-    public Map<String,Object> groupSearch(Integer id, String plotDtl,String monitorName,String servicerName,Integer page, Integer limit){
+    public Map<String,Object> groupSearch(@RequestBody GroupSearchDTO dto){
+        Integer id = dto.getId();
+        String plotDtl = dto.getPlotDtl();
+        String monitorName = dto.getMonitorName();
+        String servicerName = dto.getServicerName();
+        Integer page = dto.getPage();
+        Integer limit = dto.getLimit();
+
         Map<String,Object> ret = new HashMap<>();
         CorrPlotAdminPredicate predicate = new CorrPlotAdminPredicate();
         predicate.setPlotName(plotDtl);
@@ -287,31 +578,123 @@ public class FaultRecordController {
         ret.put("list",list);
         return ret;
     }
+    private static class GroupUserinfoDTO{
+        Integer id;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+    }
     @RequestMapping(value = "group/userinfo",method = RequestMethod.POST)
-    public Map<String,Object> getAdminInfo(Integer id){
+    public Map<String,Object> getAdminInfo(@RequestBody GroupUserinfoDTO dto){
+        Integer id = dto.getId();
         Map<String,Object> ret = new HashMap<>();
         ret.put("servicers",corrPlotAdminService.getServicers());
         ret.put("monitors",corrPlotAdminService.getMonitors());
         return ret;
     }
+    private static class GroupUpdateDTO{
+        Integer id;
+        String plotNum;
+        Integer updateMonitor;
+        Integer updateServicer;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPlotNum() {
+            return plotNum;
+        }
+
+        public void setPlotNum(String plotNum) {
+            this.plotNum = plotNum;
+        }
+
+        public Integer getUpdateMonitor() {
+            return updateMonitor;
+        }
+
+        public void setUpdateMonitor(Integer updateMonitor) {
+            this.updateMonitor = updateMonitor;
+        }
+
+        public Integer getUpdateServicer() {
+            return updateServicer;
+        }
+
+        public void setUpdateServicer(Integer updateServicer) {
+            this.updateServicer = updateServicer;
+        }
+    }
     @RequestMapping(value = "group/update",method = RequestMethod.POST)
-    public CorrPlotAdmin updateAdminInfo(Integer id, String plotNum, Integer updateMonitor,Integer updateServicer){
+    public CorrPlotAdmin updateAdminInfo(@RequestBody GroupUpdateDTO dto){
+        Integer id = dto.getId();
+        String plotNum = dto.getPlotNum();
+        Integer updateMonitor = dto.getUpdateMonitor();
+        Integer updateServicer = dto.getUpdateServicer();
+
         CorrPlotAdminPredicate predicate = new CorrPlotAdminPredicate();
         predicate.setPlotNum(plotNum);
         Page<CorrPlotAdmin> results = corrPlotAdminService.findByPredicateWithAive(predicate,null,null);
         if(results.getTotalElements() != 1) return null;
         CorrPlotAdmin corrPlotAdmin = results.get().findFirst().orElse(null);
-
+        if(corrPlotAdmin == null) return null;
         corrPlotAdmin.setMonitorId(updateMonitor);
         corrPlotAdmin.setServicerId(updateServicer);
         return corrPlotAdminService.updateARecord(corrPlotAdmin,id);
     }
+    private static class RequireSearchDTO{
+        Integer id;String plotDtl;Integer page;Integer limit;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPlotDtl() {
+            return plotDtl;
+        }
+
+        public void setPlotDtl(String plotDtl) {
+            this.plotDtl = plotDtl;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+    }
     @RequestMapping(value = "require/search",method = RequestMethod.POST)
-    public Map<String,Object> requireSearch(Integer id,String plotDtl,Integer page,Integer limit){
+    public Map<String,Object> requireSearch(@RequestBody RequireSearchDTO requireSearchDTO){
         Map<String,Object> ret = new HashMap<>();
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
-        predicate.setPlotDtl(plotDtl);
-        Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,PageRequest.of(page-1,limit),Sort.by(Sort.Direction.ASC,"plotNum"));
+        predicate.setPlotDtl(requireSearchDTO.getPlotDtl());
+        Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,
+                PageRequest.of(requireSearchDTO.getPage()-1, requireSearchDTO.getLimit()),
+                Sort.by(Sort.Direction.ASC,"plotNum"));
         DeviceRequire setting = deviceRequireService.getSetting();
 
         LocalDateTime updateTime = null;
@@ -320,23 +703,45 @@ public class FaultRecordController {
             updateTime = setting.getUpdateTime();
             updateLoop = setting.getUpdateLoop();
         }
-        ret.put("total",plots.getTotalElements()-1);
         ret.put("updateTime",updateTime);
         ret.put("updateLoop",updateLoop);
         List<Map<String,Object>> plotlist = new ArrayList<>();
-        plots.get()
-            .filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS))
-            .forEach(plot->{
+        Stream<DeviceRequire> realPlots = plots.get().filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS));
+        realPlots.forEach(plot->{
                 Map<String,Object> tmp = new HashMap<>();
                 tmp.put("plotDtl",deviceRequireService.getPlotDtl(plot.getPlotNum()));
                 tmp.put("requireVolume",plot.getRequireVolume());
                 plotlist.add(tmp);
             });
+        ret.put("total",plotlist.size());
         ret.put("list",plotlist);
         return ret;
     }
+    private static class RequireUpdateDTO{
+        Integer id;
+        Integer updateLoop;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getUpdateLoop() {
+            return updateLoop;
+        }
+
+        public void setUpdateLoop(Integer updateLoop) {
+            this.updateLoop = updateLoop;
+        }
+    }
     @RequestMapping(value = "require/update",method = RequestMethod.POST)
-    public Integer requireUpdate(Integer id, Integer updateLoop){
+    public Integer requireUpdate(@RequestBody RequireUpdateDTO dto){
+        Integer id = dto.getId();
+        Integer updateLoop = dto.getUpdateLoop();
+
         DeviceRequire setting = deviceRequireService.getSetting();
         if(setting == null) return 1;
         setting.setUpdateLoop(updateLoop);

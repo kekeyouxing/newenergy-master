@@ -5,6 +5,7 @@ import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.template.LogicOperation;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -91,10 +92,10 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "plotNum"));
         Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
-            if (predicate.getPlotDtl() != null) {
-                lists.add(cb.equal(root.get("plotDtl").as(String.class), predicate.getPlotDtl()));
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotDtl())) {
+                lists.add(cb.like(root.get("plotDtl").as(String.class), StringUtilCorey.getMod(predicate.getPlotDtl())));
             }
-            if (predicate.getPlotNum() != null) {
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
             Predicate[] arr = new Predicate[lists.size()];

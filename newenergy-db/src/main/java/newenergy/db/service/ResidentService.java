@@ -1,8 +1,10 @@
 package newenergy.db.service;
 
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.Resident;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
+import newenergy.db.util.StringUtilCorey;
 import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -187,16 +189,16 @@ public class ResidentService extends LogicOperation<Resident> {
     public Specification<Resident> findByPlotNumOrSearch(Resident resident){
         return (root,cq,cb)-> {
             List<Predicate> predicates = new ArrayList<>();
-            if(resident.getPlotNum()!= null) {
+            if(!StringUtilCorey.emptyCheck(resident.getPlotNum())) {
                 predicates.add(cb.equal(root.get("plotNum"), resident.getPlotNum()));
             }
-            if(resident.getRegisterId() != null){
+            if(!StringUtilCorey.emptyCheck(resident.getRegisterId())){
                 predicates.add(cb.equal(root.get("registerId"), resident.getRegisterId()));
             }
-            if(resident.getUserName() != null){
+            if(!StringUtilCorey.emptyCheck(resident.getUserName())){
                 predicates.add(cb.equal(root.get("userName"), resident.getUserName()));
             }
-            predicates.add(cb.equal(root.get("safeDelete"), 0));
+            predicates.add(cb.equal(root.get("safeDelete"), SafeConstant.SAFE_ALIVE));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
