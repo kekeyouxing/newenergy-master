@@ -30,6 +30,7 @@ import javax.transaction.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
@@ -57,7 +58,10 @@ public class WxOrderService {
     /**
      * 提交充值申请
      * @author yangq
-     *
+     *<p>
+     *     1.创建订单并生成商户订单号
+     *     2.保存充值金额与之后充值成功之后比较金额是否匹配
+     *</p>
      * @param openid
      * @param body
      * @param request
@@ -65,6 +69,7 @@ public class WxOrderService {
      */
     @Transactional
     public Object submit(String openid,String body,HttpServletRequest request){
+        //通过token验证openid，保证本人操作
         if (openid == null || openid.isEmpty()){
             return ResponseUtil.unauthz();
         }
@@ -79,8 +84,7 @@ public class WxOrderService {
             return ResponseUtil.badArgument();
         }
         BigDecimal acturalAmount = new BigDecimal(amount);
-//      将充值金额转换为分
-        int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
+
         RechargeRecord order = null;
         order = new RechargeRecord();
         order.setRegisterId(deviceid);
@@ -89,7 +93,8 @@ public class WxOrderService {
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num,0);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
-        BigDecimal recharge_volumn = acturalAmount.multiply(plot_factor);
+        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,RoundingMode.HALF_DOWN);
+        //生成商户订单号
         order.setOrderSn(rechargeRecordService.generateOrderSn());
         order.setRechargeVolume(recharge_volumn);
         WxPayMpOrderResult result = null;
@@ -98,6 +103,8 @@ public class WxOrderService {
             orderRequest.setOutTradeNo(order.getOrderSn());
             orderRequest.setOpenid(openid);
             orderRequest.setBody("订单："+order.getOrderSn());
+            // 将充值金额转换为分，微信接口需要以分为单位
+            int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
             orderRequest.setTotalFee(fee);
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
@@ -140,7 +147,7 @@ public class WxOrderService {
 
         logger.info("处理腾讯支付平台的订单支付");
         logger.info(result);
-
+        //获取充值成功结果的商户订单号，待后续与订单中对比
         String orderSn = result.getOutTradeNo();
         String payId = result.getTransactionId();
 
