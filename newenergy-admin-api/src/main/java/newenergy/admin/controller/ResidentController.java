@@ -39,7 +39,7 @@ public class ResidentController {
     @GetMapping("/list")
     public Object list(String userName,
                        String address,
-                       @RequestParam(defaultValue = "0") Integer page,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit){
         List<String> addressNums = corrAddressService.queryAddress(address);
         Page<Resident> pageResident = residentService.querySelective(userName, addressNums, page-1, limit);

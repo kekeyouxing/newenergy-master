@@ -11,7 +11,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -48,18 +50,33 @@ public class ScheduleUpdateWater {
     @Autowired
     private StatisticPlotRechargeService plotRechargeService;
 
+    private static ScheduleUpdateWater scheduleUpdateWater;
+
+    @PostConstruct
+    public void init() {
+        scheduleUpdateWater = this;
+        scheduleUpdateWater.plotRechargeService = this.plotRechargeService;
+        scheduleUpdateWater.remainWaterService = this.remainWaterService;
+        scheduleUpdateWater.corrPlotService = this.corrPlotService;
+        scheduleUpdateWater.consumeService = this.consumeService;
+        scheduleUpdateWater.extraWaterService = this.extraWaterService;
+        scheduleUpdateWater.rechargeRecordService = this.rechargeRecordService;
+        scheduleUpdateWater.residentService = this.residentService;
+    }
+
     @Transactional
     @Async
 //    @Scheduled(cron = "0/5 * * * * ?")
     public void configureTasks(){
-        List<ExtraWater> sortedExtraWaterList = extraWaterService.findAll();
+        List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
             BigDecimal addVolume = extraWater.getAddVolume();
-            RechargeRecord rechargeRecord = rechargeRecordService.findById(extraWater.getRecordId());
-            RemainWater remainWater = remainWaterService.findByRegisterId(extraWater.getRegisterId());
+            Integer addAmount = extraWater.getAddAmount();
+            RechargeRecord rechargeRecord = scheduleUpdateWater.rechargeRecordService.findById(extraWater.getRecordId());
+            RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
             if (isTrustworthy(remainWater)){
-                updateVolume(rechargeRecord,remainWater,addVolume);
-                extraWaterService.deleteRecord(extraWater);
+                updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
+                scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
             }
         }
     }
@@ -96,16 +113,17 @@ public class ScheduleUpdateWater {
      * @param addVolume 新增水量
      */
     @Transactional
-    public void updateVolume(RechargeRecord rechargeRecord,RemainWater remainWater,BigDecimal addVolume){
+    public void updateVolume(RechargeRecord rechargeRecord,RemainWater remainWater,BigDecimal addVolume, Integer addAmount){
         BigDecimal remainVolume = remainWater.getRemainVolume();
         BigDecimal updatedVolume = remainVolume.add(addVolume);
         rechargeRecord.setRemainVolume(remainVolume);
         rechargeRecord.setUpdatedVolume(updatedVolume);
-        rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
+        scheduleUpdateWater.rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
         remainWater.setRemainVolume(updatedVolume);
         remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
-        remainWaterService.updateRemainWater(remainWater);
+        remainWater.setCurAmount(remainWater.getCurAmount()+addAmount);
+        scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
     }
 
 
@@ -116,9 +134,10 @@ public class ScheduleUpdateWater {
     @Async
 //    @Scheduled(cron = "0 0 0 1 1/1 ?")
     public void updateConsume() {
-        List<RemainWater> remainWaters = remainWaterService.findAll();
+        List<RemainWater> remainWaters = scheduleUpdateWater.remainWaterService.findAll();
         for(RemainWater remainWater: remainWaters) {
             StatisticConsume consume = new StatisticConsume();
+            consume.setRegisterId(remainWater.getRegisterId());
             consume.setUpdateTime(LocalDateTime.now());
             consume.setCurRecharge(remainWater.getCurRecharge());
             consume.setLastRemain(remainWater.getCurFirstRemain());
@@ -127,12 +146,12 @@ public class ScheduleUpdateWater {
             BigDecimal curUsed = remainWater.getCurRecharge().add(remainWater.getCurFirstRemain()).
                     subtract(remainWater.getRemainVolume());
             consume.setCurUsed(curUsed);
-            consumeService.addConsume(consume);
+            scheduleUpdateWater.consumeService.addConsume(consume);
             remainWater.setCurRecharge(new BigDecimal(0));
             remainWater.setCurAmount(0);
             remainWater.setCurFirstRemain(remainWater.getRemainVolume());
             remainWater.setUpdateTime(LocalDateTime.now());
-            remainWaterService.updateRemainWater(remainWater);
+            scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
         }
     }
 
@@ -143,7 +162,7 @@ public class ScheduleUpdateWater {
     @Async
     //@Scheduled(cron = "0 30 0 1 1/1 ?")
     public void updatePlotRecharge() {
-        List<CorrPlot> plots = corrPlotService.findAll();
+        List<CorrPlot> plots = scheduleUpdateWater.corrPlotService.findAll();
         for(CorrPlot plot: plots) {
             StatisticPlotRecharge plotRecharge = new StatisticPlotRecharge();
             plotRecharge.setPlotNum(plot.getPlotNum());
@@ -152,9 +171,9 @@ public class ScheduleUpdateWater {
             BigDecimal rechargeVolume = new BigDecimal(0);
             BigDecimal usedVolume = new BigDecimal(0);
             LocalDate curTime = LocalDate.now();
-            List<Resident> residents = residentService.findByPlotNum(plot.getPlotNum());
+            List<Resident> residents = scheduleUpdateWater.residentService.findByPlotNum(plot.getPlotNum());
             for(Resident resident: residents) {
-                StatisticConsume consume = consumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
+                StatisticConsume consume = scheduleUpdateWater.consumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
                 amount = amount + consume.getCurAmount();
                 rechargeVolume = rechargeVolume.add(consume.getCurRecharge());
                 usedVolume = usedVolume.add(consume.getCurUsed());
@@ -164,9 +183,10 @@ public class ScheduleUpdateWater {
             plotRecharge.setRechargeVolume(rechargeVolume);
             plotRecharge.setCurUsed(usedVolume);
             plotRecharge.setUpdateTime(LocalDateTime.now());
-            plotRechargeService.addPlotRecharge(plotRecharge);
+            scheduleUpdateWater.plotRechargeService.addPlotRecharge(plotRecharge);
 
         }
     }
+
 
 }

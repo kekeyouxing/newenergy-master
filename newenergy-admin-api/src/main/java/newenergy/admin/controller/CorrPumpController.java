@@ -34,7 +34,7 @@ public class CorrPumpController {
      */
     @GetMapping("/list")
     public Object list(String pumpDtl,
-                       @RequestParam(defaultValue = "0") Integer page,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrPump> pagePump = corrPumpService.querySelective(pumpDtl, page-1, limit);
         List<CorrPump> corrPumps = pagePump.getContent();

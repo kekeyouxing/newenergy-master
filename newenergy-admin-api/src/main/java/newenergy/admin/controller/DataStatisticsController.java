@@ -5,10 +5,7 @@ import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.Resident;
 import newenergy.db.domain.StatisticConsume;
 import newenergy.db.domain.StatisticPlotRecharge;
-import newenergy.db.service.RechargeRecordService;
-import newenergy.db.service.ResidentService;
-import newenergy.db.service.StatisticConsumeService;
-import newenergy.db.service.StatisticPlotRechargeService;
+import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -23,9 +20,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin/data")
@@ -43,6 +38,9 @@ public class DataStatisticsController {
 
     @Autowired
     StatisticPlotRechargeService statisticPlotRechargeService;
+
+    @Autowired
+    CorrPlotService corrPlotService;
 
     /**
      * 获取消费统计表数据
@@ -62,10 +60,16 @@ public class DataStatisticsController {
         }
         List<Resident> residents = residentService.findByPlotNum(plotNum);
         Integer[] households = new Integer[interval.length+1];
+        for(int j=0; j<households.length; j++) {
+            households[j]=0;
+        }
         String[] proportion = new String[interval.length+1];
-        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
+        LocalDate curTime = LocalDate.of(year, month, 1).plusMonths(1);
         for(Resident resident: residents) {
             StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
+            if(statisticConsume==null){
+                continue;
+            }
             BigDecimal curUsed = statisticConsume.getCurUsed();
             if(curUsed.compareTo(interval[0])==-1) {
                 households[0]+=1;
@@ -85,13 +89,18 @@ public class DataStatisticsController {
         nf.applyPattern("00%");
         nf.setMaximumFractionDigits(2);
         for (int i=0; i<households.length; i++) {
-            proportion[i] = nf.format(households[i]/residents.size());
+            proportion[i] = nf.format((double)households[i]/residents.size());
         }
-        Map<String, Object> data = new HashMap<>();
-        data.put("households", households);
-        data.put("proportion", proportion);
+        List<Map<String, Object>> data = new ArrayList<>();
+        for(int j=0; j<households.length; j++) {
+            Map<String, Object> info = new HashMap<>();
+            info.put("households", households[j]);
+            info.put("proportion", proportion[j]);
+            data.add(info);
+        }
         return ResponseUtil.ok(data);
     }
+
 
     /**
      * 获取小区充值及消费月报表
@@ -104,18 +113,28 @@ public class DataStatisticsController {
     @GetMapping("/getPlotData")
     public Object getPlotData(@RequestParam Integer year,
                               @RequestParam Integer month,
-                              @RequestParam(defaultValue = "0") Integer page,
+                              @RequestParam(defaultValue = "1") Integer page,
                               @RequestParam(defaultValue = "10") Integer limit,
-                              @RequestParam String plotNum) {
+                              String plotNum) {
         if(year==null||month==null) {
             return ResponseUtil.badArgument();
         }
-        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
-        Page<StatisticPlotRecharge> pagePlotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime, plotNum, page, limit);
+        LocalDate curTime = LocalDate.of(year, month, 1).plusMonths(1);
+        Page<StatisticPlotRecharge> pagePlotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime, plotNum, page-1, limit);
         List<StatisticPlotRecharge> plotRecharges = pagePlotRecharges.getContent();
         Map<String, Object> data = new HashMap<>();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for(StatisticPlotRecharge plotRecharge : pagePlotRecharges) {
+            Map<String, Object> info = new HashMap<>();
+            info.put("plotDtl", corrPlotService.findByPlotNum(plotRecharge.getPlotNum()));
+            info.put("amount", plotRecharge.getAmount());
+            info.put("plotFactor", plotRecharge.getPlotFactor());
+            info.put("curRecharge", plotRecharge.getRechargeVolume());
+            info.put("curUsed", plotRecharge.getCurUsed());
+            list.add(info);
+        }
         data.put("total", pagePlotRecharges.getTotalElements());
-        data.put("plotRecharges", plotRecharges);
+        data.put("plotRecharges", list);
         return ResponseUtil.ok(data);
     }
 
@@ -128,11 +147,11 @@ public class DataStatisticsController {
      * @return
      */
     @GetMapping("/getResidentByPlot")
-    public Object getResidentByPlot(@RequestParam String plotNum,
-                                    @RequestParam String registerId,
-                                    @RequestParam(defaultValue = "0") Integer page,
+    public Object getResidentByPlot(String plotNum,
+                                    String registerId,
+                                    @RequestParam(defaultValue = "1") Integer page,
                                     @RequestParam(defaultValue = "10") Integer limit) {
-        Page<Resident> residentPage = residentService.findByPlotNumAndRegisterId(plotNum, registerId, page, limit);
+        Page<Resident> residentPage = residentService.findByPlotNumAndRegisterId(plotNum, registerId, page-1, limit);
         List<Resident> residents = residentPage.getContent();
         Map<String, Object> data = new HashMap<>();
         data.put("total", residentPage.getTotalElements());
@@ -167,13 +186,15 @@ public class DataStatisticsController {
      * @return
      */
     @GetMapping("/getConsumeDetail")
-    public Object getConsumeDetail(@RequestParam Integer year,
+    public Object getConsumeDetail(BigDecimal start,
+                                   BigDecimal end,
+                                   @RequestParam Integer year,
                                 @RequestParam Integer month,
                                 @RequestParam String plotNum,
-                                @RequestParam(defaultValue = "0") Integer page,
+                                @RequestParam(defaultValue = "1") Integer page,
                                 @RequestParam(defaultValue = "10") Integer limit) {
-        LocalDate curTime = LocalDate.of(year, month, 1).minusMonths(1);
-        Page<StatisticConsume> pageConsume = statisticConsumeService.getCurConsume(page, limit, curTime, plotNum);
+        LocalDate curTime = LocalDate.of(year, month, 1).plusMonths(1);
+        Page<StatisticConsume> pageConsume = statisticConsumeService.getCurConsume(page-1, limit, curTime, plotNum, start, end);
         List<StatisticConsume> listConsume = pageConsume.getContent();
         Map<String, Object> data = new HashMap<>();
         data.put("total", pageConsume.getTotalElements());

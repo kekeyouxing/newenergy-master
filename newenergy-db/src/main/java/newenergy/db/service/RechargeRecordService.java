@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -161,16 +162,16 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             @Override
             public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if (batchRecordId != null){
+                if (!StringUtils.isEmpty(batchRecordId)){
                     predicates.add(criteriaBuilder.equal(root.get("batchRecordId"),batchRecordId));
                 }
-                if (registerId != null){
+                if (!StringUtils.isEmpty(registerId)){
                     predicates.add(criteriaBuilder.equal(root.get("registerId"),registerId));
                 }
-                if (reviewState != null){
+                if (!StringUtils.isEmpty(reviewState)){
                     predicates.add(criteriaBuilder.equal(root.get("reviewState"),reviewState));
                 }
-                if (state != null){
+                if (!StringUtils.isEmpty(state)){
                     predicates.add(criteriaBuilder.equal(root.get("state"),state));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));

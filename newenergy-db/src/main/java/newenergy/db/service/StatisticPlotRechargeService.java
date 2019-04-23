@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -56,11 +57,11 @@ public class StatisticPlotRechargeService {
             @Override
             public Predicate toPredicate(Root<StatisticPlotRecharge> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(plotNum!=null) {
+                if(!StringUtils.isEmpty(plotNum)) {
                     predicates.add(criteriaBuilder.equal(root.get("plotNum"), plotNum));
                 }
-                if(curTime!=null) {
-                    predicates.add(criteriaBuilder.like(root.get("updateTime"), curTime+"%"));
+                if(!StringUtils.isEmpty(curTime)) {
+                    predicates.add(criteriaBuilder.like(root.get("updateTime").as(String.class), curTime+"%"));
                 }
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }

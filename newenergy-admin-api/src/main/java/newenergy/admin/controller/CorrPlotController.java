@@ -49,7 +49,7 @@ public class CorrPlotController {
      */
     @GetMapping("/list")
     public Object list(String plotDtl,
-                       @RequestParam(defaultValue = "0") Integer page,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
         System.out.println("列表显示");
         Page<CorrPlot> pagePlot = corrPlotService.querySelective(plotDtl, page-1, limit);

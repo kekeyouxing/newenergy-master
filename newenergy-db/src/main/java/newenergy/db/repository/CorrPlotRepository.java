@@ -22,4 +22,6 @@ public interface CorrPlotRepository  extends JpaRepository<CorrPlot, Integer>, J
      */
     //public CorrPlot findFirstByPlotNum(String plotNum);
     public CorrPlot findFirstByPlotNumAndSafeDelete(String plotNum,Integer safe_delete);
+
+
 }

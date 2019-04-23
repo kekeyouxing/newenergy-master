@@ -32,7 +32,7 @@ public class CorrTypeController {
      */
     @GetMapping("/list")
     public Object list(String typeDtl,
-                       @RequestParam(defaultValue = "0") Integer page,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrType> pageType = corrTypeService.querySelective(typeDtl, page-1, limit);
         List<CorrType> corrTypes = pageType.getContent();

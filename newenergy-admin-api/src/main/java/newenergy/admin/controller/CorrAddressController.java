@@ -38,7 +38,7 @@ public class CorrAddressController {
      */
     @GetMapping("/list")
     public Object list(String addressDtl,
-                       @RequestParam(defaultValue = "0") Integer page,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrAddress> pageAddress = corrAddressService.querySelective(addressDtl, page-1, limit);
         List<CorrAddress> corrAddresses = pageAddress.getContent();
@@ -67,6 +67,43 @@ public class CorrAddressController {
         }
         return ResponseUtil.ok(options);
     }
+
+    /**
+     * 获取地址楼栋下拉框选项
+     * @param plotNum  小区编号
+     * @return
+     */
+    @GetMapping("/blockOptions")
+    public Object blockOptions(@RequestParam String plotNum) {
+        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(plotNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrAddresses.size());
+        for(CorrAddress corrAddress: corrAddresses) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrAddress.getAddressNum().substring(2,4));
+            option.put("label", corrAddress.getAddressBlock());
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
+    /**
+     * 根据小区和楼栋获取所有单元号
+     * @param blockNum  4位，小区编号+楼栋编号
+     * @return
+     */
+    @GetMapping("/unitOptions")
+    public Object unitOptions(@RequestParam String blockNum) {
+        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(blockNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrAddresses.size());
+        for(CorrAddress corrAddress: corrAddresses) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrAddress.getAddressNum().substring(4));
+            option.put("label", corrAddress.getAddressUnit());
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
 
     /**
      * 新增地址表

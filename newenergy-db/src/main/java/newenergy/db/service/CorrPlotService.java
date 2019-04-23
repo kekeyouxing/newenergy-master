@@ -51,6 +51,15 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         return corrPlotRepository.findAll(specification, pageable);
     }
 
+    /**
+     * 根据小区编号获取地址
+     * @param plotNum
+     * @return
+     */
+    public String findByPlotNum(String plotNum) {
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum, 0).getPlotDtl();
+    }
+
     //根据小区地址搜索小区编号
     public String findPlotNum(String plotDtl) {
         return corrPlotRepository.findByPlotDtlAndSafeDelete(plotDtl, 0).getPlotNum();

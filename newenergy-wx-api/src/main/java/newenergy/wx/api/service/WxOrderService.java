@@ -91,7 +91,7 @@ public class WxOrderService {
         order.setAmount(acturalAmount.intValue());
         String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
-        BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num,0);
+        BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
         BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,RoundingMode.HALF_DOWN);
         //生成商户订单号
