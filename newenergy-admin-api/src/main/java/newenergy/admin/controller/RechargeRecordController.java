@@ -2,15 +2,15 @@ package newenergy.admin.controller;
 
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
+import newenergy.db.service.ExtraWaterService;
 import newenergy.db.service.ManualRecordService;
 import newenergy.db.service.RechargeRecordService;
+import newenergy.db.service.RemainWaterService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,11 +19,38 @@ import java.util.List;
 @Validated
 public class RechargeRecordController {
 
+    private static class ReviewState {
+        private Integer id;
+        private Integer reviewState;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getReviewState() {
+            return reviewState;
+        }
+
+        public void setReviewState(Integer reviewState) {
+            this.reviewState = reviewState;
+        }
+    }
+
     @Autowired
     RechargeRecordService rechargeRecordService;
 
     @Autowired
     ManualRecordService manualRecordService;
+
+    @Autowired
+    RemainWaterService remainWaterService;
+
+    @Autowired
+    ExtraWaterService extraWaterService;
 
 //    根据id查询批量充值记录
     @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
@@ -44,27 +71,32 @@ public class RechargeRecordController {
 
     //    充值订单审核
     @RequestMapping(value = "/review", method = RequestMethod.POST)
-    public Object review(@RequestBody String string,
+    public Object review(@RequestBody List<ReviewState> reviewStates,
                          @RequestParam Integer operatorId,
-                         @RequestParam Integer ip) throws JSONException, CloneNotSupportedException {
-        JSONArray jsonArray = new JSONArray(string);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jsonObject= jsonArray.getJSONObject(i);
-            RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(jsonObject.getInt("id")).clone();
-            rechargeRecord.setReviewState(jsonObject.getInt("reviewState"));
-            if (jsonObject.getInt("reviewState")==2){
+                         @RequestParam Integer ip) throws CloneNotSupportedException {
+        for (ReviewState reviewState:reviewStates){
+            RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
+            rechargeRecord.setReviewState(reviewState.getReviewState());
+            rechargeRecord.setCheckId(operatorId);
+            if (reviewState.getReviewState()==1){
+                RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
+                if (remainWater == null){
+                    remainWater = new RemainWater();
+                    remainWater.setRegisterId(rechargeRecord.getRegisterId());
+                    remainWater.setCurRecharge(new BigDecimal(0));
+                }
+                remainWater.setCurRecharge(rechargeRecord.getRechargeVolume().add(remainWater.getCurRecharge()));
+                remainWater.setUpdateTime(LocalDateTime.now());
+                remainWaterService.updateRemainWater(remainWater);
+                extraWaterService.add(rechargeRecord.getRegisterId(),
+                        rechargeRecord.getRechargeVolume(),
+                        rechargeRecord.getId(),
+                        rechargeRecord.getAmount());
+            }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
-            }else {
-                rechargeRecord.setState(0);
             }
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,operatorId);
-            ManualRecord manualRecord = new ManualRecord();
-            manualRecord.setLaborId(operatorId);
-            manualRecord.setEvent(1);
-            manualRecord.setLaborIp(ip);
-            manualRecord.setRecordId(newRecord.getId());
-            manualRecord.setOperateTime(LocalDateTime.now());
-            manualRecordService.save(manualRecord);
+            manualRecordService.add(operatorId,ip,1,newRecord.getId());
         }
         return ResponseUtil.ok();
     }
