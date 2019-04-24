@@ -49,17 +49,13 @@ public class BatchRecordService extends LogicOperation<BatchRecord> {
     }
 
 //   根据公司查询批量充值记录
-    public List<BatchRecord> queryByCompanyAndSafeDelete(String company){
-        return repository.findAllByCompanyAndSafeDelete(company,0);
+    public List<BatchRecord> queryByPlotNumAndSafeDelete(String plotNum){
+        return repository.findAllByPlotNumAndSafeDelete(plotNum,0);
     }
 
 //    根据id查询批量充值记录
     public BatchRecord queryById(int id){
-        if (repository.findAllById(id).size()==0){
-            return null;
-        }else {
-            return repository.findAllById(id).get(0);
-        }
+        return repository.findFirstById(id);
     }
 
 

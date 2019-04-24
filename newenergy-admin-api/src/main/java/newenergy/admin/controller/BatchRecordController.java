@@ -1,27 +1,23 @@
 package newenergy.admin.controller;
 
-import com.google.gson.*;
+import newenergy.admin.util.IpUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.db.domain.BatchAndRecharge;
 import newenergy.db.domain.BatchRecord;
-import newenergy.db.domain.ManualRecord;
 import newenergy.db.domain.RechargeRecord;
-import newenergy.db.service.BatchRecordService;
-import newenergy.db.service.ManualRecordService;
-import newenergy.db.service.RechargeRecordService;
+import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +35,12 @@ public class BatchRecordController {
     @Autowired
     ManualRecordService manualRecordService;
 
+    @Autowired
+    ResidentService residentService;
+
+    @Autowired
+    CorrPlotService corrPlotService;
+
 //    根据id查询批量充值记录
     @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
     public BatchRecord queryBatchRecordById(@RequestParam Integer id){
@@ -46,47 +48,44 @@ public class BatchRecordController {
         return batchRecordService.queryById(id);
     }
 
-//    根据公司信息查询批量充值记录,若无公司名,则查询所有充值记录
-    @RequestMapping(value = "/queryByCompany", method = RequestMethod.GET)
-    public List<BatchRecord> list(@RequestParam(required = false) String company){
-        System.out.println(company);
-        if (company == null)
-            return batchRecordService.findAll();
-        else
-            return batchRecordService.queryByCompanyAndSafeDelete(company);
+//    根据小区信息查询批量充值记录,若无公司名,则查询所有充值记录
+    @RequestMapping(value = "findByCompany", method = RequestMethod.POST)
+    public String list(HttpServletRequest request){
+//        System.out.println(plotDtl);
+        return IpUtil.getIpAddr(request);
+//        if (plotDtl == null)
+//            return batchRecordService.findAll();
+//        else{
+//            return batchRecordService.queryByPlotNumAndSafeDelete(corrPlotService.findPlotNum(plotDtl));
+//        }
+
     }
 
 //    添加批量充值记录,及充值记录
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Object add(@RequestParam Integer operatorId,
-                      @RequestParam Integer ip,
-                      @RequestBody BatchAndRecharge batchAndRecharge){
+                      @RequestBody BatchAndRecharge batchAndRecharge,
+                      HttpServletRequest request){
         batchAndRecharge.getBatchRecord().setRechargeTime(LocalDateTime.now());
         batchAndRecharge.getBatchRecord().setBatchAdmin(operatorId);
         BatchRecord batchRecord = batchRecordService.addBatchRecord(batchAndRecharge.getBatchRecord(),operatorId);
         for (RechargeRecord rechargeRecord:
              batchAndRecharge.getRechargeRecords()) {
+//            根据注册id查询批量小区编号，然后根据小区编号查询充值系数
+            BigDecimal plotFactor = corrPlotService.findPlotFacByPlotNum(residentService.findPlotNumByRegisterid(rechargeRecord.getRegisterId(),0),0);
+            rechargeRecord.setRechargeVolume(new BigDecimal(rechargeRecord.getAmount()).divide(plotFactor,2, RoundingMode.UP));
             rechargeRecord.setBatchRecordId(batchRecord.getId());
             rechargeRecord.setOrderSn(rechargeRecordService.generateOrderSn());
             rechargeRecord.setRechargeTime(LocalDateTime.now());
             rechargeRecord.setState(0);
+            rechargeRecord.setReviewState(0);
             rechargeRecord.setDelegate(1);
             rechargeRecordService.addRechargeRecord(rechargeRecord,operatorId);
         }
-        addManualRecord(batchRecord.getId(),operatorId,ip,0);
-        return ResponseUtil.ok();
+        manualRecordService.add(operatorId,123,0,batchRecord.getId());
+        return IpUtil.getIpAddr(request);
     }
 
-//    添加人工操作记
-    private void addManualRecord(Integer recordId,Integer operatorId,Integer ip,Integer event){
-        ManualRecord manualRecord = new ManualRecord();
-        manualRecord.setRecordId(recordId);
-        manualRecord.setOperateTime(LocalDateTime.now());
-        manualRecord.setLaborIp(ip);
-        manualRecord.setLaborId(operatorId);
-        manualRecord.setEvent(event);
-        manualRecordService.save(manualRecord);
-    }
 
     //    添加批量充值记录
     @RequestMapping(value = "/uploadImage", method = RequestMethod.POST)
@@ -118,6 +117,26 @@ public class BatchRecordController {
     }
 
 
+    private static class BatchAndRecharge {
 
+        private BatchRecord batchRecord;
 
+        private List<RechargeRecord> rechargeRecords;
+
+        public BatchRecord getBatchRecord() {
+            return batchRecord;
+        }
+
+        public void setBatchRecord(BatchRecord batchRecord) {
+            this.batchRecord = batchRecord;
+        }
+
+        public List<RechargeRecord> getRechargeRecords() {
+            return rechargeRecords;
+        }
+
+        public void setRechargeRecords(List<RechargeRecord> rechargeRecords) {
+            this.rechargeRecords = rechargeRecords;
+        }
+    }
 }

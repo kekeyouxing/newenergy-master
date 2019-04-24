@@ -12,9 +12,9 @@ import java.util.List;
 @Repository
 public interface BatchRecordRepository extends JpaRepository<BatchRecord,Integer>{
 
-    List<BatchRecord> findAllByCompanyAndSafeDelete(String company, Integer safe_delete);
+    List<BatchRecord> findAllByPlotNumAndSafeDelete(String plotNum, Integer safe_delete);
 
-    List<BatchRecord> findAllById(Integer id);
+    BatchRecord findFirstById(Integer id);
 
     List<BatchRecord> findAllBySafeDelete(Integer safe_delete);
 
