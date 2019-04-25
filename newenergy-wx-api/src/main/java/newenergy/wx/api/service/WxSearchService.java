@@ -8,6 +8,8 @@ import newenergy.db.service.RechargeRecordService;
 import newenergy.db.service.RemainWaterService;
 import newenergy.db.service.ResidentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -24,6 +26,7 @@ import java.util.Map;
 import static newenergy.admin.util.AdminResponseCode.USER_INVALID_NAME;
 
 @Service
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class WxSearchService {
 
     @Autowired
@@ -36,73 +39,47 @@ public class WxSearchService {
     private RechargeRecordService rechargeRecordService;
 
     /**
-     * 获取剩余水量的信息
-     * @param body
-     * @return Map<String, Object>对象
-     *         "updateTime" : updateTime
-     *         "remainVolume" : remainVolume
+     *
+     * @param username
+     * @param registerId
+     * @return
      */
     @Transactional
-    public Object remainWaterInfo(String body) {
-        String username = JacksonUtil.parseString(body, "username");
-        String registerId = JacksonUtil.parseString(body, "registerId");
-        if(StringUtils.isEmpty(username) || StringUtils.isEmpty(registerId)) {
-            return ResponseUtil.badArgument();
-        }
-        boolean verifyResult = residentService.verifyUserNameAndRegisterId(username, registerId);
-        if(!verifyResult){
-            return ResponseUtil.fail(USER_INVALID_NAME, "用户名或登记号不正确");
-        }
-        Map<String, Object> data = new HashMap<>();
-        RemainWater remainWater = remainWaterService.findByRegisterId(registerId);
-        LocalDateTime updateTime = remainWater.getUpdateTime();
-        BigDecimal remainVolume = remainWater.getRemainVolume();
-        data.put("updateTime", updateTime);
-        data.put("remainVolume", remainVolume);
-        return ResponseUtil.ok(data);
+    public boolean verify(String username, String registerId){
+        return residentService.verifyUserNameAndRegisterId(username, registerId);
+    }
+
+    /**
+     * 获取剩余水量的信息
+     * @param registerId 登记号
+     * @return RemainWater
+     */
+    @Transactional
+    public RemainWater remainWaterInfo(String registerId){
+        return remainWaterService.findByRegisterId(registerId);
     }
 
     /**
      * 查询充值记录
-     * @param body
-     * @return Map<String, Object>对象
-     *         "updateTime" : updateTime
-     *         "remainVolume" : remainVolume
-     *         "rechargeRecords" : List<Map<String, Object>>
-     *             "amount" : amount
-     *             "rechargeTime" : rechargeTime
-     *             "username" : username
-     *             "state" : state
-     *             "delegate" : delegate
+     * @param registerId 登记号
+     * @param year 年份
+     * @param startMonth 起始月份
+     * @param endMonth 结束月份
+     * @return List<RechargeRecord>
      */
     @Transactional
-    public Object rechargeRecordInfo(String body) {
-        Map<String, Object> remainWaterResult = (Map<String, Object>) remainWaterInfo(body);
-        if(0 != (Integer) remainWaterResult.get("errno")) {
-            return remainWaterResult;
-        }
-        String registerId = JacksonUtil.parseString(body, "registerId");
-        Integer year = JacksonUtil.parseInteger(body, "year");
-        Integer startMonth = JacksonUtil.parseInteger(body, "startMonth");
-        Integer endMonth = JacksonUtil.parseInteger(body, "endMonth");
+    public List<RechargeRecord> rechargeRecordInfo(String registerId, Integer year, Integer startMonth, Integer endMonth){
         LocalDateTime startDateTime = LocalDateTime.of(year, startMonth, 1, 0, 0, 0);
         LocalDate endDate = LocalDate.of(year, endMonth, 1);
         Integer lastDayOfEndMonth = endDate.with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
         LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, lastDayOfEndMonth, 23, 59, 59);
-        List<RechargeRecord> rechargeRecords = rechargeRecordService.findByRegisterIdAndTime(registerId, startDateTime, endDateTime);
-        List<Map<String, Object>> rechargeRecordsData = new ArrayList<>();
-        for (RechargeRecord rechargeRecord : rechargeRecords) {
-            Map<String, Object> temp = new HashMap<>();
-            temp.put("amount", rechargeRecord.getAmount());
-            temp.put("rechargeTime", rechargeRecord.getRechargeTime());
-            temp.put("rechargeVolume", rechargeRecord.getRechargeVolume());
-            temp.put("username", rechargeRecord.getUserName());
-            temp.put("state", rechargeRecord.getState());
-            temp.put("delegate", rechargeRecord.getDelegate());
-            rechargeRecordsData.add(temp);
-        }
-        Map<String, Object> data = (Map<String, Object>) remainWaterResult.get("data");
-        data.put("rechargeRecords", rechargeRecordsData);
-        return ResponseUtil.ok(data);
+        System.out.println(startDateTime);
+        System.out.println(endDateTime);
+        return rechargeRecordService.findByRegisterIdAndTime(registerId, startDateTime, endDateTime);
+    }
+
+    public static void main(String[] args){
+        WxSearchService wxSearchService = new WxSearchService();
+        wxSearchService.rechargeRecordInfo("12345678912345", 2019, 4,4);
     }
 }

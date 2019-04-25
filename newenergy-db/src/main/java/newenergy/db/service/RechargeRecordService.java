@@ -99,12 +99,14 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * 查找一定时间范围内的、登记号为registerId的充值记录
      * @param registerId 登记号
      * @param startDateTime 开始时间
-     * @param endLocalDateTime 结束时间
+     * @param endDateTime 结束时间
      * @return 符合条件的RechargeRecord列表
      */
-    public List<RechargeRecord> findByRegisterIdAndTime(String registerId, LocalDateTime startDateTime, LocalDateTime endLocalDateTime){
-        Sort sort = new Sort(Sort.Direction.DESC, "recharge_time");
-        return repository.findAll(registerId_timeInterval_spec(registerId, startDateTime, endLocalDateTime), sort);
+    public List<RechargeRecord> findByRegisterIdAndTime(String registerId, LocalDateTime startDateTime, LocalDateTime endDateTime){
+        System.out.println("in find by registerid and time function");
+        Sort sort = new Sort(Sort.Direction.DESC, "rechargeTime");
+        System.out.println("go to specification");
+        return repository.findAll(registerId_timeInterval_spec(registerId, startDateTime, endDateTime), sort);
     }
 
     /**
@@ -127,22 +129,22 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param endDateTime 结束时间
      * @return
      */
-    
     private Specification<RechargeRecord> registerId_timeInterval_spec(String registerId, LocalDateTime startDateTime, LocalDateTime endDateTime){
         Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
             @Override
             public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(null != registerId) {
-                    predicates.add(criteriaBuilder.equal(root.get("register_id"), registerId));
+                if(!StringUtils.isEmpty(registerId)) {
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"), registerId));
                 }
-                if(null != startDateTime) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("recharge_time"), startDateTime));
+                if(!StringUtils.isEmpty(startDateTime)) {
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("rechargeTime"), startDateTime));
+
                 }
-                if(null != endDateTime) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("recharge_time"), endDateTime));
+                if(!StringUtils.isEmpty(endDateTime)) {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("rechargeTime"), endDateTime));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
@@ -179,5 +181,12 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             }
         };
         return  specification;
+    }
+
+    public static void main(String[] args){
+        RechargeRecordService rechargeRecordService = new RechargeRecordService();
+        LocalDateTime startDateTime = LocalDateTime.of(2019, 4, 1, 0, 0, 0);
+        LocalDateTime endDateTime = LocalDateTime.of(2019, 4, 30, 23, 59, 59);
+        //List<RechargeRecord> rechargeRecords = rechargeRecordService.findByRegisterIdAndTime("12345678912345", startDateTime, endDateTime);
     }
 }
