@@ -1,5 +1,7 @@
 package newenergy.admin.controller;
 
+import newenergy.core.pojo.MsgRet;
+import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.constant.FaultRecordConstant;
@@ -11,6 +13,7 @@ import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.repository.NewenergyRoleRepository;
 import newenergy.db.service.*;
 import newenergy.db.predicate.FaultRecordPredicate;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -39,6 +43,12 @@ public class FaultRecordController {
 
     @Autowired
     private DeviceRequireService deviceRequireService;
+
+
+
+    private RestTemplate restTemplate = new RestTemplate();
+
+    private final String sendMsgUrl = "http://localhost:8080/wx/fault/send";
 
     private static class UserinfoDTO{
         Integer id;
@@ -145,7 +155,8 @@ public class FaultRecordController {
      *  id
      *  registerId
      *  phenomeon
-     * @return
+     * @return 0成功 1添加记录失败 2维修人员未绑定 3微信推送失败
+     * 其他：errcode   参考https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433747234
      */
     @RequestMapping(value = "add",method = RequestMethod.POST)
     public Integer addRecord(@RequestBody AddDTO dto){
@@ -164,13 +175,22 @@ public class FaultRecordController {
         faultRecord.setFaultTime(LocalDateTime.now());
         faultRecord.setState(0);
         faultRecord.setPhenomenon(phenomeon);
+        NewenergyAdmin servicer = faultRecordService.getNewenergyAdmin(corrPlotAdmin.getServicerId());
+        if(servicer == null) return 1;
         FaultRecord result = faultRecordService.addRecord(faultRecord);
         if(Objects.isNull(result))
             return 1;
-        /**
-         * TODO 发送消息到售后人员的微信公众号
-         */
-        return 0;
+
+        if(StringUtilCorey.emptyCheck(servicer.getOpenid())) return 2;
+        Map<String,Object> request = new HashMap<>();
+        request.put("touser",servicer.getOpenid());
+        request.put("phenomenon",faultRecord.getPhenomenon());
+        request.put("address",corrAddress.getAddressDtl());
+        request.put("phone",resident.getPhone());
+        String partName = String.format("%s*",resident.getUserName().substring(0,1));
+        request.put("partName",partName);
+        MsgRet ret =restTemplate.postForObject(sendMsgUrl,request, MsgRet.class);
+        return ret==null?3:ret.getErrcode();
     }
 
 
@@ -220,13 +240,21 @@ public class FaultRecordController {
         userinfo.put("phone",resident.getPhone());
 
         userinfo.put("typeDtl",corrType.getTypeDtl());
-        userinfo.put("receiveTime",resident.getReceiveTime());
+        userinfo.put("receiveTime",TimeUtil.getSeconds(resident.getReceiveTime()));
         LocalDateTime guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty);
-        userinfo.put("guaranteeTime",guaranteeTime);
+        userinfo.put("guaranteeTime",TimeUtil.getSeconds(guaranteeTime));
         Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime)?1:0;
         //isWarranty：1保内，0保外
         userinfo.put("guaranteeState",isWarranty);
-        userinfo.put("plotDtl",corrAddress.getAddressPlot());
+        String plotDtl = null;
+        if(corrAddress != null){
+            String plotNum = corrAddress.getAddressPlot();
+            if(plotNum != null){
+                CorrPlot corrPlot = faultRecordService.getCorrPlot(plotNum);
+                plotDtl = corrPlot==null?null:corrPlot.getPlotDtl();
+            }
+        }
+        userinfo.put("plotDtl",plotDtl);
         ret.put("userinfo",userinfo);
 
         List<Map<String,Object>> records = new ArrayList<>();
@@ -235,10 +263,10 @@ public class FaultRecordController {
         Page<FaultRecord> recordPage = faultRecordService.findByPredicate(predicate,null,Sort.by(Sort.Direction.DESC,"faultTime"));
         recordPage.get().forEach(record->{
             Map<String,Object> tmp = new HashMap<>();
-            tmp.put("faultTime",record.getFaultTime());
+            tmp.put("faultTime",TimeUtil.getSeconds(record.getFaultTime()));
             tmp.put("phenomeon",record.getPhenomenon());
             tmp.put("solution",record.getSolution());
-            tmp.put("finishTime",record.getFinishTime());
+            tmp.put("finishTime",TimeUtil.getSeconds(record.getFinishTime()));
             Integer serviceId = record.getServicerId();
             NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
             String servicerName = null;
@@ -488,7 +516,8 @@ public class FaultRecordController {
                 state = 2; //维修中
             }
             tmp.put("state",state);
-            tmp.put("faultTime",record.getFaultTime());
+            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
+
             list.add(tmp);
         });
         ret.put("records",list);
@@ -703,7 +732,7 @@ public class FaultRecordController {
             updateTime = setting.getUpdateTime();
             updateLoop = setting.getUpdateLoop();
         }
-        ret.put("updateTime",updateTime);
+        ret.put("updateTime",TimeUtil.getSeconds(updateTime));
         ret.put("updateLoop",updateLoop);
         List<Map<String,Object>> plotlist = new ArrayList<>();
         Stream<DeviceRequire> realPlots = plots.get().filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS));

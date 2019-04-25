@@ -1,16 +1,20 @@
 package newenergy.wx.api.controller;
 
-import newenergy.core.util.JacksonUtil;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import newenergy.core.config.ServerConfig;
+import newenergy.core.util.RequestUtil;
+import newenergy.core.pojo.MsgRet;
+import newenergy.wx.api.service.MsgService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Created by HUST Corey on 2019-04-22.
@@ -18,184 +22,126 @@ import java.net.URISyntaxException;
 @RestController
 @RequestMapping("wx")
 public class MsgController {
+
+    @Autowired
+    MsgService msgService;
+    @Autowired
+    ObjectMapper objectMapper;
+    @Autowired
+    ServerConfig serverConfig;
     /**
-     * TODO 使用中控服务器来获取
+     * 发送模板消息的url
      */
-    private String access_token = "20_H-P_EjcMvv3qvXjrGsGU0OQnqW5gvS5BFFki-n9mqeA4OHNQhw33Htha6eMi6GWpVEJxtZdezPrtD4A0sWpA-BiIapwAB3uJ2WvsB1pcM5i1hAvnWksn0nlEAHK_WNWFQyInEjTnWIbcEMUAHSXfADARCH";
-    private String appid = "wx0ecc55fde07a32af";
-    private String appsecret = "204968f0b20dd9d7551eea63b797a459";
-    private String sendurl = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=";
+    private final String sendurl = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=";
+
+
+    /**
+     * 故障消息提醒回调路径
+     */
+    private final String faultRecall = "/wx/forward/record";
+    /**
+     * 故障消息上报回调路径
+     */
+    private final String reportRecall =  "/wx/forward/report";
+
+    /**
+     * 故障提醒消息id
+     */
+    private final String faultMsgId = "FiSumxdmorUPGgTh8BHmX7hlkxOOASYN3DFTItJjxc4";
+    /**
+     * 流量预警消息id
+     */
+    private final String warnMsgId = "e1dLYCj_s17-wEbFvNm3lyPLEN8lQRcf5h38XmXftWQ";
+    /**
+     * 故障超时上报消息id
+     */
+    private final String faultReportId = "nOD-gDlv1w8_bZN5V5NreUgFPA-J1OruL3nAyIb1WSE";
+
     private RestTemplate restTemplate = new RestTemplate();
-    @RequestMapping(value = "forward")
+
+    @RequestMapping(value = "forward/record")
     public String forward(){
-        return "Successful Forward";
+        return "故障消息";
     }
-    static class MsgRet{
-        Integer errcode;
-        String errmsg;
-        String msgid;
-
-        public Integer getErrcode() {
-            return errcode;
-        }
-
-        public void setErrcode(Integer errcode) {
-            this.errcode = errcode;
-        }
-
-        public String getErrmsg() {
-            return errmsg;
-        }
-
-        public void setErrmsg(String errmsg) {
-            this.errmsg = errmsg;
-        }
-
-        public String getMsgid() {
-            return msgid;
-        }
-
-        public void setMsgid(String msgid) {
-            this.msgid = msgid;
-        }
-    }
-    static class MsgTemplate{
-        String title;
-        String key1;
-        String value1;
-        String key2;
-        String value2;
-        String end;
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getKey1() {
-            return key1;
-        }
-
-        public void setKey1(String key1) {
-            this.key1 = key1;
-        }
-
-        public String getValue1() {
-            return value1;
-        }
-
-        public void setValue1(String value1) {
-            this.value1 = value1;
-        }
-
-        public String getKey2() {
-            return key2;
-        }
-
-        public void setKey2(String key2) {
-            this.key2 = key2;
-        }
-
-        public String getValue2() {
-            return value2;
-        }
-
-        public void setValue2(String value2) {
-            this.value2 = value2;
-        }
-
-        public String getEnd() {
-            return end;
-        }
-
-        public void setEnd(String end) {
-            this.end = end;
-        }
-    }
-    static class MsgBody{
-        String touser;
-        String template_id;
-        String url;
-        String appid;
-        MsgTemplate data;
-
-        public String getTouser() {
-            return touser;
-        }
-
-        public void setTouser(String touser) {
-            this.touser = touser;
-        }
-
-        public String getTemplate_id() {
-            return template_id;
-        }
-
-        public void setTemplate_id(String template_id) {
-            this.template_id = template_id;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public String getAppid() {
-            return appid;
-        }
-
-        public void setAppid(String appid) {
-            this.appid = appid;
-        }
-
-        public MsgTemplate getData() {
-            return data;
-        }
-
-        public void setData(MsgTemplate data) {
-            this.data = data;
-        }
-    }
-    @RequestMapping(value = "send",method = RequestMethod.POST)
-    public MsgRet sendMsg(@RequestBody MsgBody msgBody) throws URISyntaxException {
-        return restTemplate.postForObject(new URI(sendurl+access_token),msgBody,MsgRet.class);
-
+    @RequestMapping(value = "forward/report")
+    public String forward2(){
+        return "故障上报";
     }
 
-    static class AccessTokenRet{
-        String access_token;
-        Integer expires_in;
 
-        public String getAccess_token() {
-            return access_token;
-        }
+    @RequestMapping(value = "fault/send",method = RequestMethod.POST)
+    public MsgRet faultMsg(@RequestBody Map<String,Object> body) throws Exception{
+        //输入参数
 
-        public void setAccess_token(String access_token) {
-            this.access_token = access_token;
-        }
-
-        public Integer getExpires_in() {
-            return expires_in;
-        }
-
-        public void setExpires_in(Integer expires_in) {
-            this.expires_in = expires_in;
-        }
+        if(!RequestUtil.checkMap(body,
+                new String[]{"touser","phenomenon","address","phone","partName"})) return null;
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("touser",body.get("touser"));
+        jsonMap.put("template_id",faultMsgId);
+        jsonMap.put("url",serverConfig.getDomain() + faultRecall);
+        Map<String,Object> subBody = new HashMap<>();
+        Map<String,Object> pheno = new HashMap<>();
+        pheno.put("value",body.get("phenomenon"));
+        pheno.put("color","#173177");
+        Map<String,Object> address = new HashMap<>();
+        address.put("value",body.get("address"));
+        address.put("color","#173177");
+        Map<String,Object> phone = new HashMap<>();
+        phone.put("value",body.get("phone"));
+        phone.put("color","#173177");
+        Map<String,Object> partName = new HashMap<>();
+        partName.put("value",body.get("partName"));
+        partName.put("color","#173177");
+        subBody.put("phenomenon",pheno);
+        subBody.put("address",address);
+        subBody.put("phone",phone);
+        subBody.put("partName",partName);
+        jsonMap.put("data",subBody);
+        return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }
-    private String accessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
-    @RequestMapping(value = "access_token")
-    public String getAccessToken(){
-        String url = String.format(accessTokenUrl,appid,appsecret);
-        AccessTokenRet ret = restTemplate.getForObject(url,AccessTokenRet.class);
-        if(ret != null)
-            access_token = ret.getAccess_token();
-        return access_token;
+
+    @RequestMapping(value = "threshold/send", method = RequestMethod.POST)
+    public MsgRet thresholdMsg(@RequestBody Map<String,Object> body) throws Exception{
+        if(!RequestUtil.checkMap(body,
+                new String[]{"touser","remainWater","updateTime"})) return null;
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("touser",body.get("touser"));
+        jsonMap.put("template_id",warnMsgId);
+        Map<String,Object> subBody = new HashMap<>();
+        Map<String,Object> remainWater = new HashMap<>();
+        remainWater.put("color","#173177");
+        remainWater.put("value",body.get("remainWater"));
+        Map<String,Object> updateTime = new HashMap<>();
+        updateTime.put("color","#173177");
+        updateTime.put("value",body.get(updateTime));
+        subBody.put("remainWater",remainWater);
+        subBody.put("updateTime",updateTime);
+        jsonMap.put("data",subBody);
+        return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
+    }
+    @RequestMapping(value = "report/send",method = RequestMethod.POST)
+    public MsgRet reportMsg(@RequestBody Map<String,Object> body) throws Exception{
+        if(!RequestUtil.checkMap(body,
+                new String[]{"touser","faultTime","address","servicer"})) return null;
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("touser",body.get("touser"));
+        jsonMap.put("template_id",faultReportId);
+        jsonMap.put("url",serverConfig.getDomain() + reportRecall);
+        Map<String,Object> subBody = new HashMap<>();
+        Map<String,Object> faultTime = new HashMap<>();
+        faultTime.put("value",body.get("faultTime"));
+        faultTime.put("color","#173177");
+        Map<String,Object> address = new HashMap<>();
+        address.put("value",body.get("address"));
+        address.put("color","#173177");
+        Map<String,Object> servicer = new HashMap<>();
+        servicer.put("value",body.get("servicer"));
+        servicer.put("color","#173177");
+        subBody.put("faultTime",faultTime);
+        subBody.put("address",address);
+        subBody.put("servicer",servicer);
+        jsonMap.put("data",subBody);
+        return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }
 
 }
