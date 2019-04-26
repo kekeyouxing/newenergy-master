@@ -16,6 +16,7 @@ public class BatchRecord {
     private LocalDateTime rechargeTime;
     private Integer batchAdmin;
     private Integer amount;
+    private Integer state;
     private String imgUrl;
     private LocalDateTime safeChangedTime;
     private Integer safeChangedUserid;
@@ -60,6 +61,14 @@ public class BatchRecord {
 
     public void setAmount(Integer amount) {
         this.amount = amount;
+    }
+
+    public Integer getState() {
+        return state;
+    }
+
+    public void setState(Integer state) {
+        this.state = state;
     }
 
     public String getImgUrl() {

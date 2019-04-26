@@ -20,7 +20,7 @@ public class ManualRecordService {
     }
 
 //    保存批量充值记录
-    public void add(Integer operatorId,Integer ip,Integer event,Integer recordId){
+    public void add(Integer operatorId, String ip, Integer event, Integer recordId){
         ManualRecord manualRecord = new ManualRecord();
         manualRecord.setLaborId(operatorId);
         manualRecord.setEvent(event);

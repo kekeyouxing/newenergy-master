@@ -6,6 +6,9 @@ import newenergy.db.repository.RechargeRecordRepository;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -71,11 +74,11 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAll(findAllByConditions(null,null,registerId,null));
+        return repository.findAll(findAllByConditions(null,null,registerId,null,null));
     }
 
     /**
-     * 根据id查询批量单挑充值记录
+     * 根据id查询批量单条充值记录
      * @param id
      * @return
      */
@@ -108,15 +111,30 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     }
 
     /**
-     * 根据批量充值id，审核状态，注册id，状态查询批量充值记录
+     * 根据批量充值id，审核状态，注册id，状态查询批量充值记录,分页
      * @param batchRecordId
      * @param reviewState
      * @param registerId
      * @param state
      * @return
      */
-    public List<RechargeRecord> findByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state){
-        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state));
+    public Page<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum, Integer page, Integer size){
+        Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
+        Pageable pageable = PageRequest.of(page, size,sort);
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),pageable);
+    }
+
+    /**
+     * 根据批量充值id，审核状态，注册id，状态查询批量充值记录,分页
+     * @param batchRecordId
+     * @param reviewState
+     * @param registerId
+     * @param state
+     * @return
+     */
+    public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum){
+        Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),sort);
     }
 
     /**
@@ -150,14 +168,14 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     }
 
     /**
-     * 根据批量虫子id，审核状态，注册id，订单状态查询充值订单
+     * 根据批量充值id，审核状态，注册id，订单状态查询充值订单
      * @param batchRecordId
      * @param reviewState
      * @param registerId
      * @param state
      * @return
      */
-    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state){
+    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum){
         Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
             @Override
             public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -174,6 +192,10 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
                 if (!StringUtils.isEmpty(state)){
                     predicates.add(criteriaBuilder.equal(root.get("state"),state));
                 }
+                if (!StringUtils.isEmpty(plotNum)){
+                    predicates.add(criteriaBuilder.equal(root.get("plotNum"),plotNum));
+                }
+                predicates.add(criteriaBuilder.equal(root.get("delegate"),1));
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
