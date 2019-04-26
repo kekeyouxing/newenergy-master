@@ -59,6 +59,12 @@ public class CorrAddressService extends LogicOperation<CorrAddress> {
         return address_nums;
     }
 
+    public String findAddressDtlByAddressNum(String addressNum){
+        return corrAddressRepository
+                .findFirstByAddressNumAndSafeDelete(addressNum,0)
+                .getAddressDtl();
+    }
+
     //添加纪录
     public CorrAddress addCorrAddress(CorrAddress corrAddress, Integer userid) {
         return addRecord(corrAddress, userid, corrAddressRepository);

@@ -114,6 +114,14 @@ public class ResidentService extends LogicOperation<Resident> {
         return residentRepository.findAll(specification, pageable);
     }
 
+    public Integer findByPlotNumAndRegisterIdSize(String plotNum,String registerId){
+        Resident resident = new Resident();
+        resident.setPlotNum(plotNum);
+        resident.setRegisterId(registerId);
+        Specification specification = findSearch(resident);
+        return residentRepository.findAll(specification).size();
+    }
+
     /**
      * 修改居民用户表记录
      * @param resident

@@ -17,5 +17,7 @@ public interface RefundRecordRepository extends JpaRepository<RefundRecord,Integ
 
     List<RefundRecord> findAll(Specification<RefundRecord> specification);
 
+    List<RefundRecord> findAllByRecordIdAndSafeDelete(Integer recordRecord, Integer safeDelete);
+
 
 }

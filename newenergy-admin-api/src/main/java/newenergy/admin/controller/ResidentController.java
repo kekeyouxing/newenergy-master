@@ -130,5 +130,115 @@ public class ResidentController {
 
     }
 
+    @PostMapping("/findResidentInfo")
+    public Object findResidentInfo(@RequestBody PostInfo postInfo){
+        List<Resident> residents = residentService.findByPlotNumAndRegisterId(postInfo.getPlotNum(),
+                postInfo.getRegisterId(),
+                postInfo.getPage()-1,
+                postInfo.getLimit()).getContent();
+        List<ResultInfo> resultInfos = new ArrayList<>();
+        for (Resident resident:
+             residents) {
+            ResultInfo resultInfo = new ResultInfo();
+            resultInfo.setRegisterId(resident.getRegisterId());
+            resultInfo.setUsername(resident.getUserName());
+            resultInfo.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
+            resultInfo.setRoomNum(resident.getRoomNum());
+            resultInfos.add(resultInfo);
+        }
+
+        Map<String,Object> result = new HashMap<>();
+        result.put("total",residentService.findByPlotNumAndRegisterIdSize(postInfo.getPlotNum(),postInfo.getRegisterId()));
+        result.put("list",resultInfos);
+        return result;
+
+    }
+
+    public static class PostInfo{
+        private Integer operatorId;
+        private String plotNum;
+        private String registerId;
+        private Integer page;
+        private Integer limit;
+
+        public Integer getOperatorId() {
+            return operatorId;
+        }
+
+        public void setOperatorId(Integer operatorId) {
+            this.operatorId = operatorId;
+        }
+
+        public String getPlotNum() {
+            return plotNum;
+        }
+
+        public void setPlotNum(String plotNum) {
+            this.plotNum = plotNum;
+        }
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+    }
+
+    private static class ResultInfo{
+        private String registerId;
+        private String username;
+        private String addressDtl;
+        private String roomNum;
+
+        public String getRegisterId() {
+            return registerId;
+        }
+
+        public void setRegisterId(String registerId) {
+            this.registerId = registerId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getAddressDtl() {
+            return addressDtl;
+        }
+
+        public void setAddressDtl(String addressDtl) {
+            this.addressDtl = addressDtl;
+        }
+
+        public String getRoomNum() {
+            return roomNum;
+        }
+
+        public void setRoomNum(String roomNum) {
+            this.roomNum = roomNum;
+        }
+    }
 
 }
