@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -240,8 +241,8 @@ public class FaultRecordController {
         userinfo.put("phone",resident.getPhone());
 
         userinfo.put("typeDtl",corrType.getTypeDtl());
-        userinfo.put("receiveTime",TimeUtil.getSeconds(resident.getReceiveTime()));
-        LocalDateTime guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty);
+        userinfo.put("receiveTime",TimeUtil.getSeconds(resident.getReceiveTime().atTime(0,0,0)));
+        LocalDateTime guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty).atTime(0,0,0);
         userinfo.put("guaranteeTime",TimeUtil.getSeconds(guaranteeTime));
         Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime)?1:0;
         //isWarranty：1保内，0保外
