@@ -17,5 +17,5 @@ public interface NewenergyAdminRepository extends JpaRepository<NewenergyAdmin, 
      */
     List<NewenergyAdmin> findAllByRealNameAndSafeDelete(String realName,Integer safeDelete);
     NewenergyAdmin findFirstByIdAndSafeDelete(Integer id, Integer safeDelete);
-
+    NewenergyAdmin findFirstByOpenidAndSafeDelete(String openid, Integer safeDelete);
 }

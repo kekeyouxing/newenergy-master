@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.CorrAddress;
 import newenergy.db.domain.FaultRecord;
@@ -239,9 +240,9 @@ public class StatServicerController {
             tmp.put("addressDtl",addressDtl);
             tmp.put("registerId",record.getRegisterId());
             tmp.put("phenomenon",record.getPhenomenon());
-            tmp.put("faultTime",record.getFaultTime());
-            tmp.put("responseTime",record.getResponseTime());
-            tmp.put("finishTime",record.getFinishTime());
+            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
+            tmp.put("responseTime",TimeUtil.getSeconds(record.getResponseTime()));
+            tmp.put("finishTime",TimeUtil.getSeconds(record.getFinishTime()));
             tmp.put("solution",record.getSolution());
             tmp.put("state",record.getResult());
             list.add(tmp);

@@ -5,3 +5,12 @@ quwen:
     mch-id: 111111
     mch-key: xxxxxx
     notify-url: http://www.example.com/wx/order/pay-notify
+corey:
+  ## by Zeng Hui，测试号的appid和appsecret和微信号
+  wx:
+    app-id: wx0ecc55fde07a32af
+    app-secret: 204968f0b20dd9d7551eea63b797a459
+    username: gh_5aebddaa55cc
+  ##临时域名
+  domain: http://dkh5p9.natappfree.cc
+

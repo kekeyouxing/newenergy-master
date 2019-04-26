@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.predicate.ApplyFactorPredicate;
@@ -185,7 +186,7 @@ public class PlotFactorController {
             item.put("originFactor",e.getOriginFactor());
             item.put("updateFactor",e.getUpdateFactor());
             item.put("monitorName",plotFactorService.getAdminName(e.getLaborId()));
-            item.put("time",e.getApplyTime());
+            item.put("time", TimeUtil.getSeconds(e.getApplyTime()));
             item.put("state",e.getState());
             list.add(item);
         });
