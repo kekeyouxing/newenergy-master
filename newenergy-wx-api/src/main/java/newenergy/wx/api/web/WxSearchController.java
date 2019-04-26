@@ -120,9 +120,4 @@ public class WxSearchController {
         data.put("remainVolume", remainWater.getRemainVolume());
         return ResponseUtil.ok(data);
     }
-
-    public static void main(String[] args){
-        WxSearchService wxSearchService = new WxSearchService();
-        wxSearchService.remainWaterInfo("12345678912345");
-    }
 }

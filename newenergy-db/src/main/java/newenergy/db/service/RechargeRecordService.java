@@ -103,9 +103,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return 符合条件的RechargeRecord列表
      */
     public List<RechargeRecord> findByRegisterIdAndTime(String registerId, LocalDateTime startDateTime, LocalDateTime endDateTime){
-        System.out.println("in find by registerid and time function");
         Sort sort = new Sort(Sort.Direction.DESC, "rechargeTime");
-        System.out.println("go to specification");
         return repository.findAll(registerId_timeInterval_spec(registerId, startDateTime, endDateTime), sort);
     }
 
@@ -139,7 +137,6 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
                 }
                 if(!StringUtils.isEmpty(startDateTime)) {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("rechargeTime"), startDateTime));
-
                 }
                 if(!StringUtils.isEmpty(endDateTime)) {
                     predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("rechargeTime"), endDateTime));
@@ -181,12 +178,5 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
             }
         };
         return  specification;
-    }
-
-    public static void main(String[] args){
-        RechargeRecordService rechargeRecordService = new RechargeRecordService();
-        LocalDateTime startDateTime = LocalDateTime.of(2019, 4, 1, 0, 0, 0);
-        LocalDateTime endDateTime = LocalDateTime.of(2019, 4, 30, 23, 59, 59);
-        //List<RechargeRecord> rechargeRecords = rechargeRecordService.findByRegisterIdAndTime("12345678912345", startDateTime, endDateTime);
     }
 }

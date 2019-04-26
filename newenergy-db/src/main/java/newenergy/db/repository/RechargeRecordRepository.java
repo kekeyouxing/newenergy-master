@@ -18,4 +18,5 @@ public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,I
 
     List<RechargeRecord> findAll(Specification<RechargeRecord> specification);
 
+    List<RechargeRecord> findAll(Specification<RechargeRecord> specification, Sort sort);
 }

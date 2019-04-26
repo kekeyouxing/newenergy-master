@@ -73,13 +73,6 @@ public class WxSearchService {
         LocalDate endDate = LocalDate.of(year, endMonth, 1);
         Integer lastDayOfEndMonth = endDate.with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
         LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, lastDayOfEndMonth, 23, 59, 59);
-        System.out.println(startDateTime);
-        System.out.println(endDateTime);
         return rechargeRecordService.findByRegisterIdAndTime(registerId, startDateTime, endDateTime);
-    }
-
-    public static void main(String[] args){
-        WxSearchService wxSearchService = new WxSearchService();
-        wxSearchService.rechargeRecordInfo("12345678912345", 2019, 4,4);
     }
 }
