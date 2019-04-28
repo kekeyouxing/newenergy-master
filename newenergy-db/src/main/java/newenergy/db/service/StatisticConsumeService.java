@@ -12,10 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,7 +34,7 @@ public class StatisticConsumeService {
      * @return   每个月统计一次，只有一条记录
      */
     public StatisticConsume findByRegisterIdAndUpdateTime(String registerId, LocalDate currentTime) {
-        Specification<StatisticConsume> specification = querySelection(registerId, currentTime,null, null, null);
+        Specification<StatisticConsume> specification = querySelection(registerId, currentTime,null);
         List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification);
         if(consumes.size()==1) {
             return consumes.get(0);
@@ -53,9 +50,9 @@ public class StatisticConsumeService {
      * @param plotNum  不为空时，按照小区查找
      * @return
      */
-    public Page<StatisticConsume> getCurConsume(Integer page, Integer limit,LocalDate curTime, String plotNum, BigDecimal start, BigDecimal end) {
+    public Page<StatisticConsume> getCurConsume(Integer page, Integer limit,LocalDate curTime, String plotNum) {
         Pageable pageable = PageRequest.of(page, limit);
-        Specification<StatisticConsume> specification = querySelection(null, curTime, plotNum,start, end);
+        Specification<StatisticConsume> specification = querySelection(null, curTime, plotNum);
         return statisticConsumeRepository.findAll(specification, pageable);
     }
 
@@ -75,7 +72,7 @@ public class StatisticConsumeService {
      * @Param plotNum 小区编号
      * @return
      */
-    public Specification<StatisticConsume> querySelection(String registerId, LocalDate curTime, String plotNum, BigDecimal start, BigDecimal end) {
+    public Specification<StatisticConsume> querySelection(String registerId, LocalDate curTime, String plotNum) {
         Specification<StatisticConsume> specification = new Specification<StatisticConsume>() {
             @Override
             public Predicate toPredicate(Root<StatisticConsume> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -85,20 +82,23 @@ public class StatisticConsumeService {
                 }
                 if(!StringUtils.isEmpty(plotNum)) {
                     List<Resident> residents = residentService.findByPlotNum(plotNum);
+                    Path<Object> path = root.get("registerId");
+                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
                     for(Resident resident: residents) {
-                        predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
+                        in.value(resident.getRegisterId());
                     }
+                    predicates.add(criteriaBuilder.and(in));
                 }
                 if(!StringUtils.isEmpty(curTime)) {
                     predicates.add(criteriaBuilder.like(root.get("updateTime").as(String.class), curTime+"%"));
                 }
 
-                if(!StringUtils.isEmpty(start)) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("curUsed"), start));
-                }
-                if(!StringUtils.isEmpty(end)) {
-                    predicates.add(criteriaBuilder.lessThan(root.get("curUsed"), end));
-                }
+//                if(!StringUtils.isEmpty(start)) {
+//                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("curUsed"), start));
+//                }
+//                if(!StringUtils.isEmpty(end)) {
+//                    predicates.add(criteriaBuilder.lessThan(root.get("curUsed"), end));
+//                }
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };

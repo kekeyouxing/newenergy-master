@@ -7,6 +7,7 @@ import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +42,13 @@ public class ResidentController {
                        String address,
                        @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit){
-        List<String> addressNums = corrAddressService.queryAddress(address);
+        List<String> addressNums = new ArrayList<>();
+        if(!StringUtils.isEmpty(address)){
+            addressNums = corrAddressService.queryAddress(address);
+        }
         Page<Resident> pageResident = residentService.querySelective(userName, addressNums, page-1, limit);
         List<Resident> residentList = pageResident.getContent();
-        int total = pageResident.getNumberOfElements();
+        Long total = pageResident.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total",total);
         data.put("resident", residentList);
@@ -63,7 +67,7 @@ public class ResidentController {
      */
     @PostMapping("/create")
     public Object create(@RequestBody Resident resident,
-                         @RequestParam Integer userid) {
+                         Integer userid) {
         List<Resident> residents_device = residentService.queryDevice(resident.getAddressNum(), resident.getRoomNum());
         List<String> deviceSeqs = new ArrayList<>();
         for (Resident resident1:residents_device) {
@@ -94,7 +98,7 @@ public class ResidentController {
      */
     @PostMapping("/update")
     public Object update(@RequestBody Resident resident,
-                         @RequestParam Integer userid) {
+                         Integer userid) {
         residentService.updateResident(resident, userid);
         return ResponseUtil.ok();
     }
@@ -106,7 +110,7 @@ public class ResidentController {
      * @return
      */
     @PostMapping("/delete")
-    public Object delete(@RequestBody Resident resident, @RequestParam Integer userid) {
+    public Object delete(@RequestBody Resident resident, Integer userid) {
         Integer id = resident.getId();
         if(id==null) {
             return ResponseUtil.badArgument();
@@ -117,14 +121,14 @@ public class ResidentController {
 
     /**
      * 批量删除
-     * @param ids
      * @param userid
      * @return
      */
     @PostMapping("/batchDelete")
-    public Object batchDelete(@RequestParam Integer[] ids, @RequestParam Integer userid){
-        for(int i=0; i<ids.length; i++) {
-            residentService.deleteResident(ids[i], userid);
+    public Object batchDelete(@RequestBody Map<String, Object> params, Integer userid){
+        List<Integer> ids = (ArrayList)params.get("ids");
+        for(int i=0; i<ids.size(); i++) {
+            residentService.deleteResident(ids.get(i), userid);
         }
         return ResponseUtil.ok();
 

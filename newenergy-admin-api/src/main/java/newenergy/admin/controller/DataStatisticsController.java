@@ -6,13 +6,11 @@ import newenergy.db.domain.Resident;
 import newenergy.db.domain.StatisticConsume;
 import newenergy.db.domain.StatisticPlotRecharge;
 import newenergy.db.service.*;
+import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -42,28 +40,37 @@ public class DataStatisticsController {
     @Autowired
     CorrPlotService corrPlotService;
 
+    @Autowired
+    CorrTypeService corrTypeService;
+
+    @Autowired
+    CorrAddressService corrAddressService;
+
     /**
      * 获取消费统计表数据
-     * @param plotNum  小区编号
-     * @param interval   间隔区间
-     * @param year   年
-     * @param month  月
+
      * @return
      */
-    @GetMapping("/getConsumeData")
-    public Object getConsumeData(@RequestParam String plotNum,
-                          @RequestParam BigDecimal[] interval,
-                          @RequestParam Integer year,
-                          @RequestParam Integer month) {
-        if(plotNum==null||year==null||month==null||interval.length==0) {
+    @PostMapping("/getConsumeData")
+    public Object getConsumeData(
+                                 @RequestBody Map<String, Object> params) {
+        String plotNum = (String) params.get("plotNum");
+        Integer year = (Integer) params.get("year");
+        Integer month = (Integer) params.get("month");
+        List<Integer> intervalList = (ArrayList)params.get("interval");
+        List<BigDecimal> interval = new ArrayList<>();
+        for(int i=0; i<intervalList.size(); i++){
+            interval.add(new BigDecimal(intervalList.get(i)));
+        }
+        if(plotNum==null||year==null||month==null||interval.size()==0) {
             return ResponseUtil.badArgument();
         }
         List<Resident> residents = residentService.findByPlotNum(plotNum);
-        Integer[] households = new Integer[interval.length+1];
+        Integer[] households = new Integer[interval.size()+1];
         for(int j=0; j<households.length; j++) {
             households[j]=0;
         }
-        String[] proportion = new String[interval.length+1];
+        String[] proportion = new String[interval.size()+1];
         LocalDate curTime = LocalDate.of(year, month, 1).plusMonths(1);
         for(Resident resident: residents) {
             StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
@@ -71,16 +78,16 @@ public class DataStatisticsController {
                 continue;
             }
             BigDecimal curUsed = statisticConsume.getCurUsed();
-            if(curUsed.compareTo(interval[0])==-1) {
+            if(curUsed.compareTo(interval.get(0))==-1) {
                 households[0]+=1;
             }
-            if((curUsed.compareTo(interval[interval.length-1])==1)
-                    ||(curUsed.compareTo(interval[interval.length-1])==0)) {
-                households[interval.length] += 1;
+            if((curUsed.compareTo(interval.get(interval.size()-1))==1)
+                    ||(curUsed.compareTo(interval.get(interval.size()-1))==0)) {
+                households[interval.size()] += 1;
             }
-            for(int i=1; i<interval.length; i++) {
-                if(((curUsed.compareTo(interval[i-1])==1)||(curUsed.compareTo(interval[i-1])==0))
-                        &&(curUsed.compareTo(interval[i])==-1)) {
+            for(int i=1; i<interval.size(); i++) {
+                if(((curUsed.compareTo(interval.get(i-1))==1)||(curUsed.compareTo(interval.get(i-1))==0))
+                        &&(curUsed.compareTo(interval.get(i))==-1)) {
                     households[i]+=1;
                 }
             }
@@ -104,18 +111,15 @@ public class DataStatisticsController {
 
     /**
      * 获取小区充值及消费月报表
-     * @param year
-     * @param month
-     * @param page
-     * @param limit
      * @return
      */
-    @GetMapping("/getPlotData")
-    public Object getPlotData(@RequestParam Integer year,
-                              @RequestParam Integer month,
-                              @RequestParam(defaultValue = "1") Integer page,
-                              @RequestParam(defaultValue = "10") Integer limit,
-                              String plotNum) {
+    @PostMapping("/getPlotData")
+    public Object getPlotData(@RequestBody Map<String, Object> params) {
+        Integer year = (Integer)params.get("year");
+        Integer month = (Integer)params.get("month");
+        Integer page = (Integer)params.get("page");
+        Integer limit = (Integer)params.get("limit");
+        String plotNum = (String)params.get("plotNum");
         if(year==null||month==null) {
             return ResponseUtil.badArgument();
         }
@@ -140,22 +144,36 @@ public class DataStatisticsController {
 
     /**
      * 获取小区居民信息
-     * @param plotNum   小区编号
-     * @param registerId    登记号
-     * @param page
-     * @param limit
      * @return
      */
-    @GetMapping("/getResidentByPlot")
-    public Object getResidentByPlot(String plotNum,
-                                    String registerId,
-                                    @RequestParam(defaultValue = "1") Integer page,
-                                    @RequestParam(defaultValue = "10") Integer limit) {
-        Page<Resident> residentPage = residentService.findByPlotNumAndRegisterId(plotNum, registerId, page-1, limit);
+    @PostMapping("/getResidentByPlot")
+    public Object getResidentByPlot(@RequestBody Map<String, Object> params) {
+        BigDecimal start = new BigDecimal(0);
+        BigDecimal end = new BigDecimal(0);
+        if(params.get("start")!=null){
+            start = new BigDecimal((Integer) params.get("start"));
+        }
+        if(params.get("end")!=null){
+            end = new BigDecimal((Integer) params.get("end"));
+        }
+        String plotNum = (String)params.get("plotNum");
+        String registerId = (String)params.get("registerId");
+        Integer page =(Integer)params.get("page");
+        Integer limit = (Integer)params.get("limit");
+        Page<Resident> residentPage = residentService.findByPlotNumAndRegisterId(plotNum, registerId, page-1, limit, start, end);
         List<Resident> residents = residentPage.getContent();
         Map<String, Object> data = new HashMap<>();
         data.put("total", residentPage.getTotalElements());
-        data.put("resident", residents);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for(Resident resident: residents){
+            Map<String, Object> info = new HashMap<>();
+            info.put("registerId",resident.getRegisterId());
+            info.put("userName", resident.getUserName());
+            info.put("phone", resident.getPhone());
+            info.put("plotDtl", corrPlotService.findByPlotNum(residentService.findPlotNumByRegisterid(resident.getRegisterId(),0)));
+            list.add(info);
+        }
+        data.put("resident", list);
         return ResponseUtil.ok(data);
     }
 
@@ -170,7 +188,20 @@ public class DataStatisticsController {
         Resident resident = residentService.fingByRegisterId(registerId);
         List<RechargeRecord> rechargeRecords = rechargeRecordService.findByRegisterId(registerId);
         Map<String, Object> data = new HashMap<>();
-        data.put("resident", resident);
+        Map<String, Object> firstLine = new HashMap<>();
+        firstLine.put("registerId", resident.getRegisterId());
+        firstLine.put("userName", resident.getUserName());
+        firstLine.put("phone", resident.getPhone());
+        firstLine.put("typeDtl", corrTypeService.findByTypeNum(resident.getTypeNum()).getTypeDtl());
+        firstLine.put("ratedFlow", corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow());
+        firstLine.put("plotNum", corrPlotService.findByPlotNum(resident.getPlotNum()));
+        Map<String, Object> secondLine = new HashMap<>();
+        secondLine.put("deviceNum", resident.getDeviceNum());
+        secondLine.put("addressDtl", corrAddressService.findByPlotNum(resident.getAddressNum()).get(0).getAddressDtl());
+        secondLine.put("roomNum", resident.getRoomNum());
+        secondLine.put("plotFactor", corrPlotService.findPlotFacByPlotNum(resident.getPlotNum()));
+        data.put("firstLine", firstLine);
+        data.put("secondLine", secondLine);
         data.put("rechargeRecords", rechargeRecords);
         return ResponseUtil.ok(data);
     }
@@ -178,27 +209,35 @@ public class DataStatisticsController {
 
     /**
      * 获取用户消费明细月报表
-     * @param year
-     * @param month
-     * @param plotNum   按小区查询
-     * @param page
-     * @param limit
      * @return
      */
-    @GetMapping("/getConsumeDetail")
-    public Object getConsumeDetail(BigDecimal start,
-                                   BigDecimal end,
-                                   @RequestParam Integer year,
-                                @RequestParam Integer month,
-                                @RequestParam String plotNum,
-                                @RequestParam(defaultValue = "1") Integer page,
-                                @RequestParam(defaultValue = "10") Integer limit) {
+    @PostMapping("/getConsumeDetail")
+    public Object getConsumeDetail(@RequestBody Map<String, Object> params) {
+        Integer year = (Integer) params.get("year");
+        Integer month = (Integer)params.get("month");
+        String plotNum = (String) params.get("plotNum");
+        Integer page = (Integer)params.get("page");
+        Integer limit = (Integer)params.get("limit");
+        if(year==null||month==null) {
+            return ResponseUtil.badArgument();
+        }
         LocalDate curTime = LocalDate.of(year, month, 1).plusMonths(1);
-        Page<StatisticConsume> pageConsume = statisticConsumeService.getCurConsume(page-1, limit, curTime, plotNum, start, end);
+        Page<StatisticConsume> pageConsume = statisticConsumeService.getCurConsume(page-1, limit, curTime, plotNum);
         List<StatisticConsume> listConsume = pageConsume.getContent();
         Map<String, Object> data = new HashMap<>();
         data.put("total", pageConsume.getTotalElements());
-        data.put("consumeDetail", listConsume);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for(StatisticConsume consume: listConsume){
+            Map<String, Object> info = new HashMap<>();
+            info.put("registerId", consume.getRegisterId());
+            info.put("lastRemain", consume.getLastRemain());
+            info.put("curRecharge", consume.getCurRecharge());
+            info.put("curRemain", consume.getCurRemain());
+            info.put("curUsed", consume.getCurUsed());
+            info.put("plotDtl", corrPlotService.findByPlotNum(residentService.findPlotNumByRegisterid(consume.getRegisterId(),0)));
+            list.add(info);
+        }
+        data.put("consumeDetail", list);
         return ResponseUtil.ok(data);
     }
 

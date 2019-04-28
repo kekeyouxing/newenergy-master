@@ -42,7 +42,7 @@ public class CorrAddressController {
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrAddress> pageAddress = corrAddressService.querySelective(addressDtl, page-1, limit);
         List<CorrAddress> corrAddresses = pageAddress.getContent();
-        int total = pageAddress.getNumberOfElements();
+        Long total = pageAddress.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrAddress", corrAddresses);
@@ -112,7 +112,7 @@ public class CorrAddressController {
      * @return
      */
     @PostMapping("/create")
-    public Object create(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+    public Object create(@RequestBody CorrAddress corrAddress, Integer userid) {
         String plotNum = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
         String adressNum = getNumCode.getAddressNum(plotNum, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
         corrAddress.setAddressNum(adressNum);
@@ -128,7 +128,7 @@ public class CorrAddressController {
      * @return
      */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrAddress corrAddress, Integer userid) {
         corrAddress.initAddressDtl();
         corrAddressService.updateCorrAddress(corrAddress, userid);
         return ResponseUtil.ok();
@@ -141,7 +141,7 @@ public class CorrAddressController {
      * @return
      */
     @PostMapping("/delete")
-    public Object delete(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+    public Object delete(@RequestBody CorrAddress corrAddress, Integer userid) {
         Integer id = corrAddress.getId();
         if(id==null) {
             return ResponseUtil.badArgument();

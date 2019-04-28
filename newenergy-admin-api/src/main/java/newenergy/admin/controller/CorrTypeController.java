@@ -36,7 +36,7 @@ public class CorrTypeController {
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrType> pageType = corrTypeService.querySelective(typeDtl, page-1, limit);
         List<CorrType> corrTypes = pageType.getContent();
-        int total = pageType.getNumberOfElements();
+        Long total = pageType.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrType", corrTypes);
@@ -68,7 +68,7 @@ public class CorrTypeController {
      * @return
      */
     @PostMapping("create")
-    public Object create(@RequestBody CorrType corrType, @RequestParam Integer userid) {
+    public Object create(@RequestBody CorrType corrType,Integer userid) {
         List<CorrType> corrTypes = corrTypeService.findAll();
         List<String> typeNums = new ArrayList<>();
         for(CorrType corrType1: corrTypes) {
@@ -96,7 +96,7 @@ public class CorrTypeController {
      * @return
      */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrType corrType, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrType corrType, Integer userid) {
         corrTypeService.updateCorrType(corrType, userid);
         return ResponseUtil.ok();
     }
@@ -108,7 +108,7 @@ public class CorrTypeController {
      * @return
      */
     @PostMapping("/delete")
-    public Object delete(@RequestBody CorrType corrType, @RequestParam Integer userid) {
+    public Object delete(@RequestBody CorrType corrType, Integer userid) {
         Integer id = corrType.getId();
         if(id==null) {
             return ResponseUtil.badArgument();
