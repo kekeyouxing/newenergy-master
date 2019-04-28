@@ -4,7 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import newenergy.core.config.ServerConfig;
 import newenergy.core.util.RequestUtil;
 import newenergy.core.pojo.MsgRet;
+import newenergy.core.util.TimeUtil;
+import newenergy.db.constant.FaultRecordConstant;
+import newenergy.db.constant.ResultConstant;
+import newenergy.db.domain.CorrAddress;
+import newenergy.db.domain.FaultRecord;
+import newenergy.db.domain.NewenergyAdmin;
+import newenergy.db.domain.Resident;
+import newenergy.db.util.StringUtilCorey;
 import newenergy.wx.api.service.MsgService;
+import newenergy.wx.product.manager.UserTokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -74,11 +83,14 @@ public class MsgController {
         //输入参数
 
         if(!RequestUtil.checkMap(body,
-                new String[]{"touser","phenomenon","address","phone","partName"})) return null;
+                new String[]{"touser","phenomenon","address","phone","partName","faultId"})) return null;
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",faultMsgId);
-        jsonMap.put("url",serverConfig.getDomain() + faultRecall);
+        String param = String.format("?faultId=%d&token=%s",
+                body.get("faultId"),
+                UserTokenManager.generateToken((String)body.get("touser")) );
+        jsonMap.put("url",serverConfig.getDomain() + faultRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> pheno = new HashMap<>();
         pheno.put("value",body.get("phenomenon"));
@@ -122,11 +134,14 @@ public class MsgController {
     @RequestMapping(value = "report/send",method = RequestMethod.POST)
     public MsgRet reportMsg(@RequestBody Map<String,Object> body) throws Exception{
         if(!RequestUtil.checkMap(body,
-                new String[]{"touser","faultTime","address","servicer"})) return null;
+                new String[]{"touser","faultTime","address","servicer","faultId"})) return null;
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",faultReportId);
-        jsonMap.put("url",serverConfig.getDomain() + reportRecall);
+        String param = String.format("?faultId=%d&token=%s",
+                body.get("faultId"),
+                UserTokenManager.generateToken((String)body.get("touser")) );
+        jsonMap.put("url",serverConfig.getDomain() + reportRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> faultTime = new HashMap<>();
         faultTime.put("value",body.get("faultTime"));
@@ -143,5 +158,101 @@ public class MsgController {
         jsonMap.put("data",subBody);
         return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }
-
+    @RequestMapping(value = "fault/dtl",method = RequestMethod.POST)
+    public Map<String,Object> faultDtl(@RequestBody Map<String,Object> body){
+        Map<String,Object> ret = new HashMap<>();
+        if(!RequestUtil.checkMap(body,new String[]{"faultId","token"})){
+            return null;
+        }
+        String openid = UserTokenManager.getOpenId((String)body.get("token"));
+        if(StringUtilCorey.emptyCheck(openid)) return ret;
+        Integer faultId = (Integer)body.get("faultId");
+        FaultRecord record = msgService.getFaultRecords(faultId);
+        if(record == null) return null;
+        Resident resident = msgService.getResident(record.getRegisterId());
+        if(resident == null) return null;
+        CorrAddress corrAddress = msgService.getCorrAddress(resident.getAddressNum());
+        String addressDtl = corrAddress==null?null:corrAddress.getAddressDtl();
+        NewenergyAdmin admin = msgService.getNewenergyAdmin(record.getServicerId());
+        ret.put("registerId",record.getRegisterId());
+        ret.put("phenomenon",record.getPhenomenon());
+        ret.put("username",resident.getUserName());
+        ret.put("roomNum",resident.getRoomNum());
+        ret.put("phone",resident.getPhone());
+        ret.put("addressDtl",addressDtl);
+        //不是故障维修人员，不在等待中
+        if(!FaultRecordConstant.STATE_WAIT.equals(record.getState())){
+            if(FaultRecordConstant.RESULT_TIMEOUT.equals(record.getResult()))
+                ret.put("state",0);
+            if(FaultRecordConstant.RESULT_FAILED.equals(record.getResult()))
+                ret.put("state",1);
+            ret.put("servicerName",admin.getRealName());
+            ret.put("servicerPhone",admin.getPhone());
+        }
+        return ret;
+    }
+    @RequestMapping(value = "fault/ensure",method = RequestMethod.POST)
+    public Map<String,Object> faultEnsure(@RequestBody Map<String,Object> body){
+        Map<String,Object> ret = new HashMap<>();
+        if(!RequestUtil.checkMap(body,new String[]{"token","faultId"})){
+            ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        String openid = UserTokenManager.getOpenId((String)body.get("token"));
+        if(StringUtilCorey.emptyCheck(openid)){
+            ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        Integer faultId = (Integer)body.get("faultId");
+        FaultRecord record = msgService.getFaultRecords(faultId);
+        if(record == null){
+            ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        record.setState(FaultRecordConstant.STATE_DURING);
+        record.setResponseTime(TimeUtil.getUTCNow());
+        FaultRecord result = msgService.updateRecord(record);
+        if(result == null){
+            ret.put("code",ResultConstant.ERR);
+        }else{
+            ret.put("code",ResultConstant.OK);
+        }
+        return ret;
+    }
+    @RequestMapping(value = "fault/feedback", method = RequestMethod.POST)
+    public Map<String,Object> faultFeedback(@RequestBody Map<String,Object> body){
+        Map<String,Object> ret = new HashMap<>();
+        if(!RequestUtil.checkMap(body,new String[]{"token","faultId","feedback","finish"})){
+            ret.put("code",ResultConstant.ERR);
+            return ret;
+        }
+        String openid = UserTokenManager.getOpenId((String)body.get("token"));
+        if(StringUtilCorey.emptyCheck(openid)){
+            ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        Integer faultId = (Integer)body.get("faultId");
+        FaultRecord record = msgService.getFaultRecords(faultId);
+        if(record == null){
+            ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        record.setState(FaultRecordConstant.STATE_FINISH);
+        record.setFinishTime(TimeUtil.getUTCNow());
+        record.setSolution((String)body.get("feedback"));
+        int finish = (int)body.get("finish");
+        if(finish == 0){
+            record.setResult(FaultRecordConstant.RESULT_SUCCESS);
+        }
+        if(finish == 1){
+            record.setResult(FaultRecordConstant.RESULT_FAILED);
+        }
+        FaultRecord result = msgService.updateRecord(record);
+        if(result == null){
+            ret.put("code",ResultConstant.ERR);
+        }else{
+            ret.put("code",ResultConstant.OK);
+        }
+        return ret;
+    }
 }

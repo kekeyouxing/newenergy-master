@@ -3,8 +3,13 @@ package newenergy.wx.api.service;
 import newenergy.core.config.WxTokenSetting;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.SafeConstant;
+import newenergy.db.domain.CorrAddress;
+import newenergy.db.domain.FaultRecord;
 import newenergy.db.domain.NewenergyAdmin;
+import newenergy.db.domain.Resident;
+import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.repository.NewenergyAdminRepository;
+import newenergy.db.service.FaultRecordService;
 import newenergy.wx.template.AccessToken;
 import newenergy.wx.template.AccessTokenCenter;
 import newenergy.wx.template.Ret;
@@ -20,7 +25,8 @@ public class MsgService {
     private WxTokenSetting setting;
     @Autowired
     private NewenergyAdminRepository newenergyAdminRepository;
-
+    @Autowired
+    private FaultRecordService faultRecordService;
     /**
      *
      * @return 可为""串
@@ -49,5 +55,23 @@ public class MsgService {
     }
     public int getBindState(String openid){
         return  isBindAdmin(openid)?1:0;
+    }
+    public FaultRecord getFaultRecords(Integer id){
+        if(id == null) return null;
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        predicate.setId(id);
+        return faultRecordService.findOneByPredicate(predicate,null,null);
+    }
+    public FaultRecord updateRecord(FaultRecord record){
+        return faultRecordService.updateRecord(record);
+    }
+    public Resident getResident(String registerId){
+        return faultRecordService.getResident(registerId);
+    }
+    public CorrAddress getCorrAddress(String addressNum){
+        return faultRecordService.getCorrAddress(addressNum);
+    }
+    public NewenergyAdmin getNewenergyAdmin(Integer id){
+        return faultRecordService.getNewenergyAdmin(id);
     }
 }
