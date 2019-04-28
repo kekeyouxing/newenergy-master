@@ -2,7 +2,9 @@ package newenergy.db.service;
 
 import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.Resident;
+import newenergy.db.domain.StatisticConsume;
 import newenergy.db.repository.ResidentRepository;
+import newenergy.db.repository.StatisticConsumeRepository;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.util.StringUtilCorey;
 import org.apache.tomcat.util.http.ResponseUtil;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +26,9 @@ import java.util.List;
 public class ResidentService extends LogicOperation<Resident> {
     @Autowired
     private ResidentRepository residentRepository;
+
+    @Autowired
+    private StatisticConsumeRepository consumeRepository;
 
     /**
     * @Param
@@ -47,7 +53,7 @@ public class ResidentService extends LogicOperation<Resident> {
         resident.setAddressNum(address_num);
         resident.setRoomNum(room_num);
         Sort sort = new Sort(Sort.Direction.ASC, "deviceSeq");
-        List<Resident> residents = residentRepository.findAll(findSearch(resident), sort);
+        List<Resident> residents = residentRepository.findAll(findSearch(resident, new BigDecimal(0), new BigDecimal(0)), sort);
         return residents;
     }
 
@@ -104,13 +110,13 @@ public class ResidentService extends LogicOperation<Resident> {
      * @param limit
      * @return
      */
-    public Page<Resident> findByPlotNumAndRegisterId(String plotNum, String registerId, Integer page, Integer limit) {
+    public Page<Resident> findByPlotNumAndRegisterId(String plotNum, String registerId, Integer page, Integer limit, BigDecimal start, BigDecimal end) {
         Pageable pageable = PageRequest.of(page, limit);
 
         Resident resident = new Resident();
         resident.setPlotNum(plotNum);
         resident.setRegisterId(registerId);
-        Specification specification = findSearch(resident);
+        Specification specification = findSearch(resident, start, end);
         return residentRepository.findAll(specification, pageable);
     }
 
@@ -165,7 +171,7 @@ public class ResidentService extends LogicOperation<Resident> {
         return specification;
     }
 
-    private Specification<Resident> findSearch(Resident resident) {
+    private Specification<Resident> findSearch(Resident resident, BigDecimal start, BigDecimal end) {
         Specification<Resident> specification = new Specification<Resident>() {
             @Override
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -181,6 +187,28 @@ public class ResidentService extends LogicOperation<Resident> {
                 }
                 if(!StringUtils.isEmpty(resident.getRegisterId())) {
                     predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
+                }
+                if((start.compareTo(new BigDecimal(0))!=0)||(end.compareTo(new BigDecimal(0))!=0)) {
+                    Specification<StatisticConsume> consumeSpecification = new Specification<StatisticConsume>() {
+                        @Override
+                        public Predicate toPredicate(Root<StatisticConsume> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                            List<Predicate> conPredicate = new ArrayList<>();
+                            if(start.compareTo(new BigDecimal(0))!=0){
+                                conPredicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("curUsed"), start));
+                            }
+                            if(end.compareTo(new BigDecimal(0))!=0){
+                                conPredicate.add(criteriaBuilder.lessThan(root.get("curUsed"), end));
+                            }
+                            return criteriaBuilder.and(conPredicate.toArray(new Predicate[conPredicate.size()]));
+                        }
+                    };
+                    List<StatisticConsume> consumes = consumeRepository.findAll(consumeSpecification);
+                    Path<Object> path = root.get("registerId");
+                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                    for(StatisticConsume consume: consumes){
+                        in.value(consume.getRegisterId());
+                    }
+                    predicates.add(criteriaBuilder.and(in));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));

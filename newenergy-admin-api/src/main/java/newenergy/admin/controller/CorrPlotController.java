@@ -51,10 +51,9 @@ public class CorrPlotController {
     public Object list(String plotDtl,
                        @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
-        System.out.println("列表显示");
         Page<CorrPlot> pagePlot = corrPlotService.querySelective(plotDtl, page-1, limit);
         List<CorrPlot> corrPlots = pagePlot.getContent();
-        int total = pagePlot.getNumberOfElements();
+        Long total = pagePlot.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrPlot", corrPlots);
@@ -131,7 +130,7 @@ public class CorrPlotController {
      * @return
      */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrPlot corrPlot, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrPlot corrPlot, Integer userid) {
         corrPlotService.updateCorrPlot(corrPlot, userid);
         List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(corrPlot.getPlotNum());
         for(CorrAddress corrAddress: corrAddresses){
@@ -156,7 +155,7 @@ public class CorrPlotController {
      * @return
      */
     @PostMapping("/delete")
-    public Object delete(@RequestBody CorrPlot corrPlot, @RequestParam Integer userid) {
+    public Object delete(@RequestBody CorrPlot corrPlot, Integer userid) {
         Integer id = corrPlot.getId();
         if(id==null) {
             return ResponseUtil.badArgument();

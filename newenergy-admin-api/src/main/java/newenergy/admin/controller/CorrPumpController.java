@@ -38,7 +38,7 @@ public class CorrPumpController {
                        @RequestParam(defaultValue = "10") Integer limit) {
         Page<CorrPump> pagePump = corrPumpService.querySelective(pumpDtl, page-1, limit);
         List<CorrPump> corrPumps = pagePump.getContent();
-        int total = pagePump.getNumberOfElements();
+        Long total = pagePump.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrPump", corrPumps);
@@ -64,6 +64,24 @@ public class CorrPumpController {
     }
 
     /**
+     * 根据小区返回机房option
+     * @param plotNum
+     * @return
+     */
+    @GetMapping("/pumpOptions")
+    public Object pumpOptions(String plotNum){
+        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(plotNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrPumps.size());
+        for(CorrPump corrPump: corrPumps){
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrPump.getPumpNum().substring(2));
+            option.put("label", corrPump.getPump()+"号机房");
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
+    /**
      * 增加机房信息
      * @param corrPump
      * @param userid
@@ -71,7 +89,7 @@ public class CorrPumpController {
      */
     @PostMapping("/create")
     //改成小区+机房，数据库多加一个字段，编号为4位
-    public Object create(@RequestBody CorrPump corrPump, @RequestParam Integer userid){
+    public Object create(@RequestBody CorrPump corrPump, Integer userid){
         String plotNum = corrPlotService.findPlotNum(corrPump.getPlot());
         String pumpNum = plotNum + getNumCode.getTwoNum(corrPump.getPump());
         corrPump.setPumpNum(pumpNum);
@@ -87,7 +105,8 @@ public class CorrPumpController {
      * @return
      */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrPump corrPump, Integer userid) {
+        corrPump.setPumpDtl(corrPump.getPlot()+corrPump.getPump()+"号机房");
         corrPumpService.updateCorrPump(corrPump, userid);
         return ResponseUtil.ok();
     }
@@ -99,7 +118,7 @@ public class CorrPumpController {
      * @return
      */
     @PostMapping("/delete")
-    public Object delete(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+    public Object delete(@RequestBody CorrPump corrPump, Integer userid) {
         Integer id = corrPump.getId();
         if(id==null) {
             return ResponseUtil.badArgument();

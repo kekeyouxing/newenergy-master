@@ -35,6 +35,15 @@ public class CorrTypeService extends LogicOperation<CorrType> {
         return corrTypeRepository.findAll(specification, pageable);
     }
 
+    /**
+     * 根据机型编号查找
+     * @param typeNum
+     * @return
+     */
+    public CorrType findByTypeNum(String typeNum){
+        return corrTypeRepository.findFirstByTypeNumAndSafeDelete(typeNum,0);
+    }
+
     //新增纪录
     public CorrType addCorrType(CorrType corrType, Integer userid) {
         return addRecord(corrType, userid, corrTypeRepository);
