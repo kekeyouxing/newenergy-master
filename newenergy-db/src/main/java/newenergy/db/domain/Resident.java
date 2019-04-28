@@ -32,7 +32,7 @@ public class Resident {
     private String roomNum;
 
     //机型编号，见数据对应表-机型
-    @Column(length = 4)
+    @Column(length = 2)
     private String typeNum;
 
     //装机序号，第几台机器（0-z）
@@ -40,7 +40,7 @@ public class Resident {
     private String deviceSeq;
 
     //所属机房编号，见数据对应表-机房
-    @Column(length = 2)
+    @Column(length = 4)
     private String pumpNum;
 
     //联系电话

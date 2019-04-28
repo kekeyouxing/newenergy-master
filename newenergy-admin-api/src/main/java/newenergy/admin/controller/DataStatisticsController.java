@@ -46,6 +46,9 @@ public class DataStatisticsController {
     @Autowired
     CorrAddressService corrAddressService;
 
+    @Autowired
+    CorrPumpService corrPumpService;
+
     /**
      * 获取消费统计表数据
 
@@ -171,6 +174,17 @@ public class DataStatisticsController {
             info.put("userName", resident.getUserName());
             info.put("phone", resident.getPhone());
             info.put("plotDtl", corrPlotService.findByPlotNum(residentService.findPlotNumByRegisterid(resident.getRegisterId(),0)));
+            info.put("addressDtl", corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
+            info.put("roomNum", resident.getRoomNum());
+            info.put("area", resident.getArea());
+            info.put("buyTime", resident.getBuyTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("typeDtl", corrTypeService.findByTypeNum(resident.getTypeNum()).getTypeDtl());
+            info.put("ratedFlow", corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow());
+            info.put("deviceNum", resident.getDeviceNum());
+            info.put("deviceSeq", resident.getDeviceSeq());
+            info.put("pumpDtl", corrPumpService.findByPlotNum(resident.getPumpNum()));
+            info.put("installTime", resident.getInstallTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("receiveTime", resident.getReceiveTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             list.add(info);
         }
         data.put("resident", list);
@@ -202,7 +216,17 @@ public class DataStatisticsController {
         secondLine.put("plotFactor", corrPlotService.findPlotFacByPlotNum(resident.getPlotNum()));
         data.put("firstLine", firstLine);
         data.put("secondLine", secondLine);
-        data.put("rechargeRecords", rechargeRecords);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for(RechargeRecord rechargeRecord: rechargeRecords){
+            Map<String, Object> info = new HashMap<>();
+            info.put("rechargeTime", rechargeRecord.getRechargeTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            info.put("amount", rechargeRecord.getAmount());
+            info.put("rechargeVolume", rechargeRecord.getRechargeVolume());
+            info.put("remainVolume", rechargeRecord.getRemainVolume());
+            info.put("updatedVolume", rechargeRecord.getUpdatedVolume());
+            list.add(info);
+        }
+        data.put("rechargeRecords", list);
         return ResponseUtil.ok(data);
     }
 

@@ -124,7 +124,7 @@ public class ResidentService extends LogicOperation<Resident> {
         Resident resident = new Resident();
         resident.setPlotNum(plotNum);
         resident.setRegisterId(registerId);
-        Specification specification = findSearch(resident);
+        Specification specification = findSearch(resident, new BigDecimal(0), new BigDecimal(0));
         return residentRepository.findAll(specification).size();
     }
 

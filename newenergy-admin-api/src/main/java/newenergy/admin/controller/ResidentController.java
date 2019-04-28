@@ -11,7 +11,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,13 +54,20 @@ public class ResidentController {
         Map<String, Object> data = new HashMap<>();
         data.put("total",total);
         data.put("resident", residentList);
-
+        List<Map<String, Object>> list = new ArrayList<>();
+        for(Resident resident: residentList){
+            Map<String, Object> info = new HashMap<>();
+            info.put("buyTime", resident.getBuyTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("installTime", resident.getInstallTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("receiveTime", resident.getReceiveTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            list.add(info);
+        }
+        data.put("time", list);
         return ResponseUtil.ok(data);
     }
 
     /**
      * 新增居民信息
-     * @param resident
 //     * @param buyTime
 //     * @param installTime
 //     * @param receiveTime
@@ -66,8 +75,23 @@ public class ResidentController {
      * @return
      */
     @PostMapping("/create")
-    public Object create(@RequestBody Resident resident,
+    public Object create(@RequestBody Map<String, Object> params,
                          Integer userid) {
+        Resident resident = new Resident();
+        resident.setUserName((String)params.get("userName"));
+        resident.setPlotNum((String)params.get("plotNum"));
+        resident.setAddressNum((String)params.get("addressNum"));
+        resident.setRoomNum((String)params.get("roomNum"));
+        resident.setTypeNum((String)params.get("typeNum"));
+        resident.setPumpNum((String)params.get("pumpNum"));
+        resident.setPhone((String)params.get("phone"));
+        resident.setArea(new BigDecimal((String) params.get("area")));
+        resident.setRatedFlow(new BigDecimal((String) params.get("ratedFlow")));
+        resident.setDeviceNum((String)params.get("deviceNum"));
+        resident.setOpenid((String)params.get("openid"));
+        resident.setBuyTime(LocalDate.parse((String)params.get("buyTime")));
+        resident.setInstallTime(LocalDate.parse((String)params.get("installTime")));
+        resident.setReceiveTime(LocalDate.parse((String)params.get("receiveTime")));
         List<Resident> residents_device = residentService.queryDevice(resident.getAddressNum(), resident.getRoomNum());
         List<String> deviceSeqs = new ArrayList<>();
         for (Resident resident1:residents_device) {
@@ -92,26 +116,33 @@ public class ResidentController {
 
     /**
      * 修改居民信息
-     * @param resident
      * @param userid
      * @return
      */
     @PostMapping("/update")
-    public Object update(@RequestBody Resident resident,
+    public Object update(@RequestBody Map<String, Object> params,
                          Integer userid) {
+        Resident resident = new Resident();
+        resident.setId((Integer)params.get("id"));
+        resident.setUserName((String)params.get("userName"));
+        resident.setDeviceNum((String)params.get("deviceNum"));
+        resident.setPhone((String)params.get("phone"));
+        resident.setArea(new BigDecimal((String)params.get("area")));
+        resident.setOpenid((String)params.get("openid"));
+        resident.setBuyTime(LocalDate.parse((String)params.get("buyTime")));
+        resident.setInstallTime(LocalDate.parse((String)params.get("installTime")));
+        resident.setReceiveTime(LocalDate.parse((String)params.get("receiveTime")));
         residentService.updateResident(resident, userid);
         return ResponseUtil.ok();
     }
 
     /**
      * 删除居民信息
-     * @param resident
      * @param userid
      * @return
      */
-    @PostMapping("/delete")
-    public Object delete(@RequestBody Resident resident, Integer userid) {
-        Integer id = resident.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }
@@ -136,10 +167,11 @@ public class ResidentController {
 
     @PostMapping("/findResidentInfo")
     public Object findResidentInfo(@RequestBody PostInfo postInfo){
+        BigDecimal start = new BigDecimal(0);
         List<Resident> residents = residentService.findByPlotNumAndRegisterId(postInfo.getPlotNum(),
                 postInfo.getRegisterId(),
                 postInfo.getPage()-1,
-                postInfo.getLimit()).getContent();
+                postInfo.getLimit(),start, start).getContent();
         List<ResultInfo> resultInfos = new ArrayList<>();
         for (Resident resident:
              residents) {
