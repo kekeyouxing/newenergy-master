@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.util.IpUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -89,7 +91,7 @@ public class RechargeRecordController {
         List<RechargeRecord> queryResult = rechargeRecordService.findByConditions(postInfo.getBatchRecordId(),
                 null,
                 null,
-                0,
+                null,
                 null,
                 postInfo.getPage()-1,
                 postInfo.getLimit()).getContent();
@@ -112,7 +114,7 @@ public class RechargeRecordController {
         result.put("total",rechargeRecordService.findByConditions(postInfo.getBatchRecordId(),
                 null,
                 null,
-                0,
+                null,
                 null).size());
         result.put("list",list);
         result.put("amount",batchRecordService.queryById(postInfo.getBatchRecordId()).getAmount());
@@ -184,14 +186,14 @@ public class RechargeRecordController {
     }
 */
     //    充值订单审核
-    /*@RequestMapping(value = "/review", method = RequestMethod.POST)
-    public Object review(@RequestBody List<ReviewState> reviewStates,
-                         @RequestParam Integer operatorId,
-                         @RequestParam String ip) throws CloneNotSupportedException {
-        for (ReviewState reviewState:reviewStates){
+    @RequestMapping(value = "/review", method = RequestMethod.POST)
+    public Object review(@RequestBody PostInfo postInfo,
+                         HttpServletRequest request) throws CloneNotSupportedException {
+        for (ReviewState reviewState:postInfo.getList()){
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
-            rechargeRecord.setCheckId(operatorId);
+            rechargeRecord.setCheckId(postInfo.getOperatorId());
+            Integer state = 1;
             if (reviewState.getReviewState()==1){
                 RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
                 if (remainWater == null){
@@ -208,12 +210,19 @@ public class RechargeRecordController {
                         rechargeRecord.getAmount());
             }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
+                state=2;
             }
-            RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,operatorId);
-            manualRecordService.add(operatorId,ip,1,newRecord.getId());
+            BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
+            batchRecord.setState(state);
+            batchRecordService.updateBatchRecord(batchRecord,postInfo.getOperatorId());
+            RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
+            manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),1,newRecord.getId());
         }
-        return ResponseUtil.ok();
-    }*/
+        Map<String,Integer> state = new HashMap<>();
+//        0代表正常、其他代表异常
+        state.put("state",0);
+        return state;
+    }
 
     private static class ReviewState {
         private Integer id;
@@ -243,6 +252,7 @@ public class RechargeRecordController {
         Integer limit;
         Integer batchRecordId;
         String registerId;
+        List<ReviewState> list;
 
         public Integer getOperatorId() {
             return operatorId;
@@ -290,6 +300,14 @@ public class RechargeRecordController {
 
         public void setRegisterId(String registerId) {
             this.registerId = registerId;
+        }
+
+        public List<ReviewState> getList() {
+            return list;
+        }
+
+        public void setList(List<ReviewState> list) {
+            this.list = list;
         }
     }
 

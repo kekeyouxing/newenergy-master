@@ -23,26 +23,6 @@ import java.util.Map;
 @Validated
 public class RefundRecordController {
 
-    private static class ReviewState{
-        private Integer id;
-        private Integer state;
-
-        public Integer getId() {
-            return id;
-        }
-
-        public void setId(Integer id) {
-            this.id = id;
-        }
-
-        public Integer getState() {
-            return state;
-        }
-
-        public void setState(Integer state) {
-            this.state = state;
-        }
-    }
 
     @Autowired
     private RefundRecordService refundRecordService;
@@ -69,7 +49,7 @@ public class RefundRecordController {
     CorrAddressService corrAddressService;
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
-    public Object review(@RequestBody PostInfo postInfo,
+    public Object addReview(@RequestBody PostInfo postInfo,
                          HttpServletRequest request){
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
         RechargeRecord rechargeRecord = rechargeRecordService.findById(postInfo.getRechargeId());
@@ -161,25 +141,27 @@ public class RefundRecordController {
 
 
 
-//    通过订单id查询退款记录
-    @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
-    public RefundRecord findById(@RequestParam Integer id){
-        return refundRecordService.findById(id);
-    }
-
-
-
+////    通过订单id查询退款记录
+//    @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
+//    public RefundRecord findById(@RequestParam Integer id){
+//        return refundRecordService.findById(id);
+//    }
+//
+//
+//
     //    审核退款记录
     @RequestMapping(value = "/review", method = RequestMethod.POST)
-    public Object review(@RequestBody List<ReviewState> reviewStates,
-                         @RequestParam Integer operatorId,
-                         @RequestParam String ip) throws  CloneNotSupportedException {
+    public Object review(@RequestBody PostInfo postInfo,
+                         HttpServletRequest request) throws  CloneNotSupportedException {
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
-        for (ReviewState reviewState:reviewStates) {
+        for (ReviewState reviewState:postInfo.getList()) {
             RefundRecord refundRecord = (RefundRecord) refundRecordService.findById(reviewState.getId()).clone();
-            refundRecord.setState(reviewState.getState());
-            refundRecord.setCheckId(operatorId);
-            if (reviewState.getState()==0){
+            refundRecord.setState(reviewState.getReviewState());
+            refundRecord.setCheckId(postInfo.getOperatorId());
+            RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
+            rechargeRecord.setState(1);
+//            审核通过且为个人充值（非代充），则对剩余水量进行更新
+            if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
                 RemainWater remainWater = remainWaterService.findByRegisterId(refundRecord.getRegisterId());
                 if (remainWater == null){
                     remainWater = new RemainWater();
@@ -193,16 +175,37 @@ public class RefundRecordController {
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
                         refundRecord.getRefundAmount()*(-1));
-                RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
-                rechargeRecord.setState(1);
+
             }
-            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,operatorId);
-            manualRecordService.add(operatorId,ip,3,newRecord.getId());
+            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,postInfo.getOperatorId());
+            manualRecordService.add(postInfo.getOperatorId(),IpUtil.getIpAddr(request),3,newRecord.getId());
         }
-        return ResponseUtil.ok();
+        Map<String,Integer> state = new HashMap<>();
+//        0代表正常、其他代表异常
+        state.put("state",0);
+        return state;
     }
 
+    private static class ReviewState{
+        private Integer id;
+        private Integer reviewState;
 
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getReviewState() {
+            return reviewState;
+        }
+
+        public void setReviewState(Integer reviewState) {
+            this.reviewState = reviewState;
+        }
+    }
 
     private static class PostInfo{
         private Integer operatorId;
@@ -211,6 +214,7 @@ public class RefundRecordController {
         private Integer page;
         private Integer limit;
         private String registerId;
+        List<ReviewState> list;
 
         public Integer getOperatorId() {
             return operatorId;
@@ -258,6 +262,14 @@ public class RefundRecordController {
 
         public void setRegisterId(String registerId) {
             this.registerId = registerId;
+        }
+
+        public List<ReviewState> getList() {
+            return list;
+        }
+
+        public void setList(List<ReviewState> list) {
+            this.list = list;
         }
     }
 
