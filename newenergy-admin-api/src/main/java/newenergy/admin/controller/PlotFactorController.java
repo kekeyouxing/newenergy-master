@@ -1,11 +1,14 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.util.IpUtil;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
+import newenergy.db.domain.ManualRecord;
 import newenergy.db.predicate.ApplyFactorPredicate;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.service.CorrPlotService;
+import newenergy.db.service.ManualRecordService;
 import newenergy.db.service.PlotFactorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +34,12 @@ import java.util.Map;
 public class PlotFactorController {
     @Autowired
     PlotFactorService plotFactorService;
+
+    @Autowired
+    CorrPlotService corrPlotService;
+
+    @Autowired
+    ManualRecordService manualRecordService;
 
     private static class SearchDTO{
         Integer id;
@@ -182,6 +192,7 @@ public class PlotFactorController {
         List<Map<String,Object>>  list = new ArrayList<>();
         factors.forEach(e->{
             Map<String,Object> item = new HashMap<>();
+            item.put("id",e.getId());
             item.put("plotDtl",plotFactorService.getPlotDtl(e.getPlotNum()));
             item.put("originFactor",e.getOriginFactor());
             item.put("updateFactor",e.getUpdateFactor());
@@ -192,5 +203,52 @@ public class PlotFactorController {
         });
         ret.put("list",list);
         return ret;
+    }
+
+    @RequestMapping(value = "review",method = RequestMethod.POST)
+    public Object reviewPlotFactor(@RequestBody PostInfo postInfo,
+                                   HttpServletRequest request){
+        ApplyFactor applyFactor = plotFactorService.findById(postInfo.getId());
+        applyFactor.setState(postInfo.getReviewState());
+        if (postInfo.getReviewState()==1){
+            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
+        }
+        Integer state = plotFactorService.updateApplyState(postInfo.getOperatorId(),postInfo.getId(),postInfo.getReviewState());
+        manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),5,postInfo.getId());
+        Map<String,Object> result = new HashMap<>();
+        result.put("state",state);
+        return result;
+    }
+
+    private static class PostInfo{
+        private Integer operatorId;
+        private Integer id;
+        private Integer reviewState;
+
+        public Integer getOperatorId() {
+            return operatorId;
+        }
+
+        public void setOperatorId(Integer operatorId) {
+            this.operatorId = operatorId;
+        }
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getReviewState() {
+            return reviewState;
+        }
+
+        public void setReviewState(Integer reviewState) {
+            this.reviewState = reviewState;
+        }
     }
 }

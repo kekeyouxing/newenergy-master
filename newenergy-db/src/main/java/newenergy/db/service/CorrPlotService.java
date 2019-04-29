@@ -60,6 +60,10 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum, 0).getPlotDtl();
     }
 
+    public CorrPlot findPlotByPlotNum(String plotNum){
+        return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
+    }
+
     //根据小区地址搜索小区编号
     public String findPlotNum(String plotDtl) {
         return corrPlotRepository.findByPlotDtlAndSafeDelete(plotDtl, 0).getPlotNum();

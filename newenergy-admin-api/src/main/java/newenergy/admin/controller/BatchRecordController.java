@@ -101,26 +101,26 @@ public class BatchRecordController {
         return state;
     }
 
-//    根据id查询批量充值记录
-    @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
-    public BatchRecord queryBatchRecordById(@RequestParam Integer id){
-        System.out.println(id);
-        return batchRecordService.queryById(id);
-    }
-
-
-//    根据小区信息查询批量充值记录,若无公司名,则查询所有充值记录
-    @RequestMapping(value = "findByCompany", method = RequestMethod.POST)
-    public String list(HttpServletRequest request){
-//        System.out.println(plotDtl);
-        return IpUtil.getIpAddr(request);
-//        if (plotDtl == null)
-//            return batchRecordService.findAll();
-//        else{
-//            return batchRecordService.queryByPlotNumAndSafeDelete(corrPlotService.findPlotNum(plotDtl));
-//        }
-
-    }
+////    根据id查询批量充值记录
+//    @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
+//    public BatchRecord queryBatchRecordById(@RequestParam Integer id){
+//        System.out.println(id);
+//        return batchRecordService.queryById(id);
+//    }
+//
+//
+////    根据小区信息查询批量充值记录,若无公司名,则查询所有充值记录
+//    @RequestMapping(value = "findByCompany", method = RequestMethod.POST)
+//    public String list(HttpServletRequest request){
+////        System.out.println(plotDtl);
+//        return IpUtil.getIpAddr(request);
+////        if (plotDtl == null)
+////            return batchRecordService.findAll();
+////        else{
+////            return batchRecordService.queryByPlotNumAndSafeDelete(corrPlotService.findPlotNum(plotDtl));
+////        }
+//
+//    }
 
 
 

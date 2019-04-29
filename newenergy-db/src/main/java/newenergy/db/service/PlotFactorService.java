@@ -139,4 +139,8 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
     public JpaSpecificationExecutor<ApplyFactor> getRepository() {
         return repository;
     }
+
+    public ApplyFactor findById(Integer id){
+        return repository.findFirstById(id);
+    }
 }
