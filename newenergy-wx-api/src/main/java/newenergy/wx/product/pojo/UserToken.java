@@ -16,6 +16,8 @@ public class UserToken {
     private LocalDateTime expireTime;
     //token生成时间
     private LocalDateTime updateTime;
+    //微信昵称
+    private String nickname;
 
     public String getOpenId() {
         return openId;
@@ -47,5 +49,13 @@ public class UserToken {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 }

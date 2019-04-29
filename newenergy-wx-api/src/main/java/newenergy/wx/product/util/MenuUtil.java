@@ -28,9 +28,10 @@ public class MenuUtil {
         String url = menu_create_url.replace("ACCESS_TOKEN",accessToken);
         //将菜单对象转换成json字符串
         String jsonMenu = JSONObject.fromObject(menu).toString();
+//        JSONObject postData  = JSONObject.fromObject(menu);
         //发起POST请求创建菜单
         JSONObject jsonObject = CommonUtil.httpsRequest(url,"POST",jsonMenu);
-
+//        JSONObject jsonObject = CommonUtil.httpsRequest(url,"POST",postData);
         if (null != jsonObject){
             int errorCode = jsonObject.getInt("errcode");
             String errorMsg = jsonObject.getString("errmsg");

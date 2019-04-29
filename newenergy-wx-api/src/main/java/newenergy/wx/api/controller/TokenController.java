@@ -34,7 +34,7 @@ public class TokenController {
         Collections.sort(msgs);
         String result = DigestUtils.sha1Hex(msgs.get(0)+msgs.get(1)+msgs.get(2));
         System.out.println("result:"+result);
-        System.out.println("signature:"+signature);
+        System.out.println("signat/ure:"+signature);
         if(result.equals(signature)){
             return echostr;
         }else{
