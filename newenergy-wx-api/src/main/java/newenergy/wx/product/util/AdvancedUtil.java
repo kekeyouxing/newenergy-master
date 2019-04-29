@@ -2,6 +2,7 @@ package newenergy.wx.product.util;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import newenergy.core.config.WxProductConfig;
 import newenergy.wx.product.pojo.SNSUserInfo;
 import newenergy.wx.product.pojo.WeixinOauth2Token;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ public class AdvancedUtil {
         }
         return wat;
     }
+
 
     /**
      * 刷新网页授权凭证

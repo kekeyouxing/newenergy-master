@@ -1,7 +1,7 @@
 quwen:
   wx:
-    app-id: wx245a933285c2adb6
-    app-secret: 3649657ecfaebebe182b0defc5b9bf32
+    app-id: wx56acef520e1b0030
+    app-secret: 3848a4749c6337c86f3dcf42b3d21d2a
     mch-id: 111111
     mch-key: xxxxxx
     notify-url: http://www.example.com/wx/order/pay-notify

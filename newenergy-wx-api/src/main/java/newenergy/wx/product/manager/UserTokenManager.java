@@ -33,13 +33,25 @@ public class UserTokenManager {
         }
         return userToken.getOpenId();
     }
+    public static String getNickname(String token){
+        UserToken userToken = tokenMap.get(token);
+        if (userToken == null){
+            return null;
+        }
+        if (userToken.getExpireTime().isBefore(LocalDateTime.now())) {
+            tokenMap.remove(token);
+            openIdMap.remove(userToken.getOpenId());
+            return null;
+        }
+        return userToken.getNickname();
+    }
 
     /**
      * 生成token,并将token和openId绑定
      * @param openId
      * @return
      */
-    public static UserToken generateToken(String openId){
+    public static UserToken generateTokenWithOpenId(String openId){
         UserToken userToken = null;
 
         String token = CharUtil.getRandomString(32);
@@ -54,6 +66,28 @@ public class UserTokenManager {
         userToken.setUpdateTime(update);
         userToken.setExpireTime(expire);
         userToken.setOpenId(openId);
+        tokenMap.put(token,userToken);
+        openIdMap.put(openId,userToken);
+
+        return userToken;
+    }
+
+    public static UserToken generateTokenWithNinameAndOpenId(String openId,String nickname){
+        UserToken userToken = null;
+
+        String token = CharUtil.getRandomString(32);
+        while(tokenMap.containsKey(token)){
+            token = CharUtil.getRandomString(32);
+        }
+        LocalDateTime update = LocalDateTime.now();
+        LocalDateTime expire = update.plusHours(2);
+
+        userToken = new UserToken();
+        userToken.setToken(token);
+        userToken.setUpdateTime(update);
+        userToken.setExpireTime(expire);
+        userToken.setOpenId(openId);
+        userToken.setNickname(nickname);
         tokenMap.put(token,userToken);
         openIdMap.put(openId,userToken);
 

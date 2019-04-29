@@ -16,6 +16,7 @@ import newenergy.db.service.ExtraWaterService;
 import newenergy.db.service.RechargeRecordService;
 import newenergy.db.service.ResidentService;
 import newenergy.wx.api.util.IpUtil;
+import newenergy.wx.product.manager.UserTokenManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,24 +63,26 @@ public class WxOrderService {
      *     1.创建订单并生成商户订单号
      *     2.保存充值金额与之后充值成功之后比较金额是否匹配
      *</p>
-     * @param openid
      * @param body
      * @param request
      * @return
      */
     @Transactional
-    public Object submit(String openid,String body,HttpServletRequest request){
-        //通过token验证openid，保证本人操作
-        if (openid == null || openid.isEmpty()){
-            return ResponseUtil.unauthz();
-        }
+    public Object submit(String body,HttpServletRequest request){
         if(body == null){
             return ResponseUtil.badArgument();
         }
+        //通过token验证openid，保证本人操作
+        String token = JacksonUtil.parseString(body,"token");
+        String openid = UserTokenManager.getOpenId(token);
+        String nickname = UserTokenManager.getNickname(token);
+        if (openid == null || openid.isEmpty() || nickname == null || nickname.isEmpty()){
+            return ResponseUtil.unauthz();
+        }
+
 //        String openid = JacksonUtil.parseString(body,"openid");
-        String amount = JacksonUtil.parseString(body,"amount");
-        String deviceid = JacksonUtil.parseString(body,"deviceid");
-        String nickName = JacksonUtil.parseString(body,"nickName");
+        String amount = JacksonUtil.parseString(body,"money");
+        String deviceid = JacksonUtil.parseString(body,"registerId");
         if (amount == null || deviceid == null){
             return ResponseUtil.badArgument();
         }
@@ -89,11 +92,12 @@ public class WxOrderService {
         order = new RechargeRecord();
         order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
+        order.setUserName(nickname);
         String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
-        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,RoundingMode.HALF_DOWN);
+        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
         //生成商户订单号
         order.setOrderSn(rechargeRecordService.generateOrderSn());
         order.setRechargeVolume(recharge_volumn);
@@ -180,6 +184,8 @@ public class WxOrderService {
         extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
+
+
 
     public Object refund(String body){
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
