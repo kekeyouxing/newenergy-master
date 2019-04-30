@@ -47,9 +47,9 @@ public class BindingController {
     private final String unbindingLabel = "点此解绑";
     private final String searchingLabel = "点此查看";
 
-    private final String bindingUrl = "/wx/forward/bind";
-    private final String unbindingUrl = "/wx/forward/unbind";
-    private final String searchingUrl = "/wx/forward/search";
+    private final String bindingUrl = "/#/companyUserBind";
+    private final String unbindingUrl = "/#/companyUserBind";
+    private final String searchingUrl = "/#/faultRecords";
     @RequestMapping("forward/bind")
     public String forward1(){
         return "绑定页面";
@@ -107,7 +107,7 @@ public class BindingController {
         }else if("text".equals(text.getMsgType())){
             String content = text.getContent();
             if(!binding.equals(content) && !unbinding.equals(content) && !searching.equals(content)) return "";
-            String param = String.format("?token=%s&state=%d",UserTokenManager.generateToken(text.getFromUserName()),
+            String param = String.format("?token=%s&state=%d",UserTokenManager.generateTokenWithOpenid(text.getFromUserName()).getToken(),
                     msgService.getBindState(text.getFromUserName()));
             if(binding.equals(content)){
                 String url = serverConfig.getDomain() + bindingUrl + param;
@@ -134,7 +134,8 @@ public class BindingController {
             return ret;
         }
         String openid = UserTokenManager.getOpenId((String)body.get("token"));
-        if(!StringUtilCorey.emptyCheck(openid)){
+        System.out.println((String)body.get("token")+","+openid);
+        if(StringUtilCorey.emptyCheck(openid)){
             ret.put("list",list);
             return ret;
         }
@@ -158,10 +159,15 @@ public class BindingController {
         }
         String openid = UserTokenManager.getOpenId((String)body.get("token"));
         String registerId = (String)body.get("registerId");
-        Integer threshold = (Integer)body.get("threshold");
+        Integer threshold = Integer.valueOf((String)body.get("threshold"));
         Resident resident = bindService.getResident(registerId);
-        if(StringUtilCorey.emptyCheck(openid) || resident == null) {
+        if(StringUtilCorey.emptyCheck(openid)
+                || resident == null) {
             ret.put("code", ResultConstant.ERR);
+            return ret;
+        }
+        if(!StringUtilCorey.emptyCheck(resident.getOpenid())){
+            ret.put("code",2);
             return ret;
         }
         resident.setOpenid(openid);
@@ -189,7 +195,7 @@ public class BindingController {
             ret.put("code",ResultConstant.ERR);
             return ret;
         }
-        resident.setOpenid(null);
+        resident.setOpenid("");
         Resident result = bindService.updateResident(resident,null);
         if(result == null){
             ret.put("code",ResultConstant.ERR);
@@ -206,7 +212,7 @@ public class BindingController {
         }
         String openid = UserTokenManager.getOpenId((String)body.get("token"));
         String registerId = (String)body.get("registerId");
-        Integer threshold = (Integer)body.get("updateThreshold");
+        Integer threshold = Integer.valueOf((String)body.get("updateThreshold"));
         Resident resident = bindService.getResident(registerId);
         if(resident == null
                 || StringUtilCorey.emptyCheck(openid)
@@ -238,7 +244,7 @@ public class BindingController {
         }
         String username = (String)body.get("username");
         String password = (String)body.get("password");
-        Integer state = (Integer)body.get("state");
+        Integer state = Integer.valueOf((String)body.get("state"));
         if(state==null || !state.equals(0) && !state.equals(1) ){
             ret.put("code",3);
             return ret;
@@ -256,7 +262,7 @@ public class BindingController {
             admin.setOpenid(openid);
         }
         if(state.equals(1)){
-            admin.setOpenid(null);
+            admin.setOpenid("");
         }
         NewenergyAdmin result = bindService.updateAdmin(admin,null);
         if(result == null){

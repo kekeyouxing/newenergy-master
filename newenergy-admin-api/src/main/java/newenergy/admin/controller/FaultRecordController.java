@@ -49,7 +49,7 @@ public class FaultRecordController {
 
     private RestTemplate restTemplate = new RestTemplate();
 
-    private final String sendMsgUrl = "http://localhost:8080/wx/fault/send";
+    private final String sendMsgUrl = "http://localhost/wx/fault/send";
 
     private static class UserinfoDTO{
         Integer id;

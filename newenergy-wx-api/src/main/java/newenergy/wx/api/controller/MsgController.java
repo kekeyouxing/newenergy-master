@@ -47,11 +47,11 @@ public class MsgController {
     /**
      * 故障消息提醒回调路径
      */
-    private final String faultRecall = "/wx/forward/record";
+    private final String faultRecall = "/#/faultMsg";
     /**
      * 故障消息上报回调路径
      */
-    private final String reportRecall =  "/wx/forward/report";
+    private final String reportRecall =  "/#/faultMsgLeader";
 
     /**
      * 故障提醒消息id
@@ -88,8 +88,8 @@ public class MsgController {
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",faultMsgId);
         String param = String.format("?faultId=%d&token=%s",
-                body.get("faultId"),
-                UserTokenManager.generateToken((String)body.get("touser")) );
+                Integer.valueOf((String)body.get("faultId")),
+                UserTokenManager.generateTokenWithOpenid((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + faultRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> pheno = new HashMap<>();
@@ -140,7 +140,7 @@ public class MsgController {
         jsonMap.put("template_id",faultReportId);
         String param = String.format("?faultId=%d&token=%s",
                 body.get("faultId"),
-                UserTokenManager.generateToken((String)body.get("touser")) );
+                UserTokenManager.generateTokenWithOpenid((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + reportRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> faultTime = new HashMap<>();
@@ -166,7 +166,7 @@ public class MsgController {
         }
         String openid = UserTokenManager.getOpenId((String)body.get("token"));
         if(StringUtilCorey.emptyCheck(openid)) return ret;
-        Integer faultId = (Integer)body.get("faultId");
+        Integer faultId = Integer.valueOf((String)body.get("faultId"));
         FaultRecord record = msgService.getFaultRecords(faultId);
         if(record == null) return null;
         Resident resident = msgService.getResident(record.getRegisterId());
@@ -180,6 +180,14 @@ public class MsgController {
         ret.put("roomNum",resident.getRoomNum());
         ret.put("phone",resident.getPhone());
         ret.put("addressDtl",addressDtl);
+        if(record.getState().equals(FaultRecordConstant.STATE_WAIT))
+            ret.put("ensured",0);
+        else
+            ret.put("ensured",1);
+        if(record.getState().equals(FaultRecordConstant.STATE_FINISH))
+            ret.put("backed",1);
+        else
+            ret.put("backed",0);
         //不是故障维修人员，不在等待中
         if(!FaultRecordConstant.STATE_WAIT.equals(record.getState())){
             if(FaultRecordConstant.RESULT_TIMEOUT.equals(record.getResult()))
@@ -203,7 +211,7 @@ public class MsgController {
             ret.put("code", ResultConstant.ERR);
             return ret;
         }
-        Integer faultId = (Integer)body.get("faultId");
+        Integer faultId = Integer.valueOf((String)body.get("faultId"));
         FaultRecord record = msgService.getFaultRecords(faultId);
         if(record == null){
             ret.put("code", ResultConstant.ERR);
@@ -231,7 +239,7 @@ public class MsgController {
             ret.put("code", ResultConstant.ERR);
             return ret;
         }
-        Integer faultId = (Integer)body.get("faultId");
+        Integer faultId = Integer.valueOf((String)body.get("faultId"));
         FaultRecord record = msgService.getFaultRecords(faultId);
         if(record == null){
             ret.put("code", ResultConstant.ERR);

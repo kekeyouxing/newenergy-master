@@ -12,5 +12,5 @@ corey:
     app-secret: 204968f0b20dd9d7551eea63b797a459
     username: gh_5aebddaa55cc
   ##临时域名
-  domain: http://dkh5p9.natappfree.cc
+  domain: http://192.168.199.105:8080
 
