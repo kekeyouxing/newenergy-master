@@ -89,7 +89,7 @@ public class MsgController {
         jsonMap.put("template_id",faultMsgId);
         String param = String.format("?faultId=%d&token=%s",
                 Integer.valueOf((String)body.get("faultId")),
-                UserTokenManager.generateTokenWithOpenid((String)body.get("touser")).getToken() );
+                UserTokenManager.generateTokenWithOpenId((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + faultRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> pheno = new HashMap<>();
@@ -140,7 +140,7 @@ public class MsgController {
         jsonMap.put("template_id",faultReportId);
         String param = String.format("?faultId=%d&token=%s",
                 body.get("faultId"),
-                UserTokenManager.generateTokenWithOpenid((String)body.get("touser")).getToken() );
+                UserTokenManager.generateTokenWithOpenId((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + reportRecall + param);
         Map<String,Object> subBody = new HashMap<>();
         Map<String,Object> faultTime = new HashMap<>();

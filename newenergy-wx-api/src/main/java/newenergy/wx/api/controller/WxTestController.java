@@ -27,7 +27,7 @@ public class WxTestController {
     }
     @RequestMapping("token")
     public String getToken(@RequestParam String openid){
-        return UserTokenManager.generateToken(openid).getToken();
+        return UserTokenManager.generateTokenWithOpenId(openid).getToken();
     }
     @RequestMapping("token2")
     public String getToken2(@RequestParam String token){

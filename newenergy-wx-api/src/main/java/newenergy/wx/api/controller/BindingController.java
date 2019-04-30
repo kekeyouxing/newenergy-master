@@ -107,7 +107,7 @@ public class BindingController {
         }else if("text".equals(text.getMsgType())){
             String content = text.getContent();
             if(!binding.equals(content) && !unbinding.equals(content) && !searching.equals(content)) return "";
-            String param = String.format("?token=%s&state=%d",UserTokenManager.generateTokenWithOpenid(text.getFromUserName()).getToken(),
+            String param = String.format("?token=%s&state=%d",UserTokenManager.generateTokenWithOpenId(text.getFromUserName()).getToken(),
                     msgService.getBindState(text.getFromUserName()));
             if(binding.equals(content)){
                 String url = serverConfig.getDomain() + bindingUrl + param;
