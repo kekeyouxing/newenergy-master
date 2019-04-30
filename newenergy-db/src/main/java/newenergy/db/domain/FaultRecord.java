@@ -34,6 +34,15 @@ public class FaultRecord {
     private Integer result;
     private String phenomenon;
     private String solution;
+    private Integer parentId;
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
 
     public Integer getId() {
         return id;

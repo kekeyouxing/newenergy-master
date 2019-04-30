@@ -52,7 +52,17 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
     public final Integer warranty = 1;
 
     public FaultRecord addRecord(FaultRecord record){
-        return repository.save(record);
+        return repository.saveAndFlush(record);
+    }
+
+    /**
+     * 不支持部分更新
+     * @param record 修改后的故障记录
+     * @return
+     */
+    public FaultRecord updateRecord(FaultRecord record){
+        if(record.getId()==null) return null;
+        return repository.saveAndFlush(record);
     }
 
     @Override

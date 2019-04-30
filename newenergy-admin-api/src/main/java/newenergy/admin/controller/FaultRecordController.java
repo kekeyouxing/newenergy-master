@@ -49,7 +49,7 @@ public class FaultRecordController {
 
     private RestTemplate restTemplate = new RestTemplate();
 
-    private final String sendMsgUrl = "http://localhost:8080/wx/fault/send";
+    private final String sendMsgUrl = "http://localhost/wx/fault/send";
 
     private static class UserinfoDTO{
         Integer id;
@@ -184,6 +184,7 @@ public class FaultRecordController {
 
         if(StringUtilCorey.emptyCheck(servicer.getOpenid())) return 2;
         Map<String,Object> request = new HashMap<>();
+        request.put("faultId",result.getId());
         request.put("touser",servicer.getOpenid());
         request.put("phenomenon",faultRecord.getPhenomenon());
         request.put("address",corrAddress.getAddressDtl());
