@@ -8,6 +8,7 @@ import newenergy.wx.product.util.MenuUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -22,13 +23,17 @@ import org.springframework.stereotype.Component;
 public class MenuManager implements ApplicationRunner {
     private static Logger log = LoggerFactory.getLogger(MenuManager.class);
     private static String baseUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect";
-    private static String domainName = "http://wp86h5.natappfree.cc/";
+    @Value("${corey.domain2}")
+    private String domainName;
+    @Value("${corey.domain}")
+    private String domainFront;
+    //private static String domainName = "http://wp86h5.natappfree.cc/";
     @Autowired
     private WxProductService wxProductService;
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        Token token = CommonUtil.getAccessToken("wx56acef520e1b0030","3848a4749c6337c86f3dcf42b3d21d2a");
-//        Token token = CommonUtil.getAccessToken(wxProductService.getWxProductConfig().getAppId(),wxProductService.getWxProductConfig().getAppSecret());
+//        Token token = CommonUtil.getAccessToken("wx56acef520e1b0030","3848a4749c6337c86f3dcf42b3d21d2a");
+        Token token = CommonUtil.getAccessToken(wxProductService.getWxProductConfig().getAppId(),wxProductService.getWxProductConfig().getAppSecret());
         if (null != token){
             boolean result = MenuUtil.createMenu(getMenu(),token.getAccessToken());
             if (result)
@@ -40,9 +45,9 @@ public class MenuManager implements ApplicationRunner {
 
     private Menu getMenu(){
 
-        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID", "wx56acef520e1b0030");
+//        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID", "wx56acef520e1b0030");
 
-//        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",wxProductService.getWxProductConfig().getAppId());
+        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",wxProductService.getWxProductConfig().getAppId());
         String bindUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/userBind"));
         String rechargeUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/recharge"));
         ViewButton btn11 = new ViewButton();
@@ -64,14 +69,16 @@ public class MenuManager implements ApplicationRunner {
 //        btn21.setName("test21");
         btn21.setType("view");
 //        btn21.setUrl("http://www.baidu.com");
-        btn21.setUrl(domainName+"#/checkBalance");
+//        btn21.setUrl(domainName+"#/checkBalance");
+        btn21.setUrl(domainFront+"/#/checkBalance");
 
         ViewButton btn22 = new ViewButton();
         btn22.setName("充值记录");
 //        btn21.setName("test22");
         btn22.setType("view");
 //        btn22.setUrl("http://www.baidu.com");
-        btn22.setUrl(domainName+"#/rechargeRecords");
+//        btn22.setUrl(domainName+"#/rechargeRecords");
+        btn22.setUrl(domainFront+"/#/rechargeRecords");
 
         ComplexButton mainBtn1 = new ComplexButton();
         mainBtn1.setName("用户");

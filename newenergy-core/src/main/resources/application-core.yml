@@ -1,7 +1,7 @@
 quwen:
   wx:
-    app-id: wx56acef520e1b0030
-    app-secret: 3848a4749c6337c86f3dcf42b3d21d2a
+    app-id: wx0ecc55fde07a32af
+    app-secret: 204968f0b20dd9d7551eea63b797a459
     mch-id: 111111
     mch-key: xxxxxx
     notify-url: http://www.example.com/wx/order/pay-notify
@@ -13,4 +13,5 @@ corey:
     username: gh_5aebddaa55cc
   ##临时域名
   domain: http://192.168.199.105:8080
+  domain2: http://4yy74u.natappfree.cc/
 

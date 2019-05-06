@@ -119,11 +119,25 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
 
     /**
      * by Zeng Hui
-     * @param page start with 0
-     * @param limit
      * @return
      */
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit) {
+    public List<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate) {
+        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
+            List<Predicate> lists = new ArrayList<>();
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotDtl())) {
+                lists.add(cb.like(root.get("plotDtl").as(String.class), StringUtilCorey.getMod(predicate.getPlotDtl())));
+            }
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
+                lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
+            }
+            Predicate[] arr = new Predicate[lists.size()];
+            return cb.and(lists.toArray(arr));
+        };
+        specification = specification.and(PredicateFactory.getAliveSpecification());
+        return corrPlotRepository.findAll(specification);
+    }
+
+    public Page<CorrPlot> findAllCorrPlotWithAlivePaged(CorrPlotPredicate predicate, Integer page, Integer limit){
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "plotNum"));
         Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
@@ -137,7 +151,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             return cb.and(lists.toArray(arr));
         };
         specification = specification.and(PredicateFactory.getAliveSpecification());
-        return corrPlotRepository.findAll(specification, pageable);
+        return corrPlotRepository.findAll(specification,pageable);
     }
 
     /**

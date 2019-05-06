@@ -93,7 +93,7 @@ public class PlotFactorController {
         Map<String,Object> ret = new HashMap<>();
         CorrPlotPredicate predicate = new CorrPlotPredicate();
         predicate.setPlotDtl(plotDtl);
-        Page<CorrPlot> corrPlots = plotFactorService.findAllCorrPlotWithAlive(predicate,page-1,limit);
+        Page<CorrPlot> corrPlots = plotFactorService.findAllCorrPlotWithAlivePaged(predicate,page-1,limit);
         ret.put("total",corrPlots.getTotalElements());
         List<Map<String,Object>> list = new ArrayList<>();
         corrPlots.forEach(e->{
