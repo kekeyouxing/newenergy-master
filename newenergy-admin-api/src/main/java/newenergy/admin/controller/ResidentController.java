@@ -29,6 +29,15 @@ public class ResidentController {
     @Autowired
     private CorrAddressService corrAddressService;
 
+    @Autowired
+    private CorrPlotService corrPlotService;
+
+    @Autowired
+    private CorrTypeService corrTypeService;
+
+    @Autowired
+    private CorrPumpService corrPumpService;
+
     GetNumCode getNumCode = new GetNumCode();
 
     /**
@@ -53,16 +62,29 @@ public class ResidentController {
         Long total = pageResident.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total",total);
-        data.put("resident", residentList);
         List<Map<String, Object>> list = new ArrayList<>();
         for(Resident resident: residentList){
             Map<String, Object> info = new HashMap<>();
+            info.put("id", resident.getId());
+            info.put("registerId",resident.getRegisterId());
+            info.put("userName", resident.getUserName());
+            info.put("phone", resident.getPhone());
+            info.put("plotDtl", corrPlotService.findByPlotNum(residentService.findPlotNumByRegisterid(resident.getRegisterId(),0)));
+            info.put("addressDtl", corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
+            info.put("roomNum", resident.getRoomNum());
+            info.put("area", resident.getArea());
             info.put("buyTime", resident.getBuyTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("typeDtl", corrTypeService.findByTypeNum(resident.getTypeNum()).getTypeDtl());
+            info.put("ratedFlow", corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow());
+            info.put("deviceNum", resident.getDeviceNum());
+            info.put("deviceSeq", resident.getDeviceSeq());
+            info.put("pumpDtl", corrPumpService.findByPlotNum(resident.getPumpNum()).get(0).getPumpDtl());
             info.put("installTime", resident.getInstallTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             info.put("receiveTime", resident.getReceiveTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("openid", resident.getOpenid());
             list.add(info);
         }
-        data.put("time", list);
+        data.put("resident", list);
         return ResponseUtil.ok(data);
     }
 
@@ -100,7 +122,7 @@ public class ResidentController {
         int i ;
         for(i=0; i<deviceSeqs.size(); i++) {
             String num = getNumCode.getOneNum(i);
-            if(num.compareTo(deviceSeqs.get(i))==-1) {
+            if(num.compareTo(deviceSeqs.get(i))<0) {
                 resident.setDeviceSeq(num);
                 break;
             }
