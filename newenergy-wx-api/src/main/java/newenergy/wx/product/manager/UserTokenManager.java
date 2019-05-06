@@ -59,7 +59,7 @@ public class UserTokenManager {
             token = CharUtil.getRandomString(32);
         }
         LocalDateTime update = LocalDateTime.now();
-        LocalDateTime expire = update.plusHours(2);
+        LocalDateTime expire = update.plusMonths(1);
 
         userToken = new UserToken();
         userToken.setToken(token);
@@ -80,7 +80,7 @@ public class UserTokenManager {
             token = CharUtil.getRandomString(32);
         }
         LocalDateTime update = LocalDateTime.now();
-        LocalDateTime expire = update.plusMonths(1);
+        LocalDateTime expire = update.plusHours(2);
 
         userToken = new UserToken();
         userToken.setToken(token);
