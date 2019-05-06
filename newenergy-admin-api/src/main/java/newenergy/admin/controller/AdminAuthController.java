@@ -13,11 +13,16 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.apache.shiro.authc.AuthenticationException;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +44,7 @@ public class AdminAuthController {
     private NewenergyPermissionService permissionService;
 
     @PostMapping("/login")
-    public Object login(@RequestBody String body){
+    public Object login(@RequestBody String body, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String username = JacksonUtil.parseString(body, "username");
         String password = JacksonUtil.parseString(body, "password");
 
@@ -58,8 +63,8 @@ public class AdminAuthController {
             return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, ae.getMessage());
         }
         return ResponseUtil.ok(currentUser.getSession().getId());
-
     }
+
     @GetMapping("/401")
     public Object page401(){
         return ResponseUtil.unlogin();
