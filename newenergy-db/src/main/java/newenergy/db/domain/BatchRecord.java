@@ -12,9 +12,12 @@ public class BatchRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Integer id;
-    private String company;
+    private String plotNum;
     private LocalDateTime rechargeTime;
     private Integer batchAdmin;
+    private Integer amount;
+    private Integer state;
+    private String imgUrl;
     private LocalDateTime safeChangedTime;
     private Integer safeChangedUserid;
     private Integer safeDelete;
@@ -28,12 +31,12 @@ public class BatchRecord {
         this.id = id;
     }
 
-    public String getCompany() {
-        return company;
+    public String getPlotNum() {
+        return plotNum;
     }
 
-    public void setCompany(String company) {
-        this.company = company;
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
     public LocalDateTime getRechargeTime() {
@@ -52,7 +55,29 @@ public class BatchRecord {
         this.batchAdmin = batchAdmin;
     }
 
+    public Integer getAmount() {
+        return amount;
+    }
 
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public Integer getState() {
+        return state;
+    }
+
+    public void setState(Integer state) {
+        this.state = state;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 
     public Integer getSafeChangedUserid() {
         return safeChangedUserid;

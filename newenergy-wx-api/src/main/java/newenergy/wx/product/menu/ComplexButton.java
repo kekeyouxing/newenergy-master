@@ -7,13 +7,13 @@ package newenergy.wx.product.menu;
  * @date 2019-04-15
  */
 public class ComplexButton extends Button{
-    private Button[] subButton;
+    private Button[] sub_button;
 
-    public Button[] getSubButton() {
-        return subButton;
+    public Button[] getSub_button() {
+        return sub_button;
     }
 
-    public void setSubButton(Button[] subButton) {
-        this.subButton = subButton;
+    public void setSub_button(Button[] subButton) {
+        this.sub_button = subButton;
     }
 }

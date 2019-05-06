@@ -22,6 +22,8 @@ public class CorrAddress {
 
     private Integer addressUnit;
 
+    private String addressDtl;
+
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
 
@@ -33,7 +35,7 @@ public class CorrAddress {
     private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private  Integer sageParent;
+    private  Integer safeParent;
 
     public Integer getId() {
         return id;
@@ -99,11 +101,23 @@ public class CorrAddress {
         this.safeDelete = safeDelete;
     }
 
-    public Integer getSageParent() {
-        return sageParent;
+    public Integer getSafeParent() {
+        return safeParent;
     }
 
-    public void setSageParent(Integer sageParent) {
-        this.sageParent = sageParent;
+    public void setSafeParent(Integer safeParent) {
+        this.safeParent = safeParent;
+    }
+
+    public String getAddressDtl() {
+        return addressDtl;
+    }
+
+    public void initAddressDtl(){
+        this.addressDtl =  addressPlot+addressBlock+"栋"+addressUnit+"单元";
+    }
+
+    public void setAddressDtl(String addressDtl) {
+        this.addressDtl = addressDtl;
     }
 }

@@ -5,6 +5,15 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.List;
 
 
 /**
@@ -27,9 +36,72 @@ public class CommonUtil {
      */
     public static JSONObject httpsRequest(String requestUrl,String requestMethod,String outputStr){
         JSONObject jsonObject = null;
+        RestTemplate restTemplate = CommonUtil.getInstance("utf-8");
         try{
             //创建SSLContext对象，并使用我们指定的信任管理器初始化
-
+            switch(requestMethod){
+                case "GET":
+                    if (null == outputStr){
+                        String a = restTemplate.getForObject(requestUrl,String.class);
+                        jsonObject = JSONObject.fromObject(a);
+//                        jsonObject = restTemplate.getForObject(requestUrl,JSONObject.class);
+//                        URL url = new URL(requestUrl);
+//                        HttpURLConnection conn = (HttpURLConnection)usrl.openConnection();
+//                        conn.setDoOutput(true);
+//                        conn.setDoInput(true);
+//                        conn.setUseCaches(false);
+//                        conn.setRequestMethod(requestMethod);
+////                        OutputStream outputStream = conn.getOutputStream();
+////                        outputStream.write(outputStr.getBytes("UTF-8"));
+////                        outputStream.close();
+//                        InputStream inputStream = conn.getInputStream();
+//                        InputStreamReader inputStreamReader = new InputStreamReader(inputStream,"utf-8");
+//                        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+//                        String str=null;
+//                        StringBuffer buffer = new StringBuffer();
+//                        while((str = bufferedReader.readLine())!=null){
+//                            buffer.append(str);
+//                        }
+//                        bufferedReader.close();
+//                        inputStreamReader.close();
+//                        inputStream.close();
+//                        inputStream = null;
+//                        conn.disconnect();
+//                        jsonObject = JSONObject.fromObject(buffer.toString());
+                    }else{
+                        jsonObject = restTemplate.getForObject(requestUrl,JSONObject.class,outputStr);
+                    }
+                    break;
+                case "POST":
+                    jsonObject = restTemplate.postForObject(requestUrl,outputStr,JSONObject.class);
+//                    URL url = new URL(requestUrl);
+//                    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+//                    conn.setDoOutput(true);
+//                    conn.setDoInput(true);
+//                    conn.setUseCaches(false);
+//                    conn.setRequestMethod(requestMethod);
+//                    OutputStream outputStream = conn.getOutputStream();
+//                    outputStream.write(outputStr.getBytes("UTF-8"));
+//                    outputStream.close();
+//                    InputStream inputStream = conn.getInputStream();
+//                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream,"utf-8");
+//                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+//                    String str=null;
+//                    StringBuffer buffer = new StringBuffer();
+//                    while((str = bufferedReader.readLine())!=null){
+//                        buffer.append(str);
+//                    }
+//                    bufferedReader.close();
+//                    inputStreamReader.close();
+//                    inputStream.close();
+//                    inputStream = null;
+//                    conn.disconnect();
+//                    jsonObject = JSONObject.fromObject(buffer.toString());
+                    break;
+                default:
+                    System.out.println("null");
+                    break;
+            }
         }catch (Exception e){
             log.error("https请求异常：{}",e);
         }
@@ -42,9 +114,9 @@ public class CommonUtil {
      * @param appsecret
      * @return
      */
-    public static Token getToken(String appid,String appsecret){
+    public static Token getAccessToken(String appid,String appsecret){
         Token token  = null;
-        String requestUrl = token_url.replace("AppID",appid).replace("APPSECRET",appsecret);
+        String requestUrl = token_url.replace("APPID",appid).replace("APPSECRET",appsecret);
         //发起GET请求获取凭证
         JSONObject jsonObject = httpsRequest(requestUrl,"GET",null);
 
@@ -59,5 +131,31 @@ public class CommonUtil {
             }
         }
         return token;
+    }
+
+    /**
+     * URL编码（utf-8）
+     * @param source
+     * @return
+     */
+    public static String urlEncodeUTF8(String source){
+        String result = source;
+        try{
+            result = java.net.URLEncoder.encode(source,"utf-8");
+        }catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public static RestTemplate getInstance(String charset) {
+        RestTemplate restTemplate = new RestTemplate();
+        List<HttpMessageConverter<?>> list = restTemplate.getMessageConverters();
+        for (HttpMessageConverter<?> httpMessageConverter : list) {
+            if(httpMessageConverter instanceof StringHttpMessageConverter) {
+                ((StringHttpMessageConverter) httpMessageConverter).setDefaultCharset(Charset.forName(charset));
+            }
+        }
+        return restTemplate;
     }
 }

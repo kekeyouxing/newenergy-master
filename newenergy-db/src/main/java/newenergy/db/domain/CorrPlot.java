@@ -1,6 +1,7 @@
 package newenergy.db.domain;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,7 @@ public class CorrPlot {
     private String plotDtl;
 
     //充值系数，元/吨
-    private Double plotFactor;
+    private BigDecimal plotFactor;
 
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
@@ -31,7 +32,7 @@ public class CorrPlot {
     private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private  Integer sageParent;
+    private  Integer safeParent;
 
     public Integer getId() {
         return id;
@@ -57,11 +58,11 @@ public class CorrPlot {
         this.plotDtl = plotDtl;
     }
 
-    public Double getPlotFactor() {
+    public BigDecimal getPlotFactor() {
         return plotFactor;
     }
 
-    public void setPlotFactor(Double plotFactor) {
+    public void setPlotFactor(BigDecimal plotFactor) {
         this.plotFactor = plotFactor;
     }
 
@@ -90,10 +91,10 @@ public class CorrPlot {
     }
 
     public Integer getSageParent() {
-        return sageParent;
+        return safeParent;
     }
 
-    public void setSageParent(Integer sageParent) {
-        this.sageParent = sageParent;
+    public void setSageParent(Integer safeParent) {
+        this.safeParent = safeParent;
     }
 }

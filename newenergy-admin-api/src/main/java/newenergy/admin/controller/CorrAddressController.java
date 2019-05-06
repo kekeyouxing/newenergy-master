@@ -28,21 +28,31 @@ public class CorrAddressController {
 
     GetNumCode getNumCode = new GetNumCode();
 
-    //获取搜索列表
+
+    /**
+     * 获取数据相关表-地址表全部纪录，可根据搜索条件查找
+     * @param addressDtl
+     * @param page
+     * @param limit
+     * @return
+     */
     @GetMapping("/list")
-    public Object list(String address_dlt,
-                       @RequestParam(defaultValue = "0") Integer page,
+    public Object list(String addressDtl,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
-        Page<CorrAddress> pageAddress = corrAddressService.querySelective(address_dlt, page, limit);
+        Page<CorrAddress> pageAddress = corrAddressService.querySelective(addressDtl, page-1, limit);
         List<CorrAddress> corrAddresses = pageAddress.getContent();
-        int total = pageAddress.getNumberOfElements();
+        Long total = pageAddress.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrAddress", corrAddresses);
         return ResponseUtil.ok(data);
     }
 
-    //获取地址下拉框选项
+    /**
+     * 获取地址下拉框选项
+     * @return
+     */
     @GetMapping("/options")
     public Object options() {
         List<CorrAddress> corrAddresses = corrAddressService.findAll();
@@ -50,35 +60,93 @@ public class CorrAddressController {
         for(CorrAddress corrAddress: corrAddresses) {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrAddress.getAddressNum());
-            option.put("plot", corrAddress.getAddressPlot());
-            option.put("block", corrAddress.getAddressBlock()+"栋");
-            option.put("unit", corrAddress.getAddressUnit() + "单元");
+            option.put("label", corrAddress.getAddressPlot());
+            option.put("block", corrAddress.getAddressBlock());
+            option.put("unit", corrAddress.getAddressUnit());
             options.add(option);
         }
         return ResponseUtil.ok(options);
     }
 
-    //新增地址信息表数据
+    /**
+     * 获取地址楼栋下拉框选项
+     * @param plotNum  小区编号
+     * @return
+     */
+    @GetMapping("/blockOptions")
+    public Object blockOptions(@RequestParam String plotNum) {
+        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(plotNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrAddresses.size());
+        for(CorrAddress corrAddress: corrAddresses) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrAddress.getAddressNum().substring(2,4));
+            option.put("label", corrAddress.getAddressBlock());
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
+    /**
+     * 根据小区和楼栋获取所有单元号
+     * @param blockNum  4位，小区编号+楼栋编号
+     * @return
+     */
+    @GetMapping("/unitOptions")
+    public Object unitOptions(@RequestParam String blockNum) {
+        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(blockNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrAddresses.size());
+        for(CorrAddress corrAddress: corrAddresses) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrAddress.getAddressNum().substring(4));
+            option.put("label", corrAddress.getAddressUnit());
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
+
+    /**
+     * 新增地址表
+     * @param corrAddress
+     * @param userid
+     * @return
+     */
     @PostMapping("/create")
-    public Object create(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
-        String plot_num = corrPlotService.fingPlotNum(corrAddress.getAddressPlot());
-        String adress_num = getNumCode.getAddressNum(plot_num, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
-        corrAddress.setAddressNum(adress_num);
+    public Object create(@RequestBody CorrAddress corrAddress, Integer userid) {
+        String plotNum = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
+        String adressNum = getNumCode.getAddressNum(plotNum, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
+        List<CorrAddress> addresses = corrAddressService.findAll();
+        for(CorrAddress address: addresses){
+            if(address.getAddressNum().equals(adressNum)){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
+        }
+        corrAddress.setAddressNum(adressNum);
+        corrAddress.initAddressDtl();
         CorrAddress corrAddress1 = corrAddressService.addCorrAddress(corrAddress, userid);
         return ResponseUtil.ok(corrAddress1);
     }
 
-    //修改地址信息表数据
+    /**
+     * 修改地址表
+     * @param corrAddress
+     * @param userid
+     * @return
+     */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrAddress corrAddress, Integer userid) {
+        corrAddress.initAddressDtl();
         corrAddressService.updateCorrAddress(corrAddress, userid);
         return ResponseUtil.ok();
     }
 
-    //删除地址信息表数据
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrAddress corrAddress, @RequestParam Integer userid) {
-        Integer id = corrAddress.getId();
+    /**
+     * 删除地址表数据
+     * @param userid
+     * @return
+     */
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }

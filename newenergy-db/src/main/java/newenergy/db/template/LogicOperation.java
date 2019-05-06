@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +29,8 @@ import java.util.Objects;
 public class LogicOperation<T> {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
+    @PersistenceContext
+    private EntityManager entityManager;
     /**
      * 添加记录
      * @param record record中不含id
@@ -52,16 +55,20 @@ public class LogicOperation<T> {
      */
     protected T updateRecord(T record, Integer userid, JpaRepository<T,Integer> repository){
         Integer originId = getId(record);
+        //取消T类型实体在hibernate中的一级缓存
+        entityManager.detach(record);
         if(Objects.isNull(originId))
             return null;
         T origin = repository.findById(originId).orElse(null);
         if(Objects.isNull(origin)) return null;
         if(getSafeDelete(origin).equals(1)) return null;
+
         T backup = (T)getCopy(origin);
         setId(null,backup);
         setSafeDelete(1,backup);
-        T backup_saved = repository.save(backup);
+        T backup_saved = repository.saveAndFlush(backup);
         Integer backupId = getId(backup_saved);
+
         try{
             combine(origin,record);
         }catch (Exception e){
@@ -72,7 +79,7 @@ public class LogicOperation<T> {
         setSafeParent(backupId,origin);
         setSafeChangedTime(LocalDateTime.now(),origin);
         setSafeChangedUserid(userid,origin);
-        return repository.save(origin);
+        return repository.saveAndFlush(origin);
     }
 
     /**
@@ -147,7 +154,7 @@ public class LogicOperation<T> {
         return obj;
     }
 
-    private  Object getCopy(Object src){
+    public  Object getCopy(Object src){
         Object obj = null;
         if(Objects.isNull(src)) return null;
         Class<?> klass = src.getClass();

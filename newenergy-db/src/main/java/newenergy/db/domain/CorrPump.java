@@ -11,14 +11,16 @@ public class CorrPump {
     private Integer id;
 
     //所属机房编号，见数据对应表-机房
-    @Column(length = 2)
+    @Column(length = 4)
     private String pumpNum;
 
     //机房所在小区
-    private String pumpPlot;
+    private String plot;
 
     //机房信息
-    private Integer pumpDlt;
+    private Integer pump;
+
+    private String pumpDtl;
 
     //安全属性：添加时间
     private LocalDateTime safeChangedTime;
@@ -31,7 +33,7 @@ public class CorrPump {
     private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private  Integer sageParent;
+    private  Integer safeParent;
 
     public Integer getId() {
         return id;
@@ -49,20 +51,28 @@ public class CorrPump {
         this.pumpNum = pumpNum;
     }
 
-    public String getPumpPlot() {
-        return pumpPlot;
+    public String getPlot() {
+        return plot;
     }
 
-    public void setPumpPlot(String pumpPlot) {
-        this.pumpPlot = pumpPlot;
+    public void setPlot(String plot) {
+        this.plot = plot;
     }
 
-    public Integer getPumpDlt() {
-        return pumpDlt;
+    public Integer getPump() {
+        return pump;
     }
 
-    public void setPumpDlt(Integer pumpDlt) {
-        this.pumpDlt = pumpDlt;
+    public void setPump(Integer pump) {
+        this.pump = pump;
+    }
+
+    public String getPumpDtl() {
+        return pumpDtl;
+    }
+
+    public void setPumpDtl(String pumpDtl) {
+        this.pumpDtl = pumpDtl;
     }
 
     public LocalDateTime getSafeChangedTime() {
@@ -89,11 +99,11 @@ public class CorrPump {
         this.safeDelete = safeDelete;
     }
 
-    public Integer getSageParent() {
-        return sageParent;
+    public Integer getSafeParent() {
+        return safeParent;
     }
 
-    public void setSageParent(Integer sageParent) {
-        this.sageParent = sageParent;
+    public void setSafeParent(Integer sageParent) {
+        this.safeParent = safeParent;
     }
 }

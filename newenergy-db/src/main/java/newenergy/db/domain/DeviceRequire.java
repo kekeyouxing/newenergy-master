@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 @Table(
         name = "device_require",
         indexes = {
-                @Index(columnList = "plotInfo")
+                @Index(columnList = "plotNum")
         }
 )
 public class DeviceRequire {
     @Id
     @GeneratedValue
     private Integer id;
-    private String plotInfo;
+    private String plotNum;
 
     private BigDecimal requireVolume;
     private LocalDateTime updateTime;
@@ -38,12 +38,12 @@ public class DeviceRequire {
         this.id = id;
     }
 
-    public String getPlotInfo() {
-        return plotInfo;
+    public String getPlotNum() {
+        return plotNum;
     }
 
-    public void setPlotInfo(String plotInfo) {
-        this.plotInfo = plotInfo;
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
     public BigDecimal getRequireVolume() {

@@ -4,4 +4,4 @@ spring:
   messages:
     encoding: utf-8
 server:
-  port: 8080
+  port: 80

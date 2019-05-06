@@ -14,7 +14,7 @@ public class ManualRecord {
     private LocalDateTime operateTime;
     private Integer event;
     private Integer laborId;
-    private Integer laborIp;
+    private String laborIp;
     private Integer recordId;
 
     public Integer getId() {
@@ -49,11 +49,11 @@ public class ManualRecord {
         this.laborId = laborId;
     }
 
-    public Integer getLaborIp() {
+    public String getLaborIp() {
         return laborIp;
     }
 
-    public void setLaborIp(Integer laborIp) {
+    public void setLaborIp(String laborIp) {
         this.laborIp = laborIp;
     }
 

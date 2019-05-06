@@ -5,12 +5,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "refund_record")
 public class RefundRecord  implements Cloneable{
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Integer id;
     private String registerId;
+    private String plotNum;
     private Integer refundAmount;
     private BigDecimal refundVolume;
     private LocalDateTime refundTime;
@@ -37,6 +40,14 @@ public class RefundRecord  implements Cloneable{
 
     public void setRegisterId(String registerId) {
         this.registerId = registerId;
+    }
+
+    public String getPlotNum() {
+        return plotNum;
+    }
+
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
     public Integer getRefundAmount() {

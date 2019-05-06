@@ -19,11 +19,12 @@ public class DeviceInfoService {
         return repository.findFirstByRegisterId(registerId);
     }
     public DeviceInfo addDeviceInfo(DeviceInfo info){
-        return repository.save(info);
+        return repository.saveAndFlush(info);
     }
 
     public void updateDevice(String deviceNum, Integer active, Integer faultNum){
         DeviceInfo info = repository.findFirstByDeviceNum(deviceNum);
+        if(Objects.isNull(info)) return;
         if(Objects.nonNull(active)){
             info.setActive(active);
         }
@@ -31,17 +32,19 @@ public class DeviceInfoService {
             info.setFaultNum(faultNum);
         }
         info.setUpdateTime(LocalDateTime.now());
-        repository.save(info);
+        repository.saveAndFlush(info);
     }
     public DeviceInfo setMonitor(String registerId, Integer userid){
         DeviceInfo info = repository.findFirstByRegisterId(registerId);
+        if(Objects.isNull(info)) return null;
         info.setMonitorId(userid);
-        return repository.save(info);
+        return repository.saveAndFlush(info);
     }
     public DeviceInfo setServicer(String registerId, Integer userid){
         DeviceInfo info = repository.findFirstByRegisterId(registerId);
+        if(Objects.isNull(info)) return null;
         info.setServicerId(userid);
-        return repository.save(info);
+        return repository.saveAndFlush(info);
     }
 
 }

@@ -9,7 +9,19 @@ import java.util.List;
 
 @Repository
 public interface CorrPlotRepository  extends JpaRepository<CorrPlot, Integer>, JpaSpecificationExecutor<CorrPlot> {
-    public List<CorrPlot> findAllBySafeDelete(Integer safe_delete);
+    public List<CorrPlot> findAllBySafeDeleteOrderByPlotNum(Integer safe_delete);
+    public List<CorrPlot> findAllBySafeDeleteOrderByPlotDtl(Integer safe_delete);
     public CorrPlot findByPlotDtlAndSafeDelete(String plot_dlt, Integer safe_delete);
-    public CorrPlot findFirstByPlotNum(String plotNum);
+
+    /**
+     * 修改此方法添加safe_delete属性
+     * @author yangq
+     * @param plotNum
+     * @param safe_delete
+     * @return
+     */
+    //public CorrPlot findFirstByPlotNum(String plotNum);
+    public CorrPlot findFirstByPlotNumAndSafeDelete(String plotNum,Integer safe_delete);
+
+
 }

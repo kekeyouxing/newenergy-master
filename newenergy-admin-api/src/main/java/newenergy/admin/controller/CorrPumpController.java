@@ -25,21 +25,30 @@ public class CorrPumpController {
 
     GetNumCode getNumCode = new GetNumCode();
 
-    //根据机房信息查找纪录
+    /**
+     * 获取机房信息列表
+     * @param pumpDtl
+     * @param page
+     * @param limit
+     * @return
+     */
     @GetMapping("/list")
-    public Object list(String pump_dlt,
-                       @RequestParam(defaultValue = "0") Integer page,
+    public Object list(String pumpDtl,
+                       @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit) {
-        Page<CorrPump> pagePump = corrPumpService.querySelective(pump_dlt, page, limit);
+        Page<CorrPump> pagePump = corrPumpService.querySelective(pumpDtl, page-1, limit);
         List<CorrPump> corrPumps = pagePump.getContent();
-        int total = pagePump.getNumberOfElements();
+        Long total = pagePump.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("corrPump", corrPumps);
         return ResponseUtil.ok(data);
     }
 
-    //获取机房信息下拉框选项
+    /**
+     * 获取机房信息下拉框选项
+     * @return
+     */
     @GetMapping("/options")
     public Object options() {
         List<CorrPump> corrPumps = corrPumpService.findAll();
@@ -47,36 +56,74 @@ public class CorrPumpController {
         for(CorrPump corrPump : corrPumps) {
             Map<String, Object> option = new HashMap<>();
             option.put("value", corrPump.getPumpNum());
-            option.put("plot", corrPump.getPumpPlot());
-            option.put("pump", corrPump.getPumpDlt() + "号机房");
+            option.put("plot", corrPump.getPlot());
+            option.put("pump", corrPump.getPump());
             options.add(option);
         }
         return ResponseUtil.ok(options);
     }
 
-    //增加机房信息
+    /**
+     * 根据小区返回机房option
+     * @param plotNum
+     * @return
+     */
+    @GetMapping("/pumpOptions")
+    public Object pumpOptions(String plotNum){
+        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(plotNum);
+        List<Map<String, Object>> options = new ArrayList<>(corrPumps.size());
+        for(CorrPump corrPump: corrPumps){
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", corrPump.getPumpNum().substring(2));
+            option.put("label", corrPump.getPump()+"号机房");
+            options.add(option);
+        }
+        return ResponseUtil.ok(options);
+    }
+
+    /**
+     * 增加机房信息
+     * @param corrPump
+     * @param userid
+     * @return
+     */
     @PostMapping("/create")
     //改成小区+机房，数据库多加一个字段，编号为4位
-    public Object create(@RequestBody CorrPump corrPump, @RequestParam Integer userid){
-        List<CorrPump> corrPumps = corrPumpService.findAll();
-        String plot_num = corrPlotService.fingPlotNum(corrPump.getPumpPlot());
-        String pump_num = plot_num + getNumCode.getTwoNum(corrPumps.size());
-        corrPump.setPumpNum(pump_num);
+    public Object create(@RequestBody CorrPump corrPump, Integer userid){
+        String plotNum = corrPlotService.findPlotNum(corrPump.getPlot());
+        String pumpNum = plotNum + getNumCode.getTwoNum(corrPump.getPump());
+        List<CorrPump> pumps = corrPumpService.findAll();
+        for(CorrPump pump:pumps){
+            if(pump.getPumpNum().equals(pumpNum)){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
+        }
+        corrPump.setPumpNum(pumpNum);
+        corrPump.setPumpDtl(corrPump.getPlot()+corrPump.getPump()+"号机房");
         CorrPump corrPump1 = corrPumpService.addCorrPump(corrPump, userid);
         return ResponseUtil.ok(corrPump1);
     }
 
-    //修改机房信息
+    /**
+     * 修改机房信息（问题同地址表，修改是否需要修改编号)
+     * @param corrPump
+     * @param userid
+     * @return
+     */
     @PostMapping("/update")
-    public Object update(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
+    public Object update(@RequestBody CorrPump corrPump, Integer userid) {
+        corrPump.setPumpDtl(corrPump.getPlot()+corrPump.getPump()+"号机房");
         corrPumpService.updateCorrPump(corrPump, userid);
         return ResponseUtil.ok();
     }
 
-    //删除记录
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrPump corrPump, @RequestParam Integer userid) {
-        Integer id = corrPump.getId();
+    /**
+     * 删除机房信息
+     * @param userid
+     * @return
+     */
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }

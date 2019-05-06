@@ -13,6 +13,7 @@ public class RechargeRecord implements Cloneable{
 
     private Integer id;
     private String registerId;
+    private String plotNum;
     private Integer amount;
     private LocalDateTime rechargeTime;
     private BigDecimal rechargeVolume;
@@ -21,6 +22,7 @@ public class RechargeRecord implements Cloneable{
     private String orderSn;
     private String userName;
     private String userPhone;
+    private Integer checkId;
     private Integer state;
     private Integer delegate;
     private String transactionId;
@@ -45,6 +47,14 @@ public class RechargeRecord implements Cloneable{
 
     public void setRegisterId(String registerId) {
         this.registerId = registerId;
+    }
+
+    public String getPlotNum() {
+        return plotNum;
+    }
+
+    public void setPlotNum(String plotNum) {
+        this.plotNum = plotNum;
     }
 
     public Integer getAmount() {
@@ -101,6 +111,14 @@ public class RechargeRecord implements Cloneable{
 
     public void setUserPhone(String userPhone) {
         this.userPhone = userPhone;
+    }
+
+    public Integer getCheckId() {
+        return checkId;
+    }
+
+    public void setCheckId(Integer checkId) {
+        this.checkId = checkId;
     }
 
     public Integer getState() {

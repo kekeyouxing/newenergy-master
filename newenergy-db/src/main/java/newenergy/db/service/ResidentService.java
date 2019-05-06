@@ -1,16 +1,24 @@
 package newenergy.db.service;
 
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.Resident;
+import newenergy.db.domain.StatisticConsume;
 import newenergy.db.repository.ResidentRepository;
+import newenergy.db.repository.StatisticConsumeRepository;
 import newenergy.db.template.LogicOperation;
+import newenergy.db.util.StringUtilCorey;
+import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,15 +27,18 @@ public class ResidentService extends LogicOperation<Resident> {
     @Autowired
     private ResidentRepository residentRepository;
 
+    @Autowired
+    private StatisticConsumeRepository consumeRepository;
+
     /**
     * @Param
     * @Param address_nums 装机地址模糊查询对应编号
     * @return 返回十页的resident数据
     */
-    public Page<Resident> querySelective(String user_name, List<String> address_nums, Integer page, Integer size) {
+    public Page<Resident> querySelective(String userName, List<String> addressNums, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Specification specification = getListSpecification(user_name, address_nums);
+        Specification specification = getListSpecification(userName, addressNums);
 
         return residentRepository.findAll(specification, pageable);
     }
@@ -41,7 +52,8 @@ public class ResidentService extends LogicOperation<Resident> {
         Resident resident = new Resident();
         resident.setAddressNum(address_num);
         resident.setRoomNum(room_num);
-        List<Resident> residents = residentRepository.findAll(findSearch(resident));
+        Sort sort = new Sort(Sort.Direction.ASC, "deviceSeq");
+        List<Resident> residents = residentRepository.findAll(findSearch(resident, new BigDecimal(0), new BigDecimal(0)), sort);
         return residents;
     }
 
@@ -78,9 +90,44 @@ public class ResidentService extends LogicOperation<Resident> {
      * @param register_id
      * @return String plotNum-小区编号
      */
-    public String findPlotNumByRegisterid(String register_id){
-        return residentRepository.findFirstByRegisterId(register_id).getPlotNum();
+    public String findPlotNumByRegisterid(String register_id,Integer safe_delete){
+        return residentRepository.findFirstByRegisterIdAndSafeDelete(register_id,safe_delete).getPlotNum();
     }
+    /**
+     * 根据登记号查找居民用户
+     * @param registerId  登记号
+     * @return
+     */
+    public Resident fingByRegisterId(String registerId) {
+        return residentRepository.findByRegisterIdAndSafeDelete(registerId, 0);
+    }
+
+    /**
+     * 根据小区编号和登记号查找居民用户
+     * @param plotNum  小区编号
+     * @param registerId   登记号
+     * @param page
+     * @param limit
+     * @return
+     */
+    public Page<Resident> findByPlotNumAndRegisterId(String plotNum, String registerId, Integer page, Integer limit, BigDecimal start, BigDecimal end) {
+        Pageable pageable = PageRequest.of(page, limit);
+
+        Resident resident = new Resident();
+        resident.setPlotNum(plotNum);
+        resident.setRegisterId(registerId);
+        Specification specification = findSearch(resident, start, end);
+        return residentRepository.findAll(specification, pageable);
+    }
+
+    public Integer findByPlotNumAndRegisterIdSize(String plotNum,String registerId){
+        Resident resident = new Resident();
+        resident.setPlotNum(plotNum);
+        resident.setRegisterId(registerId);
+        Specification specification = findSearch(resident, new BigDecimal(0), new BigDecimal(0));
+        return residentRepository.findAll(specification).size();
+    }
+
     /**
      * 修改居民用户表记录
      * @param resident
@@ -100,46 +147,99 @@ public class ResidentService extends LogicOperation<Resident> {
         deleteRecord(id, userid, residentRepository);
     }
 
-    private Specification<Resident> getListSpecification(String user_name, List<String> address_nums) {
+    private Specification<Resident> getListSpecification(String userName, List<String> addressNums) {
         //动态添加搜索条件
         Specification<Resident> specification = new Specification<Resident>() {
             @Override
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(user_name!=null){
-                    predicates.add(criteriaBuilder.like(root.get("user_name"), "%"+user_name+"%"));
+                if(!StringUtils.isEmpty(userName)){
+                    predicates.add(criteriaBuilder.like(root.get("userName"), "%"+userName+"%"));
                 }
-                if(address_nums.size()!=0) {
-                    Path<Object> path = root.get("address_num");
+                if(addressNums.size()!=0) {
+                    Path<Object> path = root.get("addressNum");
                     CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
-                    for(String address_num: address_nums) {
+                    for(String address_num: addressNums) {
                         in.value(address_num);
                     }
                     predicates.add(criteriaBuilder.and(in));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
         return specification;
     }
 
-    private Specification<Resident> findSearch(Resident resident) {
+    private Specification<Resident> findSearch(Resident resident, BigDecimal start, BigDecimal end) {
         Specification<Resident> specification = new Specification<Resident>() {
             @Override
             public Predicate toPredicate(Root<Resident> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(resident.getAddressNum()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("address_num"), resident.getAddressNum()));
+                if(!StringUtils.isEmpty(resident.getAddressNum())) {
+                    predicates.add(criteriaBuilder.equal(root.get("addressNum"), resident.getAddressNum()));
                 }
-                if(resident.getRoomNum()!=null) {
-                    predicates.add(criteriaBuilder.equal(root.get("room_num"), resident.getRoomNum()));
+                if(!StringUtils.isEmpty(resident.getRoomNum())) {
+                    predicates.add(criteriaBuilder.equal(root.get("roomNum"), resident.getRoomNum()));
                 }
-                predicates.add(criteriaBuilder.equal(root.get("safe_delete"), 0));
+                if(!StringUtils.isEmpty(resident.getPlotNum())) {
+                    predicates.add(criteriaBuilder.equal(root.get("plotNum"), resident.getPlotNum()));
+                }
+                if(!StringUtils.isEmpty(resident.getRegisterId())) {
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"), resident.getRegisterId()));
+                }
+                if((start.compareTo(new BigDecimal(0))!=0)||(end.compareTo(new BigDecimal(0))!=0)) {
+                    Specification<StatisticConsume> consumeSpecification = new Specification<StatisticConsume>() {
+                        @Override
+                        public Predicate toPredicate(Root<StatisticConsume> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                            List<Predicate> conPredicate = new ArrayList<>();
+                            if(start.compareTo(new BigDecimal(0))!=0){
+                                conPredicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("curUsed"), start));
+                            }
+                            if(end.compareTo(new BigDecimal(0))!=0){
+                                conPredicate.add(criteriaBuilder.lessThan(root.get("curUsed"), end));
+                            }
+                            return criteriaBuilder.and(conPredicate.toArray(new Predicate[conPredicate.size()]));
+                        }
+                    };
+                    List<StatisticConsume> consumes = consumeRepository.findAll(consumeSpecification);
+                    Path<Object> path = root.get("registerId");
+                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                    for(StatisticConsume consume: consumes){
+                        in.value(consume.getRegisterId());
+                    }
+                    predicates.add(criteriaBuilder.and(in));
+                }
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
         return specification;
     }
+
+    /**
+     * by Zeng Hui
+     * 用于故障记录的用户列表
+     * @param resident
+     * @return
+     */
+    public Specification<Resident> findByPlotNumOrSearch(Resident resident){
+        return (root,cq,cb)-> {
+            List<Predicate> predicates = new ArrayList<>();
+            if(!StringUtilCorey.emptyCheck(resident.getPlotNum())) {
+                predicates.add(cb.equal(root.get("plotNum"), resident.getPlotNum()));
+            }
+            if(!StringUtilCorey.emptyCheck(resident.getRegisterId())){
+                predicates.add(cb.equal(root.get("registerId"), resident.getRegisterId()));
+            }
+            if(!StringUtilCorey.emptyCheck(resident.getUserName())){
+                predicates.add(cb.like(root.get("userName"), "%"+resident.getUserName()+"%"));
+            }
+            predicates.add(cb.equal(root.get("safeDelete"), SafeConstant.SAFE_ALIVE));
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+    }
+
+
 
 }
