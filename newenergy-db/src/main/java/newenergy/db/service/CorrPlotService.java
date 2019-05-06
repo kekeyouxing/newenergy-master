@@ -130,4 +130,14 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         specification = specification.and(PredicateFactory.getAliveSpecification());
         return corrPlotRepository.findAll(specification, pageable);
     }
+
+    /**
+     * by Zeng Hui
+     * @param plotDtl
+     * @return
+     */
+    public List<CorrPlot> findAllByPlotDtl(String plotDtl){
+        Specification<CorrPlot> spec = getListSpecification(plotDtl);
+        return corrPlotRepository.findAll(spec);
+    }
 }

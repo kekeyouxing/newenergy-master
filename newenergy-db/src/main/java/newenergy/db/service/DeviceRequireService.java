@@ -20,10 +20,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,6 +35,9 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
                                     implements Searchable<DeviceRequire, DeviceRequirePredicate> {
     @Autowired
     private DeviceRequireRepository repository;
+
+    @Autowired
+    private CorrPlotService corrPlotService;
 
     @Autowired
     private CorrPlotRepository corrPlotRepository;
@@ -131,10 +131,6 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
      */
     public void updateCron(){
         DeviceRequireRunnable runnable = new DeviceRequireRunnable();
-        /**
-         * TODO
-         * 每 updateLoop 秒 -> 分钟
-         */
         String cron = scheduledService.getCronByRate(null,DeviceRequireGlobal.updateLoop.get(),null);
         System.out.println("changed to " + cron);
         if(future == null){
@@ -163,16 +159,14 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
         (Root<DeviceRequire> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> list = new ArrayList<>();
             if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
-                CorrPlot plot = corrPlotRepository.findByPlotDtlAndSafeDelete(predicate.getPlotDtl(),SafeConstant.SAFE_ALIVE);
-                /**
-                 * TODO 模糊查找
-                 */
-                String plotNum = "";
-                if(plot != null)
-                    plotNum =  plot.getPlotNum();
-                list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
-
-
+                List<CorrPlot> plots = corrPlotService.findAllByPlotDtl(predicate.getPlotDtl());
+                Path<String> path = root.get("plotNum");
+                CriteriaBuilder.In<String> in = cb.in(path);
+                for (CorrPlot plot : plots){
+                    String plotNum = plot.getPlotNum();
+                    in.value(plotNum);
+                }
+                list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getPlotNum())){
                 list.add(cb.equal(root.get("plotNum").as(String.class),predicate.getPlotNum()));
