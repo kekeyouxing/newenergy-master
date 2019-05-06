@@ -64,6 +64,15 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
         return corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,0);
     }
 
+    /**
+     * 根据id查找纪录
+     * @param id
+     * @return
+     */
+    public CorrPlot findById(Integer id){
+        return corrPlotRepository.findById(id).get();
+    }
+
     //根据小区地址搜索小区编号
     public String findPlotNum(String plotDtl) {
         return corrPlotRepository.findByPlotDtlAndSafeDelete(plotDtl, 0).getPlotNum();

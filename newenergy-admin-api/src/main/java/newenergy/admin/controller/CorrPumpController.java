@@ -92,6 +92,12 @@ public class CorrPumpController {
     public Object create(@RequestBody CorrPump corrPump, Integer userid){
         String plotNum = corrPlotService.findPlotNum(corrPump.getPlot());
         String pumpNum = plotNum + getNumCode.getTwoNum(corrPump.getPump());
+        List<CorrPump> pumps = corrPumpService.findAll();
+        for(CorrPump pump:pumps){
+            if(pump.getPumpNum().equals(pumpNum)){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
+        }
         corrPump.setPumpNum(pumpNum);
         corrPump.setPumpDtl(corrPump.getPlot()+corrPump.getPump()+"号机房");
         CorrPump corrPump1 = corrPumpService.addCorrPump(corrPump, userid);
@@ -113,13 +119,11 @@ public class CorrPumpController {
 
     /**
      * 删除机房信息
-     * @param corrPump
      * @param userid
      * @return
      */
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrPump corrPump, Integer userid) {
-        Integer id = corrPump.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }

@@ -115,6 +115,12 @@ public class CorrAddressController {
     public Object create(@RequestBody CorrAddress corrAddress, Integer userid) {
         String plotNum = corrPlotService.findPlotNum(corrAddress.getAddressPlot());
         String adressNum = getNumCode.getAddressNum(plotNum, corrAddress.getAddressBlock(), corrAddress.getAddressUnit());
+        List<CorrAddress> addresses = corrAddressService.findAll();
+        for(CorrAddress address: addresses){
+            if(address.getAddressNum().equals(adressNum)){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
+        }
         corrAddress.setAddressNum(adressNum);
         corrAddress.initAddressDtl();
         CorrAddress corrAddress1 = corrAddressService.addCorrAddress(corrAddress, userid);
@@ -136,13 +142,11 @@ public class CorrAddressController {
 
     /**
      * 删除地址表数据
-     * @param corrAddress
      * @param userid
      * @return
      */
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrAddress corrAddress, Integer userid) {
-        Integer id = corrAddress.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }

@@ -90,17 +90,18 @@ public class CorrPlotController {
      */
     @PostMapping("/create")
     public Object create(@RequestBody CorrPlot corrPlot, Integer userid) {
-//        System.out.println("增加啦");
-        System.out.println(corrPlot.getPlotDtl());
         List<CorrPlot> corrPlots = corrPlotService.findAll();
         List<String> plotNums = new ArrayList<>();
         for (CorrPlot plot: corrPlots) {
+            if(plot.getPlotDtl().equals(corrPlot.getPlotDtl())){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
             plotNums.add(plot.getPlotNum());
         }
         int i;
         for(i=0; i<plotNums.size(); i++) {
             String num = getNumCode.getTwoNum(i);
-            if(num.compareTo(plotNums.get(i))==-1) {
+            if(num.compareTo(plotNums.get(i))<0) {
                 corrPlot.setPlotNum(num);
                 break;
             }
@@ -150,16 +151,15 @@ public class CorrPlotController {
 
     /**
      * 删除一条小区纪录，地址和机房相应删除
-     * @param corrPlot
      * @param userid
      * @return
      */
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrPlot corrPlot, Integer userid) {
-        Integer id = corrPlot.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }
+        CorrPlot corrPlot = corrPlotService.findById(id);
         corrPlotService.deleteCorrPlot(id, userid);
         List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(corrPlot.getPlotNum());
         for(CorrAddress corrAddress: corrAddresses) {

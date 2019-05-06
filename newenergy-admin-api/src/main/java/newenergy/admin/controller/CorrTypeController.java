@@ -72,12 +72,15 @@ public class CorrTypeController {
         List<CorrType> corrTypes = corrTypeService.findAll();
         List<String> typeNums = new ArrayList<>();
         for(CorrType corrType1: corrTypes) {
+            if(corrType1.getTypeDtl().equals(corrType.getTypeDtl())){
+                return ResponseUtil.fail(1,"数据已存在");
+            }
             typeNums.add(corrType1.getTypeNum());
         }
         int i;
         for(i=0; i<typeNums.size(); i++) {
             String num = getNumCode.getTwoNum(i);
-            if(num.compareTo(typeNums.get(i))==-1) {
+            if(num.compareTo(typeNums.get(i))<0) {
                 corrType.setTypeNum(num);
                 break;
             }
@@ -103,13 +106,11 @@ public class CorrTypeController {
 
     /**
      * 删除
-     * @param corrType
      * @param userid
      * @return
      */
-    @PostMapping("/delete")
-    public Object delete(@RequestBody CorrType corrType, Integer userid) {
-        Integer id = corrType.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id, Integer userid) {
         if(id==null) {
             return ResponseUtil.badArgument();
         }

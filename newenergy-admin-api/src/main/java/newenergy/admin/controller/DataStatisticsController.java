@@ -69,6 +69,9 @@ public class DataStatisticsController {
             return ResponseUtil.badArgument();
         }
         List<Resident> residents = residentService.findByPlotNum(plotNum);
+        if(residents.size()==0){
+            return ResponseUtil.fail(1,"小区没居民哦");
+        }
         Integer[] households = new Integer[interval.size()+1];
         for(int j=0; j<households.length; j++) {
             households[j]=0;
@@ -81,16 +84,15 @@ public class DataStatisticsController {
                 continue;
             }
             BigDecimal curUsed = statisticConsume.getCurUsed();
-            if(curUsed.compareTo(interval.get(0))==-1) {
+            if(curUsed.compareTo(interval.get(0))<0) {
                 households[0]+=1;
             }
-            if((curUsed.compareTo(interval.get(interval.size()-1))==1)
-                    ||(curUsed.compareTo(interval.get(interval.size()-1))==0)) {
+            if((curUsed.compareTo(interval.get(interval.size()-1))>=0)) {
                 households[interval.size()] += 1;
             }
             for(int i=1; i<interval.size(); i++) {
-                if(((curUsed.compareTo(interval.get(i-1))==1)||(curUsed.compareTo(interval.get(i-1))==0))
-                        &&(curUsed.compareTo(interval.get(i))==-1)) {
+                if(((curUsed.compareTo(interval.get(i-1))>=0))
+                        &&(curUsed.compareTo(interval.get(i))<0)) {
                     households[i]+=1;
                 }
             }
@@ -170,6 +172,7 @@ public class DataStatisticsController {
         List<Map<String, Object>> list = new ArrayList<>();
         for(Resident resident: residents){
             Map<String, Object> info = new HashMap<>();
+            info.put("id", resident.getId());
             info.put("registerId",resident.getRegisterId());
             info.put("userName", resident.getUserName());
             info.put("phone", resident.getPhone());
@@ -182,9 +185,10 @@ public class DataStatisticsController {
             info.put("ratedFlow", corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow());
             info.put("deviceNum", resident.getDeviceNum());
             info.put("deviceSeq", resident.getDeviceSeq());
-            info.put("pumpDtl", corrPumpService.findByPlotNum(resident.getPumpNum()));
+            info.put("pumpDtl", corrPumpService.findByPlotNum(resident.getPumpNum()).get(0).getPumpDtl());
             info.put("installTime", resident.getInstallTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             info.put("receiveTime", resident.getReceiveTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            info.put("openid", resident.getOpenid());
             list.add(info);
         }
         data.put("resident", list);

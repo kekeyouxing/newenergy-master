@@ -32,7 +32,7 @@ public class CorrPlot {
     private Integer safeDelete;
 
     //安全属性：上次修改记录的id
-    private  Integer sageParent;
+    private  Integer safeParent;
 
     public Integer getId() {
         return id;
@@ -91,10 +91,10 @@ public class CorrPlot {
     }
 
     public Integer getSageParent() {
-        return sageParent;
+        return safeParent;
     }
 
-    public void setSageParent(Integer sageParent) {
-        this.sageParent = sageParent;
+    public void setSageParent(Integer safeParent) {
+        this.safeParent = safeParent;
     }
 }
