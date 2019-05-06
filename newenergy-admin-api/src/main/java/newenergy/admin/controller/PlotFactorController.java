@@ -1,10 +1,12 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.ManualRecord;
+import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.predicate.ApplyFactorPredicate;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.service.CorrPlotService;
@@ -84,8 +86,9 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "search", method = RequestMethod.POST)
-    public Map<String,Object> searchFactor(@RequestBody SearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> searchFactor(@RequestBody SearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
         String plotDtl = dto.getPlotDtl();
@@ -136,8 +139,9 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "update",method = RequestMethod.POST)
-    public Integer updateFactor(@RequestBody UpdateDTO dto){
-        Integer id = dto.getId();
+    public Integer updateFactor(@RequestBody UpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotNum = dto.getPlotNum();
         BigDecimal updateFactor = dto.getUpdateFactor();
 
@@ -182,8 +186,9 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "apply/search",method = RequestMethod.POST)
-    public Map<String,Object> searchApply(@RequestBody ApplySearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> searchApply(@RequestBody ApplySearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotDtl = dto.getPlotDtl();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();

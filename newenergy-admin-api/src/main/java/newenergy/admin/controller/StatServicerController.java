@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.CorrAddress;
@@ -120,8 +121,9 @@ public class StatServicerController {
      * }
      */
     @RequestMapping(value = "servicer/list",method = RequestMethod.POST)
-    public Map<String,Object> listServicers(@RequestBody ListServicerDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listServicers(@RequestBody ListServicerDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer year = dto. getYear();
         Integer month = dto.getMonth();
         Integer page = dto.getPage();
@@ -208,8 +210,9 @@ public class StatServicerController {
         }
     }
     @RequestMapping(value = "servicer/dtl",method = RequestMethod.POST)
-    public Map<String,Object> servicerDtl(@RequestBody ServicerDtlDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> servicerDtl(@RequestBody ServicerDtlDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer servicerId = dto.getServicerId();
         Integer year = dto.getYear();
         Integer month = dto.getMonth();
