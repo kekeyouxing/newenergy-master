@@ -131,20 +131,19 @@ public class NewenergyAdminService extends LogicOperation<NewenergyAdmin> {
      * @param realName
      * @return
      */
-    public List<NewenergyAdmin> findAllByRealName(String realName){
+    public List<NewenergyAdmin> findAllByRealName(String realName) {
         Specification<NewenergyAdmin> specification = new Specification<NewenergyAdmin>() {
             @Override
             public Predicate toPredicate(Root<NewenergyAdmin> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if(!StringUtilCorey.emptyCheck(realName)) {
-                    predicates.add(criteriaBuilder.and(criteriaBuilder.like(root.get("realName"), "%"+realName+"%")));
+                if (!StringUtilCorey.emptyCheck(realName)) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.like(root.get("realName"), "%" + realName + "%")));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"), SafeConstant.SAFE_ALIVE));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
         };
         return adminRepository.findAll(specification);
-
     }
 
 }

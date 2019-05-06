@@ -4,7 +4,6 @@ import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.core.util.bcrypt.BCryptPasswordEncoder;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.NewenergyAdminService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -60,10 +59,8 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
+        admin.setPassword(rawPassword);
 
         adminService.add(admin, adminLogin.getId());
         return ResponseUtil.ok(admin);
@@ -108,10 +105,8 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
+        admin.setPassword(rawPassword);
 
         if (adminService.updateById(admin, adminLogin.getId()) == null) {
             return ResponseUtil.updatedDataFailed();
