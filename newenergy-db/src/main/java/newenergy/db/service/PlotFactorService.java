@@ -90,6 +90,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         return admin==null?null:admin.getRealName();
     }
 
+
     public Integer applyUpdateFactor(Integer id, String plotNum, BigDecimal updateFactor){
         ApplyFactor applyFactor = new ApplyFactor();
         applyFactor.setLaborId(id);

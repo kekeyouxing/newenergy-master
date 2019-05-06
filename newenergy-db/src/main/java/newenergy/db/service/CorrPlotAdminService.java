@@ -22,10 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +40,8 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     private CorrPlotRepository corrPlotRepository;
     @Autowired
     private NewenergyAdminRepository newenergyAdminRepository;
+    @Autowired
+    private NewenergyAdminService newenergyAdminService;
     @Autowired
     private CorrPlotService corrPlotService;
     @Autowired
@@ -77,7 +76,6 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     }
     public List<Map<String,Object>> getServicers(){
         List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
-//        List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification2(),Sort.by(Sort.Direction.ASC,"id"));
         System.out.println("servicer:"+admins.size());
         List<Map<String,Object>> ret = new ArrayList<>();
         admins.forEach(admin -> {
@@ -114,8 +112,12 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     }
     public CorrPlotAdmin updateARecord(CorrPlotAdmin corrPlotAdmin, Integer userid){
         /**
-         * TODO 更新设备信息表
+         * TODO 更新设备信息表？
          */
+//        Integer id = corrPlotAdmin.getId();
+//        if(id == null) return null;
+//        CorrPlotAdmin origin = repository.findById(id).orElse(null);
+
         return super.updateRecord(corrPlotAdmin,userid,repository);
     }
     public void deleteARecord(String plotNum, Integer userid){
@@ -127,7 +129,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
             super.deleteRecord(e.getId(),userid,repository);
         });
         /**
-         * TODO 更新设备信息表
+         * TODO 更新设备信息表？
          */
     }
 
@@ -150,22 +152,16 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getMonitorName())){
-//                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getMonitorName(),false);
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getMonitorName(), SafeConstant.SAFE_ALIVE);
-                /**
-                 * TODO
-                 */
-                admins.forEach(admin->{
-                    list.add(cb.equal(root.get("monitorId").as(String.class),admin.getId()));
-                });
+                List<NewenergyAdmin> admins = newenergyAdminService.findAllByRealName(predicate.getMonitorName());
+                Path<Object> path = root.get("monitorId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                admins.forEach(admin-> in.value(admin.getId()));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getServicerName())){
-//                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndDeleted(predicate.getServicerName(),false);
-                List<NewenergyAdmin> admins = newenergyAdminRepository.findAllByRealNameAndSafeDelete(predicate.getServicerName(),SafeConstant.SAFE_ALIVE);
-                admins.forEach(admin->{
-                    list.add(cb.equal(root.get("servicerId").as(String.class),admin.getId()));
-                });
-
+                List<NewenergyAdmin> admins = newenergyAdminService.findAllByRealName(predicate.getServicerName());
+                Path<Object> path = root.get("servicerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                admins.forEach(admin-> in.value(admin.getId()));
             }
             return cb.and(list.toArray(new Predicate[list.size()]));
         };

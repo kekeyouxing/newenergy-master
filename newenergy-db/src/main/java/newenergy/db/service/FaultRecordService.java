@@ -80,13 +80,13 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             if(predicate.getServicerId() != null)
                 conditions.add(cb.equal(root.get("servicerId").as(Integer.class),predicate.getServicerId()));
             if(!StringUtilCorey.emptyCheck(predicate.getUsername())){
-                List<Resident> residents = residentRepository.findAllByUserNameAndSafeDelete(predicate.getUsername(),0);
-                residents.forEach(resident -> {
-                    conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
+                Resident resident = new Resident();
+                resident.setUserName(predicate.getUsername());
+                Specification<Resident> spec = residentService.findByPlotNumOrSearch(resident);
+                List<Resident> residents = residentRepository.findAll(spec);
+                residents.forEach(e -> {
+                    conditions.add(cb.equal(root.get("registerId").as(String.class),e.getRegisterId()));
                 });
-                /**
-                 * TODO 模糊查找
-                 */
             }
             if(predicate.getPlots() != null){
                 for(String plot : predicate.getPlots()){

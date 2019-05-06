@@ -29,6 +29,10 @@ import java.util.Map;
 /**
  * Created by HUST Corey on 2019-04-18.
  */
+
+/**
+ * TODO 修改充值系数不是立即生效，而是等到每月一号制成报表后生效
+ */
 @RestController
 @RequestMapping("admin/factor")
 public class PlotFactorController {
