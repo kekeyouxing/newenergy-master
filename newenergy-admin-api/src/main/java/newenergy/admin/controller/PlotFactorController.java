@@ -219,11 +219,11 @@ public class PlotFactorController {
                                    HttpServletRequest request){
         ApplyFactor applyFactor = plotFactorService.findById(postInfo.getId());
         applyFactor.setState(postInfo.getReviewState());
-        if (postInfo.getReviewState()==1){
-            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
-            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
-            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
-        }
+//        if (postInfo.getReviewState()==1){
+//            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+//            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+//            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
+//        }
         Integer state = plotFactorService.updateApplyState(postInfo.getOperatorId(),postInfo.getId(),postInfo.getReviewState());
         manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),5,postInfo.getId());
         Map<String,Object> result = new HashMap<>();

@@ -111,6 +111,20 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         applyFactor.setOriginFactor(originFactor);
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
     }
+
+//    更新审核通过待生效的充值系数
+    public void updateFactor(){
+        List<ApplyFactor> list = repository.findAllByState(1);
+        for (ApplyFactor applyFactor :
+                list) {
+            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+            corrPlotService.updateCorrPlot(corrPlot,applyFactor.getLaborId());
+            applyFactor.setState(3);
+            repository.saveAndFlush(applyFactor);
+        }
+
+    }
     @Override
     public Specification<ApplyFactor> addConditioin(ApplyFactorPredicate predicate, Specification<ApplyFactor> other) {
         Specification<ApplyFactor> specification = new Specification<ApplyFactor>() {
