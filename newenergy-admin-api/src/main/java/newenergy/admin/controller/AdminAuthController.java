@@ -74,7 +74,9 @@ public class AdminAuthController {
     public Object info(){
         Subject currentUser = SecurityUtils.getSubject();
         NewenergyAdmin admin = (NewenergyAdmin)currentUser.getPrincipal();
-
+        if(admin == null){
+            return ResponseUtil.unlogin();
+        }
         Map<String, Object> data = new HashMap<>();
         data.put("name", admin.getUsername());
 
