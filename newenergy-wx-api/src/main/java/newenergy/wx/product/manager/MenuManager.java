@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class MenuManager implements ApplicationRunner {
     private static Logger log = LoggerFactory.getLogger(MenuManager.class);
     private static String baseUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect";
-    private static String domainName = "http://wp86h5.natappfree.cc/";
+    private static String domainName = "http://2wrf4s.natappfree.cc/";
     @Autowired
     private WxProductService wxProductService;
     @Override
