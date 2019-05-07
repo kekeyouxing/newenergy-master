@@ -35,7 +35,7 @@ public class AdminController {
                        @RequestParam(defaultValue = "10") Integer limit){
         Page<NewenergyAdmin> pageAdmin = adminService.querySelective(username, page-1, limit);
         List<NewenergyAdmin> adminList = pageAdmin.getContent();
-        int total = pageAdmin.getNumberOfElements();
+        Long total = pageAdmin.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("items", adminList);
