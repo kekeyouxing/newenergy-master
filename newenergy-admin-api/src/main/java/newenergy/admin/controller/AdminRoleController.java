@@ -37,7 +37,7 @@ public class AdminRoleController {
                        @RequestParam(defaultValue = "10") Integer limit){
         Page<NewenergyRole> pageRole = roleService.querySelective(name, page-1, limit);
         List<NewenergyRole> roleList = pageRole.getContent();
-        int total = pageRole.getNumberOfElements();
+        Long total = pageRole.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
         data.put("items", roleList);

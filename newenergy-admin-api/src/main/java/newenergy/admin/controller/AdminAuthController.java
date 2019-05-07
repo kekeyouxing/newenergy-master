@@ -70,7 +70,6 @@ public class AdminAuthController {
         return ResponseUtil.unlogin();
     }
 
-    //@RequiresAuthentication
     @GetMapping("/info")
     public Object info(){
         Subject currentUser = SecurityUtils.getSubject();
