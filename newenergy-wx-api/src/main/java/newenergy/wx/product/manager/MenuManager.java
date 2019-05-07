@@ -27,13 +27,19 @@ public class MenuManager implements ApplicationRunner {
     private String domainName;
     @Value("${corey.domain}")
     private String domainFront;
+    @Value("${quwen.wx.app-id}")
+    private String appId;
+    @Value("${quwen.wx.app-secret}")
+    private String appSecret;
     //private static String domainName = "http://wp86h5.natappfree.cc/";
-    @Autowired
-    private WxProductService wxProductService;
+//    @Autowired
+//    private WxProductService wxProductService;
     @Override
     public void run(ApplicationArguments args) throws Exception {
 //        Token token = CommonUtil.getAccessToken("wx56acef520e1b0030","3848a4749c6337c86f3dcf42b3d21d2a");
-        Token token = CommonUtil.getAccessToken(wxProductService.getWxProductConfig().getAppId(),wxProductService.getWxProductConfig().getAppSecret());
+//        Token token = CommonUtil.getAccessToken(wxProductService.getWxProductConfig().getAppId(),wxProductService.getWxProductConfig().getAppSecret());
+        Token token = CommonUtil.getAccessToken(appId,appSecret);
+
         if (null != token){
             boolean result = MenuUtil.createMenu(getMenu(),token.getAccessToken());
             if (result)
@@ -47,7 +53,8 @@ public class MenuManager implements ApplicationRunner {
 
 //        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID", "wx56acef520e1b0030");
 
-        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",wxProductService.getWxProductConfig().getAppId());
+//        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",wxProductService.getWxProductConfig().getAppId());
+        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",appId);
         String bindUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/userBind"));
         String rechargeUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/recharge"));
         ViewButton btn11 = new ViewButton();
