@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
@@ -73,7 +74,7 @@ public class RechargeRecordController {
                 ResultModel resultModel = new ResultModel();
                 resultModel.setId(batchRecord.getId());
                 resultModel.setPlotDtl(corrPlotService.findByPlotNum(batchRecord.getPlotNum()));
-                resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getUsername());
+                resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getRealName());
                 resultModel.setRechargeTime(localDateTimeToLong(batchRecord.getRechargeTime()));
                 resultModel.setState(batchRecord.getState());
                 list.add(resultModel);
@@ -101,7 +102,7 @@ public class RechargeRecordController {
             ResultModel resultModel = new ResultModel();
             resultModel.setId(rechargeRecord.getId());
             resultModel.setRegisterId(rechargeRecord.getRegisterId());
-            resultModel.setUsername(rechargeRecord.getUserName());
+            resultModel.setUsername(residentService.fingByRegisterId(rechargeRecord.getRegisterId()).getUserName());
             Resident resident = residentService.fingByRegisterId(rechargeRecord.getRegisterId());
             resultModel.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
             resultModel.setRoomNum(resident.getRoomNum());
@@ -134,10 +135,10 @@ public class RechargeRecordController {
             ResultModel resultModel = new ResultModel();
             resultModel.setId(batchRecord.getId());
             resultModel.setPlotDtl(corrPlotService.findByPlotNum(batchRecord.getPlotNum()));
-            resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getUsername());
+            resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getRealName());
             resultModel.setRechargeTime(localDateTimeToLong(batchRecord.getRechargeTime()));
             resultModel.setVerifyTime(localDateTimeToLong(batchRecord.getSafeChangedTime()));
-            resultModel.setVerifyUsername(adminService.findById(batchRecord.getSafeChangedUserid()).getUsername());
+            resultModel.setVerifyUsername(adminService.findById(batchRecord.getSafeChangedUserid()).getRealName());
             resultModel.setState(batchRecord.getState());
             list.add(resultModel);
         }
@@ -188,11 +189,12 @@ public class RechargeRecordController {
     //    充值订单审核
     @RequestMapping(value = "/review", method = RequestMethod.POST)
     public Object review(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request) throws CloneNotSupportedException {
+                         HttpServletRequest request,
+                         @AdminLoginUser NewenergyAdmin user) throws CloneNotSupportedException {
         for (ReviewState reviewState:postInfo.getList()){
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
-            rechargeRecord.setCheckId(postInfo.getOperatorId());
+            rechargeRecord.setCheckId(user.getId());
             Integer state = 1;
             if (reviewState.getReviewState()==1){
                 RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
@@ -214,9 +216,9 @@ public class RechargeRecordController {
             }
             BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
             batchRecord.setState(state);
-            batchRecordService.updateBatchRecord(batchRecord,postInfo.getOperatorId());
+            batchRecordService.updateBatchRecord(batchRecord,user.getId());
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
-            manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),1,newRecord.getId());
+            manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),1,newRecord.getId());
         }
         Map<String,Integer> state = new HashMap<>();
 //        0代表正常、其他代表异常
