@@ -4,7 +4,7 @@ quwen:
     app-secret: 204968f0b20dd9d7551eea63b797a459
     mch-id: 111111
     mch-key: xxxxxx
-    notify-url: http://www.example.com/wx/order/pay-notify
+    notify-url: http://2wrf4s.natappfree.cc/wx/order/pay-notify
 corey:
   ## by Zeng Hui，测试号的appid和appsecret和微信号
   wx:
