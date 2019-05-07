@@ -216,7 +216,8 @@ public class PlotFactorController {
 
     @RequestMapping(value = "review",method = RequestMethod.POST)
     public Object reviewPlotFactor(@RequestBody PostInfo postInfo,
-                                   HttpServletRequest request){
+                                   HttpServletRequest request,
+                                   @AdminLoginUser NewenergyAdmin user){
         ApplyFactor applyFactor = plotFactorService.findById(postInfo.getId());
         applyFactor.setState(postInfo.getReviewState());
 //        if (postInfo.getReviewState()==1){
@@ -224,8 +225,8 @@ public class PlotFactorController {
 //            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
 //            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
 //        }
-        Integer state = plotFactorService.updateApplyState(postInfo.getOperatorId(),postInfo.getId(),postInfo.getReviewState());
-        manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),5,postInfo.getId());
+        Integer state = plotFactorService.updateApplyState(user.getId(),postInfo.getId(),postInfo.getReviewState());
+        manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),5,postInfo.getId());
         Map<String,Object> result = new HashMap<>();
         result.put("state",state);
         return result;

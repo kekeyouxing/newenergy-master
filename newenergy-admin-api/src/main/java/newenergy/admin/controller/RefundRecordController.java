@@ -1,6 +1,7 @@
 package newenergy.admin.controller;
 
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
@@ -50,7 +51,8 @@ public class RefundRecordController {
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
     public Object addReview(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request){
+                            HttpServletRequest request,
+                            @AdminLoginUser NewenergyAdmin user){
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
         RechargeRecord rechargeRecord = rechargeRecordService.findById(postInfo.getRechargeId());
         RefundRecord refundRecord = new RefundRecord();
@@ -60,10 +62,10 @@ public class RefundRecordController {
         refundRecord.setRefundVolume(rechargeRecord.getRechargeVolume());
         refundRecord.setRefundTime(LocalDateTime.now());
         refundRecord.setRecordId(rechargeRecord.getId());
-        refundRecord.setRechargeId(postInfo.getOperatorId());
+        refundRecord.setRechargeId(user.getId());
         refundRecord.setState(1);
-        RefundRecord newRecord = refundRecordService.addRefundRecord(refundRecord,postInfo.getOperatorId());
-        manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),2,newRecord.getId());
+        RefundRecord newRecord = refundRecordService.addRefundRecord(refundRecord,user.getId());
+        manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),2,newRecord.getId());
         return ResponseUtil.ok();
     }
 
@@ -90,7 +92,7 @@ public class RefundRecordController {
             resultInfo.setRefundAmount(refundRecord.getRefundAmount());
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
-            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getUsername());
+            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
             resultInfo.setState(refundRecord.getState());
             resultInfos.add(resultInfo);
         }
@@ -125,9 +127,9 @@ public class RefundRecordController {
             resultInfo.setRefundAmount(refundRecord.getRefundAmount());
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
-            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getUsername());
+            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
             resultInfo.setCheckTime(localDateTimeToLong(refundRecord.getSafeChangedTime()));
-            resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getUsername());
+            resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getRealName());
             resultInfo.setState(refundRecord.getState());
             resultInfos.add(resultInfo);
         }
@@ -152,12 +154,13 @@ public class RefundRecordController {
     //    审核退款记录
     @RequestMapping(value = "/review", method = RequestMethod.POST)
     public Object review(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request) throws  CloneNotSupportedException {
+                         HttpServletRequest request,
+                         @AdminLoginUser NewenergyAdmin user) throws  CloneNotSupportedException {
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
         for (ReviewState reviewState:postInfo.getList()) {
             RefundRecord refundRecord = (RefundRecord) refundRecordService.findById(reviewState.getId()).clone();
             refundRecord.setState(reviewState.getReviewState());
-            refundRecord.setCheckId(postInfo.getOperatorId());
+            refundRecord.setCheckId(user.getId());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
             rechargeRecord.setState(1);
 //            审核通过且为个人充值（非代充），则对剩余水量进行更新
@@ -175,10 +178,9 @@ public class RefundRecordController {
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
                         refundRecord.getRefundAmount()*(-1));
-
             }
-            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,postInfo.getOperatorId());
-            manualRecordService.add(postInfo.getOperatorId(),IpUtil.getIpAddr(request),3,newRecord.getId());
+            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
+            manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
         }
         Map<String,Integer> state = new HashMap<>();
 //        0代表正常、其他代表异常

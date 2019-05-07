@@ -70,11 +70,8 @@ public class AdminAuthController {
         return ResponseUtil.unlogin();
     }
 
-
-    //@RequiresAuthentication
     @GetMapping("/info")
     public Object info(){
-        System.out.println("info");
         Subject currentUser = SecurityUtils.getSubject();
         NewenergyAdmin admin = (NewenergyAdmin)currentUser.getPrincipal();
 
