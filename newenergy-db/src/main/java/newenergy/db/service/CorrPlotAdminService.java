@@ -144,24 +144,25 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
             if(!StringUtilCorey.emptyCheck(predicate.getPlotName())){
                 CorrPlotPredicate corrPlotPredicate = new CorrPlotPredicate();
                 corrPlotPredicate.setPlotDtl(predicate.getPlotName());
-                Page<CorrPlot> allRes = corrPlotService.findAllCorrPlotWithAlive(corrPlotPredicate,
-                        Pageable.unpaged().getPageNumber(),
-                        Pageable.unpaged().getPageSize());
-                CorrPlot corrPlot = allRes.get().findFirst().orElse(null);
-                String plotNum = corrPlot==null?"":corrPlot.getPlotNum();
-                list.add(cb.equal(root.get("plotNum").as(String.class),plotNum));
+                List<CorrPlot> allRes = corrPlotService.findAllCorrPlotWithAlive(corrPlotPredicate);
+                Path<Object> path = root.get("plotNum");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                allRes.forEach(e->in.value(e.getPlotNum()));
+                list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getMonitorName())){
                 List<NewenergyAdmin> admins = newenergyAdminService.findAllByRealName(predicate.getMonitorName());
                 Path<Object> path = root.get("monitorId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
+                list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getServicerName())){
                 List<NewenergyAdmin> admins = newenergyAdminService.findAllByRealName(predicate.getServicerName());
                 Path<Object> path = root.get("servicerId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
+                list.add(cb.and(in));
             }
             return cb.and(list.toArray(new Predicate[list.size()]));
         };

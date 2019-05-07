@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.AdminConstant;
@@ -78,8 +79,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "userinfo",method = RequestMethod.POST)
-    public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto, @AdminLoginUser NewenergyAdmin admin1){
+//        Integer id = dto.getId();
+        Integer id = admin1.getId();
         String registerId = dto.getRegisterId();
         Map<String,Object> ret = new HashMap<>();
         Map<String,Object> map = new HashMap<>();
@@ -160,8 +162,9 @@ public class FaultRecordController {
      * 其他：errcode   参考https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433747234
      */
     @RequestMapping(value = "add",method = RequestMethod.POST)
-    public Integer addRecord(@RequestBody AddDTO dto){
-        Integer id = dto.getId();
+    public Integer addRecord(@RequestBody AddDTO dto, @AdminLoginUser NewenergyAdmin admin){
+//        Integer id = dto.getId();
+        Integer id = admin.getId();
         String registerId = dto.getRegisterId();
         String phenomeon = dto.getPhenomeon();
 
@@ -223,8 +226,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "userdtl",method = RequestMethod.POST)
-    public Map<String,Object> userDtl(@RequestBody UserDtlDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> userDtl(@RequestBody UserDtlDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String registerId = dto.getRegisterId();
         Map<String, Object> ret = new HashMap<>();
         Map<String, Object> userinfo = new HashMap<>();
@@ -374,8 +378,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "list/users",method = RequestMethod.POST)
-    public Map<String,Object> listUsers(@RequestBody ListUsersDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listUsers(@RequestBody ListUsersDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
         String registerId = dto.getRegisterId();
@@ -463,8 +468,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "records",method = RequestMethod.POST)
-    public Map<String,Object> listRecords(@RequestBody RecordsDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listRecords(@RequestBody RecordsDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer type = dto.getType();
         String registerId = dto.getRegisterId();
         String username = dto.getUsername();
@@ -582,8 +588,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/search",method = RequestMethod.POST)
-    public Map<String,Object> groupSearch(@RequestBody GroupSearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> groupSearch(@RequestBody GroupSearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotDtl = dto.getPlotDtl();
         String monitorName = dto.getMonitorName();
         String servicerName = dto.getServicerName();
@@ -621,8 +628,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/userinfo",method = RequestMethod.POST)
-    public Map<String,Object> getAdminInfo(@RequestBody GroupUserinfoDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> getAdminInfo(@RequestBody GroupUserinfoDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Map<String,Object> ret = new HashMap<>();
         ret.put("servicers",corrPlotAdminService.getServicers());
         ret.put("monitors",corrPlotAdminService.getMonitors());
@@ -667,8 +675,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/update",method = RequestMethod.POST)
-    public CorrPlotAdmin updateAdminInfo(@RequestBody GroupUpdateDTO dto){
-        Integer id = dto.getId();
+    public CorrPlotAdmin updateAdminInfo(@RequestBody GroupUpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotNum = dto.getPlotNum();
         Integer updateMonitor = dto.getUpdateMonitor();
         Integer updateServicer = dto.getUpdateServicer();
@@ -719,7 +728,8 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "require/search",method = RequestMethod.POST)
-    public Map<String,Object> requireSearch(@RequestBody RequireSearchDTO requireSearchDTO){
+    public Map<String,Object> requireSearch(@RequestBody RequireSearchDTO requireSearchDTO, @AdminLoginUser NewenergyAdmin user){
+        Integer id = user.getId();
         Map<String,Object> ret = new HashMap<>();
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
         predicate.setPlotDtl(requireSearchDTO.getPlotDtl());
@@ -769,8 +779,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "require/update",method = RequestMethod.POST)
-    public Integer requireUpdate(@RequestBody RequireUpdateDTO dto){
-        Integer id = dto.getId();
+    public Integer requireUpdate(@RequestBody RequireUpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer updateLoop = dto.getUpdateLoop();
 
         DeviceRequire setting = deviceRequireService.getSetting();

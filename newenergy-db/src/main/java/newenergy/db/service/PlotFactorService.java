@@ -76,8 +76,11 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
     }
 
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit){
-        return corrPlotService.findAllCorrPlotWithAlive(predicate,page,limit);
+    public List<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate){
+        return corrPlotService.findAllCorrPlotWithAlive(predicate);
+    }
+    public Page<CorrPlot> findAllCorrPlotWithAlivePaged(CorrPlotPredicate predicate, Integer page, Integer limit){
+        return corrPlotService.findAllCorrPlotWithAlivePaged(predicate,page,limit);
     }
     public String getPlotDtl(String plotNum){
         CorrPlot corrPlot = corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,SafeConstant.SAFE_ALIVE);
@@ -101,12 +104,26 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
 
         CorrPlotPredicate predicate = new CorrPlotPredicate();
         predicate.setPlotNum(plotNum);
-        Page<CorrPlot> allRes = findAllCorrPlotWithAlive(predicate,0,1);
-        CorrPlot res = allRes.get().findFirst().orElse(null);
+        List<CorrPlot> allRes = findAllCorrPlotWithAlive(predicate);
+        CorrPlot res = allRes.isEmpty()?null:allRes.get(0);
         if(res == null) return ResultConstant.ERR;
         BigDecimal originFactor = res.getPlotFactor();
         applyFactor.setOriginFactor(originFactor);
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
+    }
+
+//    更新审核通过待生效的充值系数
+    public void updateFactor(){
+        List<ApplyFactor> list = repository.findAllByState(1);
+        for (ApplyFactor applyFactor :
+                list) {
+            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+            corrPlotService.updateCorrPlot(corrPlot,applyFactor.getLaborId());
+            applyFactor.setState(3);
+            repository.saveAndFlush(applyFactor);
+        }
+
     }
     @Override
     public Specification<ApplyFactor> addConditioin(ApplyFactorPredicate predicate, Specification<ApplyFactor> other) {
@@ -117,8 +134,8 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                 if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
                     CorrPlotPredicate corrPlotPredicate = new CorrPlotPredicate();
                     corrPlotPredicate.setPlotDtl(predicate.getPlotDtl());
-                    Page<CorrPlot> allRes = findAllCorrPlotWithAlive(corrPlotPredicate,0,1);
-                    CorrPlot res = allRes.get().findFirst().orElse(null);
+                    List<CorrPlot> allRes = findAllCorrPlotWithAlive(corrPlotPredicate);
+                    CorrPlot res = allRes==null?null:allRes.get(0);
                     String plotNum = "";
                     if(res != null){
                         plotNum = res.getPlotNum();
