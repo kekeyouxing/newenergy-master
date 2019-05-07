@@ -8,6 +8,7 @@ import newenergy.wx.product.pojo.UserToken;
 import newenergy.wx.product.pojo.WeixinOauth2Token;
 import newenergy.wx.product.util.AdvancedUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,8 +31,13 @@ import java.util.Map;
 @RequestMapping("/wx/OAuth")
 public class OAuthController {
 
-    @Autowired
-    private WxProductService wxProductService;
+    @Value("${quwen.wx.app-id}")
+    private String appId;
+    @Value("${quwen.wx.app-secret}")
+    private String appSecret;
+//    @Value("${corey.domain}")
+//    @Autowired
+//    private WxProductService wxProductService;
 
 //    private String appId = wxProductService.getWxProductConfig().getAppId();
 //    private String appSecret = wxProductService.getWxProductConfig().getAppSecret();
@@ -40,8 +46,8 @@ public class OAuthController {
 //        request.setCharacterEncoding("gb2312");
         String token = null;
         if (!"authdeny".equals(code)){
-            String appId = wxProductService.getWxProductConfig().getAppId();
-            String appSecret = wxProductService.getWxProductConfig().getAppSecret();
+//            String appId = wxProductService.getWxProductConfig().getAppId();
+//            String appSecret = wxProductService.getWxProductConfig().getAppSecret();
 
             //获取网页授权access_token
             WeixinOauth2Token weixinOauth2Token = AdvancedUtil.getOauth2AccessToken(appId,appSecret,code);
@@ -63,8 +69,8 @@ public class OAuthController {
 //            result.put("userInfo",snsUserInfo);
 //            request.getRequestDispatcher("../../static/index.html").forward(request,response);
         }
-//        response.sendRedirect("/#/userBind?token="+token);
-        response.sendRedirect("http://192.168.199.105:8080/#/userBind?token="+token);
+        response.sendRedirect("/#/userBind?token="+token);
+//        response.sendRedirect("http://192.168.199.105:8080/#/userBind?token="+token);
 //        request.getRequestDispatcher("/#/userBind").forward(request,response);
     }
 
@@ -93,7 +99,7 @@ public class OAuthController {
             UserToken userToken = UserTokenManager.generateTokenWithNinameAndOpenId(openId,nickname);
             token = userToken.getToken();
         }
-//        response.sendRedirect("/#/recharge?token="+token);
-        response.sendRedirect("http://192.168.199.105:8080/#/recharge?token="+token);
+        response.sendRedirect("/#/recharge?token="+token);
+//        response.sendRedirect("http://192.168.199.105:8080/#/recharge?token="+token);
     }
 }
