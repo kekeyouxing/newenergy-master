@@ -102,7 +102,7 @@ public class RechargeRecordController {
             ResultModel resultModel = new ResultModel();
             resultModel.setId(rechargeRecord.getId());
             resultModel.setRegisterId(rechargeRecord.getRegisterId());
-            resultModel.setUsername(rechargeRecord.getUserName());
+            resultModel.setUsername(residentService.fingByRegisterId(rechargeRecord.getRegisterId()).getUserName());
             Resident resident = residentService.fingByRegisterId(rechargeRecord.getRegisterId());
             resultModel.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
             resultModel.setRoomNum(resident.getRoomNum());
