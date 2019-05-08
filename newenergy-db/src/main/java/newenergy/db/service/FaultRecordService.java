@@ -18,6 +18,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,18 +86,24 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 resident.setUserName(predicate.getUsername());
                 Specification<Resident> spec = residentService.findByPlotNumOrSearch(resident);
                 List<Resident> residents = residentRepository.findAll(spec);
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
                 residents.forEach(e -> {
-                    conditions.add(cb.equal(root.get("registerId").as(String.class),e.getRegisterId()));
+                    in.value(e.getRegisterId());
                 });
+                conditions.add(cb.and(in));
             }
             if(predicate.getPlots() != null){
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
                 for(String plot : predicate.getPlots()){
                     if(!StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
-                        conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
+                        in.value(resident.getRegisterId());
                     });
                 }
+                conditions.add(cb.and(in));
             }
             if(predicate.getFinishTime() != null){
                 LocalDateTime cond = predicate.getFinishTime();
