@@ -18,10 +18,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-03-27.
@@ -84,18 +87,31 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 resident.setUserName(predicate.getUsername());
                 Specification<Resident> spec = residentService.findByPlotNumOrSearch(resident);
                 List<Resident> residents = residentRepository.findAll(spec);
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
                 residents.forEach(e -> {
-                    conditions.add(cb.equal(root.get("registerId").as(String.class),e.getRegisterId()));
+                    in.value(e.getRegisterId());
                 });
+                conditions.add(cb.and(in));
             }
             if(predicate.getPlots() != null){
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
                 for(String plot : predicate.getPlots()){
-                    if(!StringUtilCorey.emptyCheck(plot)) continue;
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
-                        conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
+                        in.value(resident.getRegisterId());
                     });
                 }
+                conditions.add(cb.and(in));
             }
             if(predicate.getFinishTime() != null){
                 LocalDateTime cond = predicate.getFinishTime();
@@ -155,6 +171,14 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
 
     public Page<Resident> getResidentsByPlots(List<String> plots,Integer page, Integer limit, String registerId, String username){
         Specification<Resident> specification = null;
+        if(plots!=null && plots.isEmpty()){
+            plots = corrPlotRepository
+                    .findAll()
+                    .stream()
+                    .map(CorrPlot::getPlotNum)
+                    .collect(Collectors.toList());
+        }
+        if(plots == null) return null;
         for(String plot : plots){
             Resident resident = new Resident();
             resident.setPlotNum(plot);

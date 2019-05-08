@@ -10,7 +10,6 @@ public class RefundRecord  implements Cloneable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Integer id;
     private String registerId;
     private String plotNum;

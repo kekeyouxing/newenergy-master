@@ -10,6 +10,7 @@ import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.predicate.ApplyFactorPredicate;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.service.CorrPlotService;
+import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.ManualRecordService;
 import newenergy.db.service.PlotFactorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class PlotFactorController {
 
     @Autowired
     ManualRecordService manualRecordService;
+
+    @Autowired
+    FaultRecordService faultRecordService;
 
     private static class SearchDTO{
         Integer id;
@@ -95,6 +99,14 @@ public class PlotFactorController {
 
         Map<String,Object> ret = new HashMap<>();
         CorrPlotPredicate predicate = new CorrPlotPredicate();
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+
         predicate.setPlotDtl(plotDtl);
         Page<CorrPlot> corrPlots = plotFactorService.findAllCorrPlotWithAlivePaged(predicate,page-1,limit);
         ret.put("total",corrPlots.getTotalElements());
