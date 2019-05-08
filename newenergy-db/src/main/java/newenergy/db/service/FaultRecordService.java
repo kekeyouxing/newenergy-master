@@ -171,6 +171,14 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
 
     public Page<Resident> getResidentsByPlots(List<String> plots,Integer page, Integer limit, String registerId, String username){
         Specification<Resident> specification = null;
+        if(plots!=null && plots.isEmpty()){
+            plots = corrPlotRepository
+                    .findAll()
+                    .stream()
+                    .map(CorrPlot::getPlotNum)
+                    .collect(Collectors.toList());
+        }
+        if(plots == null) return null;
         for(String plot : plots){
             Resident resident = new Resident();
             resident.setPlotNum(plot);
