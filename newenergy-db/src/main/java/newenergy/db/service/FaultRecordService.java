@@ -24,6 +24,7 @@ import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-03-27.
@@ -96,8 +97,15 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             if(predicate.getPlots() != null){
                 Path<Object> path = root.get("registerId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
                 for(String plot : predicate.getPlots()){
-                    if(!StringUtilCorey.emptyCheck(plot)) continue;
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
                         in.value(resident.getRegisterId());

@@ -732,6 +732,14 @@ public class FaultRecordController {
         Map<String,Object> ret = new HashMap<>();
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
         predicate.setPlotDtl(requireSearchDTO.getPlotDtl());
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+
         Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,
                 PageRequest.of(requireSearchDTO.getPage()-1, requireSearchDTO.getLimit()),
                 Sort.by(Sort.Direction.ASC,"plotNum"));

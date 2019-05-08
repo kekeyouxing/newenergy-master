@@ -1,9 +1,11 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.CorrPlot;
+import newenergy.db.domain.Resident;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.CorrPlotRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +17,19 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CorrPlotService extends LogicOperation<CorrPlot> {
     @Autowired
     private CorrPlotRepository corrPlotRepository;
+
+    @Autowired
+    private ResidentRepository residentRepository;
 
     /**
      * 查询所有小区，按照小区编号排序
@@ -147,6 +150,27 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
+
+            if(predicate.getPlots() != null){
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
+                for(String plot : predicate.getPlots()){
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
+                    List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
+                    residents.forEach(resident -> {
+                        in.value(resident.getRegisterId());
+                    });
+                }
+                lists.add(cb.and(in));
+            }
+
             Predicate[] arr = new Predicate[lists.size()];
             return cb.and(lists.toArray(arr));
         };

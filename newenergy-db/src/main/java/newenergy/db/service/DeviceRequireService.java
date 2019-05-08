@@ -4,10 +4,12 @@ import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.DeviceRequire;
+import newenergy.db.domain.Resident;
 import newenergy.db.global.DeviceRequireGlobal;
 import newenergy.db.predicate.DeviceRequirePredicate;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.DeviceRequireRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.task.DeviceRequireRunnable;
 import newenergy.db.task.ScheduledService;
 import newenergy.db.template.LogicOperation;
@@ -26,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-03-29.
@@ -44,6 +47,9 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
 
     @Autowired
     private ScheduledService scheduledService;
+
+    @Autowired
+    private ResidentRepository residentRepository;
 
     private ScheduledFuture<?> future;
     /**
@@ -170,6 +176,26 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
             }
             if(!StringUtilCorey.emptyCheck(predicate.getPlotNum())){
                 list.add(cb.equal(root.get("plotNum").as(String.class),predicate.getPlotNum()));
+            }
+
+            if(predicate.getPlots() != null){
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
+                for(String plot : predicate.getPlots()){
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
+                    List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,SafeConstant.SAFE_ALIVE);
+                    residents.forEach(resident -> {
+                        in.value(resident.getRegisterId());
+                    });
+                }
+                list.add(cb.and(in));
             }
             Predicate[] arr = new Predicate[list.size()];
             return cb.and(list.toArray(arr));
