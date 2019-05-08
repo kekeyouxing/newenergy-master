@@ -97,7 +97,6 @@ public class FaultRecordController {
         map.put("addressDtl",addressDtl);
         map.put("roomNum",resident.getRoomNum());
         map.put("phone",resident.getPhone());
-        //暂时使用用户id代替用户姓名
         Integer serviceId = corrPlotAdmin.getServicerId();
         NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
         String servicerName = null;
