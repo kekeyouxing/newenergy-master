@@ -179,7 +179,7 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
             }
 
             if(predicate.getPlots() != null){
-                Path<Object> path = root.get("registerId");
+                Path<Object> path = root.get("plotNum");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 if(predicate.getPlots().isEmpty()){
                     predicate.setPlots(corrPlotRepository
@@ -190,10 +190,7 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
                 }
                 for(String plot : predicate.getPlots()){
                     if(StringUtilCorey.emptyCheck(plot)) continue;
-                    List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,SafeConstant.SAFE_ALIVE);
-                    residents.forEach(resident -> {
-                        in.value(resident.getRegisterId());
-                    });
+                    in.value(plot);
                 }
                 list.add(cb.and(in));
             }

@@ -133,6 +133,24 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
+
+            if(predicate.getPlots() != null){
+                Path<Object> path = root.get("plotNum");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
+                for(String plot : predicate.getPlots()){
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
+                    in.value(plot);
+                }
+                lists.add(cb.and(in));
+            }
+
             Predicate[] arr = new Predicate[lists.size()];
             return cb.and(lists.toArray(arr));
         };
@@ -152,7 +170,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             }
 
             if(predicate.getPlots() != null){
-                Path<Object> path = root.get("registerId");
+                Path<Object> path = root.get("plotNum");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 if(predicate.getPlots().isEmpty()){
                     predicate.setPlots(corrPlotRepository
@@ -163,10 +181,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
                 }
                 for(String plot : predicate.getPlots()){
                     if(StringUtilCorey.emptyCheck(plot)) continue;
-                    List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
-                    residents.forEach(resident -> {
-                        in.value(resident.getRegisterId());
-                    });
+                    in.value(plot);
                 }
                 lists.add(cb.and(in));
             }
