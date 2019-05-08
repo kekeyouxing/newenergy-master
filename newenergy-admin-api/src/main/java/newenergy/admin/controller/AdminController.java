@@ -14,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,14 +116,14 @@ public class AdminController {
 
     //@RequiresPermissions("admin:admin:delete")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="删除")
-    @PostMapping("/delete")
-    public Object delete(@AdminLoginUser NewenergyAdmin adminLogin,@RequestBody NewenergyAdmin admin) {
-        Integer anotherAdminId = admin.getId();
-        if (anotherAdminId == null) {
+    @GetMapping("/delete")
+    public Object delete(@AdminLoginUser NewenergyAdmin adminLogin,@RequestParam Integer id) {
+
+        if (id == null) {
             return ResponseUtil.badArgument();
         }
 
-        adminService.deleteById(anotherAdminId, adminLogin.getId());
+        adminService.deleteById(id, adminLogin.getId());
         return ResponseUtil.ok();
     }
 }
