@@ -4,7 +4,7 @@ public class AdminResponseCode {
     public static final Integer ADMIN_INVALID_NAME = 601;
     public static final Integer ADMIN_INVALID_PASSWORD = 602;
     public static final Integer ADMIN_NAME_EXIST = 602;
-    public static final Integer ADMIN_ALTER_NOT_ALLOWED = 603;
+    public static final Integer ADMIN_INVALID_LOGIN = 603;
     public static final Integer ADMIN_DELETE_NOT_ALLOWED = 604;
     public static final Integer ADMIN_INVALID_ACCOUNT = 605;
     public static final Integer GOODS_UPDATE_NOT_ALLOWED = 610;

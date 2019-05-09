@@ -72,14 +72,16 @@ public class AdminRoleController {
 
     //@RequiresPermissions("admin:role:delete")
     //@RequiresPermissionsDesc(menu = {"系统管理","角色管理"}, button = "删除")
-    @PostMapping("/delete")
-    public Object delete(@RequestBody NewenergyRole role){
-        Integer id = role.getId();
+    @GetMapping("/delete")
+    public Object delete(@RequestParam Integer id){
+
         if(id == null){
             return ResponseUtil.badArgument();
         }
+        NewenergyRole role = roleService.read(id);
         roleService.deleteRole(role);
         return ResponseUtil.ok();
+
     }
     private Object validate(NewenergyRole role){
         String name = role.getName();
@@ -103,6 +105,7 @@ public class AdminRoleController {
         }
 
         return ResponseUtil.ok(options);
+
     }
 
     //@RequiresPermissions("admin:role:update")

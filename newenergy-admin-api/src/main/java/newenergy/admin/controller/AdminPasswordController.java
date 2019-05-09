@@ -38,8 +38,8 @@ public class AdminPasswordController {
         Subject currentUser = SecurityUtils.getSubject();
         NewenergyAdmin admin = (NewenergyAdmin) currentUser.getPrincipal();
 
-        if (!newPassword.equals(admin.getPassword())) {
-            return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, "账号密码不对");
+        if (!oldPassword.equals(admin.getPassword())) {
+            return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, "原密码错误");
         }
 
         admin.setPassword(newPassword);
