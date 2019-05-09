@@ -1,17 +1,17 @@
-package newenergy.db.service;
+package newenergy.admin.background.service;
 
 import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.DeviceRequire;
-import newenergy.db.domain.Resident;
 import newenergy.db.global.DeviceRequireGlobal;
 import newenergy.db.predicate.DeviceRequirePredicate;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.DeviceRequireRepository;
 import newenergy.db.repository.ResidentRepository;
-import newenergy.db.task.DeviceRequireRunnable;
-import newenergy.db.task.ScheduledService;
+import newenergy.db.service.CorrPlotService;
+import newenergy.admin.background.task.DeviceRequireRunnable;
+import newenergy.admin.background.task.ScheduledService;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.template.Searchable;
 import newenergy.db.util.StringUtilCorey;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.*;
@@ -90,6 +89,12 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
         plotRequire.setPlotNum(plotNum);
         return addDeviceRequire(plotRequire,userid);
     }
+    public List<String> findAllPlotNums(){
+        List<String> result = new ArrayList<>();
+        List<CorrPlot> corrPlots = corrPlotRepository.findAllBySafeDelete(SafeConstant.SAFE_ALIVE);
+        corrPlots.forEach(e->result.add(e.getPlotNum()));
+        return result;
+    }
     public void deletePlot(String plotNum,Integer userid){
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
         predicate.setPlotNum(plotNum);
@@ -155,8 +160,18 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
         predicate.setPlotNum(plotNum);
         DeviceRequire record = findOneByPredicateWithAive(predicate,null,null);
-        record.setRequireVolume(volume);
-        repository.saveAndFlush(record);
+        if(record != null){
+            record.setRequireVolume(volume);
+            repository.saveAndFlush(record);
+        }
+    }
+
+    public BigDecimal getRequire(String plotNum){
+        DeviceRequirePredicate predicate = new DeviceRequirePredicate();
+        predicate.setPlotNum(plotNum);
+        DeviceRequire result = findOneByPredicateWithAive(predicate,null,null);
+        if(result == null) return new BigDecimal(0);
+        return result.getRequireVolume();
     }
 
     @Override

@@ -2,7 +2,7 @@ package newenergy;
 
 import newenergy.db.domain.DeviceRequire;
 import newenergy.db.predicate.DeviceRequirePredicate;
-import newenergy.db.service.DeviceRequireService;
+import newenergy.admin.background.service.DeviceRequireService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

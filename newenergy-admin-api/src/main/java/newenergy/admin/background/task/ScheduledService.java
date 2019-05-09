@@ -1,4 +1,4 @@
-package newenergy.db.task;
+package newenergy.admin.background.task;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

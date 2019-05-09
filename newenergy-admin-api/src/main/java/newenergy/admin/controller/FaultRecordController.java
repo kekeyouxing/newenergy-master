@@ -1,21 +1,20 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.background.service.DeviceRequireService;
 import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.TimeUtil;
-import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.constant.ResultConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
 import newenergy.db.predicate.DeviceRequirePredicate;
-import newenergy.db.repository.NewenergyAdminRepository;
-import newenergy.db.repository.NewenergyRoleRepository;
 import newenergy.db.service.*;
 import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -25,10 +24,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -46,11 +43,14 @@ public class FaultRecordController {
     @Autowired
     private DeviceRequireService deviceRequireService;
 
+    @Value("${server.port}")
+    private String port;
+    private  String sendMsgUrl = "http://localhost:" + port + "/wx/fault/send";
+    private RestTemplate restTemplate;
 
-
-    private RestTemplate restTemplate = new RestTemplate();
-
-    private final String sendMsgUrl = "http://localhost/wx/fault/send";
+    FaultRecordController(){
+        restTemplate = new RestTemplate();
+    }
 
     private static class UserinfoDTO{
         Integer id;
@@ -195,6 +195,13 @@ public class FaultRecordController {
         request.put("partName",partName);
         MsgRet ret =restTemplate.postForObject(sendMsgUrl,request, MsgRet.class);
         return ret==null?3:ret.getErrcode();
+    }
+
+    @RequestMapping(value = "addother",method = RequestMethod.POST)
+    public void addOtherRecord(@RequestBody FaultRecord record, @AdminLoginUser NewenergyAdmin admin){
+        record.setState(FaultRecordConstant.STATE_FINISH);
+        record.setState(FaultRecordConstant.RESULT_SUCCESS);
+        faultRecordService.addRecord(record);
     }
 
 

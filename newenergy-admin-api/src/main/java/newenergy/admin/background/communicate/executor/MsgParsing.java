@@ -2,16 +2,19 @@ package newenergy.admin.background.communicate.executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import static newenergy.admin.background.communicate.utils.NumberUtil.transformNum36to10;
 
 /**
  * Created by HUST Corey on 2019-05-07.
  */
+@Component
 public class MsgParsing {
-    private static Logger log = LoggerFactory.getLogger(MsgParsing.class);
+    private  Logger log = LoggerFactory.getLogger(MsgParsing.class);
 
-    public static ParsingResult parse(String msg){
+    public  ParsingResult parse(String msg){
         ParsingResult result = new ParsingResult();
         msg = msg.trim();
         boolean legaled = true;
