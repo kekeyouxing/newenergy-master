@@ -172,6 +172,8 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
                     String plotNum = plot.getPlotNum();
                     in.value(plotNum);
                 }
+                if(plots.isEmpty())
+                    in.value("");
                 list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getPlotNum())){
