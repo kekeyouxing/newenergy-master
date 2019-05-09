@@ -66,7 +66,7 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
-//    @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0/5 * * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
@@ -77,14 +77,15 @@ public class ScheduleUpdateWater {
             if (isTrustworthy(remainWater)){
                 updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
                 scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
+
             }
         }
     }
 
     private boolean isTrustworthy(RemainWater remainWater){
-        LocalDateTime updataTime = remainWater.getUpdateTime();
+        LocalDateTime updateTime = remainWater.getUpdateTime();
         LocalDateTime now = LocalDateTime.now();
-        Duration duration = Duration.between(now,updataTime);
+        Duration duration = Duration.between(updateTime,now);
         long differMinutes = duration.toMinutes();
         if (differMinutes > 10){
             return false;
