@@ -54,7 +54,7 @@ public class ScheduledTask {
      * 检查故障记录超时情况
      * [TEST]模拟每10秒
      */
-    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "300/10 * * * * ?")
     public void checkTimeOut(){
         FaultRecordPredicate predicate = new FaultRecordPredicate();
         predicate.setState(FaultRecordConstant.STATE_WAIT);
@@ -81,7 +81,7 @@ public class ScheduledTask {
      * 余额不足提醒
      * [TEST]模拟每分钟检查阈值
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 5/1 * * * ?")
     public void checkThreshold(){
         List<RemainWater> remainWaterList = remainWaterService.findAll();
         remainWaterList.forEach(remainWater -> {
