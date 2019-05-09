@@ -21,14 +21,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-04-18.
@@ -144,6 +142,22 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                 }
                 if(predicate.getState() != null){
                     lists.add(criteriaBuilder.equal(root.get("state").as(Integer.class),predicate.getState()));
+                }
+                if(predicate.getPlots() != null){
+                    Path<Object> path = root.get("plotNum");
+                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                    if(predicate.getPlots().isEmpty()){
+                        predicate.setPlots(corrPlotRepository
+                                .findAll()
+                                .stream()
+                                .map(CorrPlot::getPlotNum)
+                                .collect(Collectors.toList()));
+                    }
+                    for(String plot : predicate.getPlots()){
+                        if(StringUtilCorey.emptyCheck(plot)) continue;
+                        in.value(plot);
+                    }
+                    lists.add(criteriaBuilder.and(in));
                 }
 
                 Predicate[] arr = new Predicate[lists.size()];
