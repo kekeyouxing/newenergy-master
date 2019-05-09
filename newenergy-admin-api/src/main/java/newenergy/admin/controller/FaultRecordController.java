@@ -106,7 +106,11 @@ public class FaultRecordController {
 
         Map<String,Object> info = new HashMap<>();
         info.put("area",resident.getArea());
-        info.put("buyTime",resident.getBuyTime());
+
+        LocalDate buyTime = resident.getBuyTime();
+        String buyTimeStr = String.format("%d-%02d-%d",buyTime.getYear(),buyTime.getMonthValue(),buyTime.getDayOfMonth());
+        info.put("buyTime",buyTimeStr);
+
         CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
         info.put("typeDtl",corrType.getTypeDtl());
         info.put("ratedFlow",resident.getRatedFlow());
