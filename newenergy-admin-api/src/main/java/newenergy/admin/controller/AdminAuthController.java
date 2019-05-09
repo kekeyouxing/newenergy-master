@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static newenergy.admin.util.AdminResponseCode.ADMIN_INVALID_ACCOUNT;
+import static newenergy.admin.util.AdminResponseCode.ADMIN_INVALID_LOGIN;
 
 @RestController
 @RequestMapping("/admin/auth")
@@ -56,11 +56,11 @@ public class AdminAuthController {
         try {
             currentUser.login(new UsernamePasswordToken(username, password));
         } catch (UnknownAccountException uae) {
-            return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, "用户帐号或密码不正确");
+            return ResponseUtil.fail(ADMIN_INVALID_LOGIN, "用户帐号或密码不正确");
         } catch (LockedAccountException lae) {
-            return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, "用户帐号已锁定不可用");
+            return ResponseUtil.fail(ADMIN_INVALID_LOGIN, "用户帐号已锁定不可用");
         } catch (AuthenticationException ae) {
-            return ResponseUtil.fail(ADMIN_INVALID_ACCOUNT, ae.getMessage());
+            return ResponseUtil.fail(ADMIN_INVALID_LOGIN, ae.getMessage());
         }
         return ResponseUtil.ok(currentUser.getSession().getId());
     }
