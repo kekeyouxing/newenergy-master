@@ -15,9 +15,9 @@ import java.math.BigDecimal;
 public class MsgSolve {
     @Autowired
     private WaterService waterService;
-
     @Autowired
     private FaultService faultService;
+
 
     public  SolveResult solve(ParsingResult result){
         /**

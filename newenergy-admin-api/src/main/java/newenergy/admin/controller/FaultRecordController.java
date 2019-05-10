@@ -45,7 +45,8 @@ public class FaultRecordController {
 
     @Value("${server.port}")
     private String port;
-    private  String sendMsgUrl = "http://localhost:" + port + "/wx/fault/send";
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/send";
     private RestTemplate restTemplate;
 
     FaultRecordController(){
@@ -193,7 +194,7 @@ public class FaultRecordController {
         request.put("phone",resident.getPhone());
         String partName = String.format("%s*",resident.getUserName().substring(0,1));
         request.put("partName",partName);
-        MsgRet ret =restTemplate.postForObject(sendMsgUrl,request, MsgRet.class);
+        MsgRet ret =restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,request, MsgRet.class);
         return ret==null?3:ret.getErrcode();
     }
 

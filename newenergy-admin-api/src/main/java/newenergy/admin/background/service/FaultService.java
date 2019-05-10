@@ -34,7 +34,7 @@ public class FaultService {
     private  String sendMsgUrl = "http://localhost:" + port + "/wx/fault/send";
     private RestTemplate restTemplate;
 
-    FaultService(){
+    public FaultService(){
         restTemplate = new RestTemplate();
     }
 
