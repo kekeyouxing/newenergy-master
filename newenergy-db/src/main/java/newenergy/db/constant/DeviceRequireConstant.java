@@ -5,5 +5,8 @@ package newenergy.db.constant;
  */
 public class DeviceRequireConstant {
     public static final String SETTINGS = "##";
-    public static final Integer DEFAULT_LOOP = 10;
+    /**
+     * TODO[test] 实时需水量测试为1分钟
+     */
+    public static final Integer DEFAULT_LOOP = 1;
 }

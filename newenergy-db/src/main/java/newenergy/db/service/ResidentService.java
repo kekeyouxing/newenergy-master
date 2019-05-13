@@ -235,6 +235,9 @@ public class ResidentService extends LogicOperation<Resident> {
             if(!StringUtilCorey.emptyCheck(resident.getUserName())){
                 predicates.add(cb.like(root.get("userName"), "%"+resident.getUserName()+"%"));
             }
+            if(!StringUtilCorey.emptyCheck(resident.getDeviceNum())){
+                predicates.add(cb.equal(root.get("deviceNum"), resident.getDeviceNum()));
+            }
             predicates.add(cb.equal(root.get("safeDelete"), SafeConstant.SAFE_ALIVE));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };

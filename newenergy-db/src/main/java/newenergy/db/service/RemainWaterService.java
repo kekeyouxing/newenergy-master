@@ -21,8 +21,8 @@ public class RemainWaterService{
     public RemainWater findByRegisterId(String registerId) {
         return remainWaterRespository.findFirstByRegisterId(registerId);
     }
-    public void updateRemainWater(RemainWater remainWater){
-        remainWaterRespository.saveAndFlush(remainWater);
+    public RemainWater updateRemainWater(RemainWater remainWater){
+        return remainWaterRespository.saveAndFlush(remainWater);
     }
 
     public List<RemainWater> findAll() {
