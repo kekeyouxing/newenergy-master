@@ -60,7 +60,7 @@ public class ScheduledTask {
 
     /**
      * 超时时间，秒。
-     * [TEST]模拟120秒超时
+     * TODO [TEST]模拟120秒超时
      */
     private Integer timeOut = 120;
 
