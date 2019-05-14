@@ -119,6 +119,10 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 LocalDateTime end = LocalDateTime.of(cond.plusMonths(1).getYear(),cond.plusMonths(1).getMonth(),1,0,0);
                 conditions.add(cb.between(root.get("finishTime").as(LocalDateTime.class),start,end));
             }
+            if(predicate.getFaultTime() != null){
+                LocalDateTime faultTime = predicate.getFaultTime();
+                conditions.add(cb.between(root.get("faultTime").as(LocalDateTime.class),LocalDateTime.MIN,faultTime));
+            }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));
         };

@@ -1,12 +1,11 @@
 package newenergy.admin.controller;
 
-import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.background.service.DeviceRequireService;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrAddress;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPump;
-import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

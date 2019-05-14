@@ -32,4 +32,14 @@ public class TimeUtil {
         return time.toEpochSecond(ZoneOffset.UTC) >= start.toEpochSecond(ZoneOffset.UTC)
                 && time.toEpochSecond(ZoneOffset.UTC) < end.toEpochSecond(ZoneOffset.UTC);
     }
+    public static String getString(LocalDateTime localDateTime){
+        if(localDateTime == null) return "";
+        return String.format("%d-%02d-%d %d:%d:%d",
+                localDateTime.getYear(),
+                localDateTime.getMonthValue(),
+                localDateTime.getDayOfMonth(),
+                localDateTime.getHour(),
+                localDateTime.getMinute(),
+                localDateTime.getSecond());
+    }
 }

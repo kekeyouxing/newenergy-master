@@ -138,8 +138,10 @@ public class MsgController {
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",faultReportId);
+        Integer faultId = Integer.valueOf((String) body.get("faultId"));
+
         String param = String.format("?faultId=%d&token=%s",
-                body.get("faultId"),
+                faultId,
                 UserTokenManager.generateTokenWithOpenId((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + reportRecall + param);
         Map<String,Object> subBody = new HashMap<>();

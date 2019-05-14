@@ -205,9 +205,18 @@ public class PlotFactorController {
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
 
+
         Map<String,Object> ret = new HashMap<>();
         ApplyFactorPredicate predicate = new ApplyFactorPredicate();
         predicate.setPlotDtl(plotDtl);
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+
         Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.ASC,"plotNum"));
         ret.put("total",factors.getTotalElements());
         List<Map<String,Object>>  list = new ArrayList<>();

@@ -150,7 +150,7 @@ public class RechargeRecordController {
     }
 
     //    某个用户充值记录
-    @RequestMapping(value = "/findPersonal", method = RequestMethod.POST)
+    @RequestMapping(value = "/findPersonal", method = RequestMethod.POST,produces = "application/json;charset=utf-8")
     public Object findPersonal(@RequestBody PostInfo postInfo){
         List<RechargeRecord> queryResult = rechargeRecordService.findByConditions(null,
                 null,
@@ -171,7 +171,11 @@ public class RechargeRecordController {
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
-        result.put("currentRemainVolume",remainWaterService.findByRegisterId(postInfo.getRegisterId()).getRemainVolume());
+        BigDecimal remainWater = new BigDecimal(0);
+        if (remainWaterService.findByRegisterId(postInfo.getRegisterId())!=null){
+            remainWater = remainWaterService.findByRegisterId(postInfo.getRegisterId()).getRemainVolume();
+        }
+        result.put("currentRemainVolume",remainWater);
         result.put("list",list);
         return result;
     }

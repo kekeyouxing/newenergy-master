@@ -22,7 +22,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NewenergyAdminService extends LogicOperation<NewenergyAdmin> {
@@ -143,6 +145,40 @@ public class NewenergyAdminService extends LogicOperation<NewenergyAdmin> {
             }
         };
         return adminRepository.findAll(specification);
+    }
+
+    /**
+     * by Zeng Hui
+     * @param roleids
+     * @return
+     */
+    public List<NewenergyAdmin>  findAllByRoleIds(Integer[] roleids){
+        List<NewenergyAdmin> allAdmin = adminRepository.findAll(PredicateFactory.getAliveSpecification());
+        return allAdmin.stream().filter(e-> contains(e.getRoleIds(),roleids)).collect(Collectors.toList());
+    }
+
+    /**
+     * by Zeng Hui
+     * @param parent
+     * @param sub
+     * @return
+     */
+    public boolean contains(Integer[] parent, Integer[] sub){
+        if(sub == null || sub.length == 0) return true;
+        if(parent == null || parent.length == 0) return false;
+        Arrays.sort(parent);
+        Arrays.sort(sub);
+        int i = 0, j = 0;
+        while(i < sub.length){
+            if(j >= parent.length) break;
+            if(sub[i].equals(parent[j]) ){
+                i+=1;
+                j+=1;
+            }else{
+                j+=1;
+            }
+        }
+        return i == sub.length;
     }
 
 }

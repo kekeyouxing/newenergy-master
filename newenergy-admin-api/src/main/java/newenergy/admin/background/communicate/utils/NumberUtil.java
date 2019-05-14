@@ -40,7 +40,8 @@ public class NumberUtil {
                     .setScale(1,BigDecimal.ROUND_DOWN)
                     .multiply(new BigDecimal(10))
                     .longValue()
-        ).substring(0,1);
+        );
+        if(!suffix.isEmpty()) suffix = suffix.substring(0,1);
         String numStr = prefix + suffix;
         if(numStr.length() > 8) return null;
 

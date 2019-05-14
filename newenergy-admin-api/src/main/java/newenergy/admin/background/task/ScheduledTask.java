@@ -1,0 +1,140 @@
+package newenergy.admin.background.task;
+
+import newenergy.admin.background.service.DeviceRequireService;
+import newenergy.core.pojo.MsgRet;
+import newenergy.core.util.TimeUtil;
+import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.FaultRecordConstant;
+import newenergy.db.domain.*;
+import newenergy.db.predicate.FaultRecordPredicate;
+import newenergy.db.service.FaultRecordService;
+import newenergy.db.service.NewenergyAdminService;
+import newenergy.db.service.RemainWaterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by HUST Corey on 2019-05-08.
+ *
+ * TODO 定时任务
+ * 定时检查故障记录超时情况
+ * 定时轮询用户阈值
+ *
+ */
+
+@Service
+public class ScheduledTask {
+    @Autowired
+    private FaultRecordService faultRecordService;
+    @Autowired
+    private RemainWaterService remainWaterService;
+    @Autowired
+    private NewenergyAdminService newenergyAdminService;
+
+    private Logger log = LoggerFactory.getLogger(this.getClass());
+
+
+    @Value("${server.port}")
+    private String port;
+    private  String sendMsgPrefix = "http://localhost:";
+    private String reportSendSuffix = "/wx/report/send";
+    private String thresholdSuffix = "/wx/threshold/send";
+    private RestTemplate restTemplate;
+    ScheduledTask(){
+        restTemplate = new RestTemplate();
+    }
+
+    /**
+     * 超时时间，秒。
+     * TODO [TEST]模拟120秒超时
+     */
+    private Integer timeOut = 120;
+
+
+    /**
+     * 检查故障记录超时情况
+     * TODO [TEST]模拟每分钟
+     */
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void checkTimeOut(){
+        log.info("检查故障记录超时定时任务启动>>>>>");
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        predicate.setState(FaultRecordConstant.STATE_WAIT);
+        predicate.setFaultTime(LocalDateTime.now().minusSeconds(timeOut));
+        Page<FaultRecord> records = faultRecordService.findByPredicate(predicate,null,null);
+        records.forEach(record -> {
+            log.info("超时故障记录id："+record.getId());
+            record.setState(FaultRecordConstant.STATE_FINISH);
+            record.setResult(FaultRecordConstant.RESULT_TIMEOUT);
+            faultRecordService.updateRecord(record);
+
+            Resident resident = faultRecordService.getResident(record.getRegisterId());
+            CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+            NewenergyAdmin servicer = faultRecordService.getNewenergyAdmin(record.getServicerId());
+            List<NewenergyAdmin> allRes =
+                    newenergyAdminService
+                    .findAllByRoleIds(
+                            new Integer[]{AdminConstant.ROLE_FAULTLEADER}
+                    );
+            String openid = null;
+            if(!allRes.isEmpty()){
+                openid = allRes.get(0).getOpenid();
+            }
+
+            Map<String,Object> request = new HashMap<>();
+            request.put("touser",openid);
+            request.put("faultTime",TimeUtil.getString(record.getFaultTime()));
+            request.put("address",corrAddress.getAddressDtl());
+            request.put("servicer",servicer.getRealName());
+            request.put("faultId",record.getId());
+            restTemplate.postForObject(sendMsgPrefix+port+reportSendSuffix,request, MsgRet.class);
+        });
+
+        log.info("检查故障记录超时定时任务结束>>>>>");
+
+    }
+
+    /**
+     * 余额不足提醒
+     * TODO [TEST]模拟每分钟检查阈值
+     */
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void checkThreshold(){
+        log.info("检查余额定时任务启动>>>>>");
+        List<RemainWater> remainWaterList = remainWaterService.findAll();
+        remainWaterList.forEach(remainWater -> {
+            String registerId = remainWater.getRegisterId();
+            Resident resident = faultRecordService.getResident(registerId);
+            log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold());
+            if(remainWater.getRemainVolume()==null || resident.getThreshold()==null) return;
+            int compare = remainWater.getRemainVolume().compareTo(new BigDecimal(resident.getThreshold()));
+            if(compare <= 0){
+                Map<String,Object> request = new HashMap<>();
+                request.put("touser",resident.getOpenid());
+                request.put("remainWater",remainWater.getRemainVolume());
+                request.put("updateTime",TimeUtil.getString(remainWater.getUpdateTime()));
+                restTemplate.postForObject(sendMsgPrefix+port+thresholdSuffix,request,MsgRet.class);
+            }
+        });
+        log.info("检查余额定时任务结束>>>>>");
+
+    }
+
+
+
+
+}

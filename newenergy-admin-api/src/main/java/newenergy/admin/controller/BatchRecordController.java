@@ -111,17 +111,17 @@ public class BatchRecordController {
                 String name = UUID.randomUUID().toString();
 //                判断路径是否存在，不存在则新建一个目录
 //                部署需重新配置
-                File file1 = new File("f:\\images");
+                File file1 = new File("c:\\images");
                 if (!file1.exists()){
                     file1.mkdir();
                 }
                 BufferedOutputStream out = new BufferedOutputStream(
-                        new FileOutputStream(new File("f:\\images\\"+name+".jpg")));//保存图片到目录下，部署续重新配置
+                        new FileOutputStream(new File("c:\\images\\"+name+".jpg")));//保存图片到目录下，部署续重新配置
                 out.write(file.getBytes());
                 out.flush();
                 out.close();
 //                部署续重新配置，将localhost改为ip
-                return "218.197.229.6:8080/admin/image/"+name+".jpg";
+                return "localhost:80/admin/image/"+name+".jpg";
             } catch (IOException e) {
                 e.printStackTrace();
                 return "上传失败," + e.getMessage();

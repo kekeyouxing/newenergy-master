@@ -19,6 +19,19 @@ public  class FaultRecordPredicate{
      */
     private LocalDateTime finishTime;
 
+    /**
+     * 查询在faultTime之前的维修记录（即超时）
+     */
+    private LocalDateTime faultTime;
+
+    public LocalDateTime getFaultTime() {
+        return faultTime;
+    }
+
+    public void setFaultTime(LocalDateTime faultTime) {
+        this.faultTime = faultTime;
+    }
+
     public LocalDateTime getFinishTime() {
         return finishTime;
     }
