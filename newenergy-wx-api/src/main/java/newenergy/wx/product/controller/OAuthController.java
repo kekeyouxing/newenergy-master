@@ -78,23 +78,23 @@ public class OAuthController {
     public void doRecharge(@RequestParam(value = "code")String code, HttpServletResponse response) throws IOException {
         String token = null;
         if (!"authdeny".equals(code)){
-            String appId = "wx56acef520e1b0030";
-            String appSecret = "3848a4749c6337c86f3dcf42b3d21d2a";
+//            String appId = "wx56acef520e1b0030";
+//            String appSecret = "3848a4749c6337c86f3dcf42b3d21d2a";
 //            String appId = wxProductService.getWxProductConfig().getAppId();
 //            String appSecret = wxProductService.getWxProductConfig().getAppSecret();
 
-//            //获取网页授权access_token
-//            WeixinOauth2Token weixinOauth2Token = AdvancedUtil.getOauth2AccessToken(appId,appSecret,code);
-//            //网页授权接口访问凭证
-//            String accessToken = weixinOauth2Token.getAccessToken();
-//            //用户标识
-//            String openId = weixinOauth2Token.getOpenId();
-//            //获取用户信息
-//            SNSUserInfo snsUserInfo = AdvancedUtil.getSNSUserInfo(accessToken,openId);
-//            //获取用户昵称
-//            String nickname = snsUserInfo.getNickname();
-            String openId = "otRs353-307-p8aHZByLNAs3j03k";
-            String nickname = "zany";
+            //获取网页授权access_token
+            WeixinOauth2Token weixinOauth2Token = AdvancedUtil.getOauth2AccessToken(appId,appSecret,code);
+            //网页授权接口访问凭证
+            String accessToken = weixinOauth2Token.getAccessToken();
+            //用户标识
+            String openId = weixinOauth2Token.getOpenId();
+            //获取用户信息
+            SNSUserInfo snsUserInfo = AdvancedUtil.getSNSUserInfo(accessToken,openId);
+            //获取用户昵称
+            String nickname = snsUserInfo.getNickname();
+//            String openId = "otRs353-307-p8aHZByLNAs3j03k";
+//            String nickname = "zany";
 
             UserToken userToken = UserTokenManager.generateTokenWithNinameAndOpenId(openId,nickname);
             token = userToken.getToken();
