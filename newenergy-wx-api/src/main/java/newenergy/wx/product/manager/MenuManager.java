@@ -77,7 +77,7 @@ public class MenuManager implements ApplicationRunner {
         btn21.setType("view");
 //        btn21.setUrl("http://www.baidu.com");
 //        btn21.setUrl(domainName+"#/checkBalance");
-        btn21.setUrl(domainFront+"/#/checkBalance");
+        btn21.setUrl(domainFront+"/#/wx/checkBalance");
 
         ViewButton btn22 = new ViewButton();
         btn22.setName("充值记录");
@@ -85,7 +85,7 @@ public class MenuManager implements ApplicationRunner {
         btn22.setType("view");
 //        btn22.setUrl("http://www.baidu.com");
 //        btn22.setUrl(domainName+"#/rechargeRecords");
-        btn22.setUrl(domainFront+"/#/rechargeRecords");
+        btn22.setUrl(domainFront+"/#/wx/rechargeRecords");
 
         ComplexButton mainBtn1 = new ComplexButton();
         mainBtn1.setName("用户");

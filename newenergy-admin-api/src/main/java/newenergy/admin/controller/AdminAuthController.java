@@ -51,7 +51,6 @@ public class AdminAuthController {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return ResponseUtil.badArgument();
         }
-
         Subject currentUser = SecurityUtils.getSubject();
         try {
             currentUser.login(new UsernamePasswordToken(username, password));

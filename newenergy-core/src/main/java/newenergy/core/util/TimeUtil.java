@@ -34,7 +34,7 @@ public class TimeUtil {
     }
     public static String getString(LocalDateTime localDateTime){
         if(localDateTime == null) return "";
-        return String.format("%d-%02d-%d %d:%d:%d",
+        return String.format("%d-%02d-%02d %02d:%02d:%02d",
                 localDateTime.getYear(),
                 localDateTime.getMonthValue(),
                 localDateTime.getDayOfMonth(),

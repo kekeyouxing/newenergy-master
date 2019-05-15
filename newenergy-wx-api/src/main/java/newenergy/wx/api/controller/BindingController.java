@@ -47,9 +47,9 @@ public class BindingController {
     private final String unbindingLabel = "点此解绑";
     private final String searchingLabel = "点此查看";
 
-    private final String bindingUrl = "/#/companyUserBind";
-    private final String unbindingUrl = "/#/companyUserBind";
-    private final String searchingUrl = "/#/faultRecords";
+    private final String bindingUrl = "/#/wx/companyUserBind";
+    private final String unbindingUrl = "/#/wx/companyUserBind";
+    private final String searchingUrl = "/#/wx/faultRecords";
     @RequestMapping("forward/bind")
     public String forward1(){
         return "绑定页面";

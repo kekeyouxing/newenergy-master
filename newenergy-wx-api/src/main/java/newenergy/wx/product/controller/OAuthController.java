@@ -69,7 +69,7 @@ public class OAuthController {
 //            result.put("userInfo",snsUserInfo);
 //            request.getRequestDispatcher("../../static/index.html").forward(request,response);
         }
-        response.sendRedirect("/#/userBind?token="+token);
+        response.sendRedirect("/#/wx/userBind?token="+token);
 //        response.sendRedirect("http://192.168.199.105:8080/#/userBind?token="+token);
 //        request.getRequestDispatcher("/#/userBind").forward(request,response);
     }
@@ -99,7 +99,7 @@ public class OAuthController {
             UserToken userToken = UserTokenManager.generateTokenWithNinameAndOpenId(openId,nickname);
             token = userToken.getToken();
         }
-        response.sendRedirect("/#/recharge?token="+token);
+        response.sendRedirect("/#/wx/recharge?token="+token);
 //        response.sendRedirect("http://192.168.199.105:8080/#/recharge?token="+token);
     }
 }

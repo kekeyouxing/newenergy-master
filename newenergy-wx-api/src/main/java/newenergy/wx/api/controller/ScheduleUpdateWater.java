@@ -1,5 +1,6 @@
 package newenergy.wx.api.controller;
 
+import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
 import org.slf4j.Logger;
@@ -50,6 +51,9 @@ public class ScheduleUpdateWater {
     @Autowired
     private StatisticPlotRechargeService plotRechargeService;
 
+    @Autowired
+    private StorageService storageService;
+
     private static ScheduleUpdateWater scheduleUpdateWater;
 
     @PostConstruct
@@ -66,7 +70,7 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
-    @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
@@ -76,6 +80,7 @@ public class ScheduleUpdateWater {
             RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
             if (isTrustworthy(remainWater)){
                 updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
+                storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
                 scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
 
             }

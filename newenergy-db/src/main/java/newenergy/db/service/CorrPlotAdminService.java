@@ -111,9 +111,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         return super.addRecord(record,userid,repository);
     }
     public CorrPlotAdmin updateARecord(CorrPlotAdmin corrPlotAdmin, Integer userid){
-        /**
-         * TODO 更新设备信息表？
-         */
+
 //        Integer id = corrPlotAdmin.getId();
 //        if(id == null) return null;
 //        CorrPlotAdmin origin = repository.findById(id).orElse(null);
@@ -128,9 +126,6 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         res.forEach(e->{
             super.deleteRecord(e.getId(),userid,repository);
         });
-        /**
-         * TODO 更新设备信息表？
-         */
     }
 
     @Override

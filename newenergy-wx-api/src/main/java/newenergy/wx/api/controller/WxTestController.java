@@ -16,14 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
  * Created by HUST Corey on 2019-04-22.
  */
 @RestController
-@RequestMapping("wx")
 public class WxTestController {
     @Autowired
     private WxTokenSetting setting;
     @RequestMapping("test")
     public String getAccessToken(){
-        Ret<AccessToken> ret = AccessTokenCenter.getAccessToken(setting.getAppId(),setting.getAppSecret());
-        return ret.ok()?ret.get().getAccess_token():String.valueOf(ret.getCode());
+        return "test";
     }
     @RequestMapping("token")
     public String getToken(@RequestParam String openid){
