@@ -118,6 +118,7 @@ public class RechargeRecordController {
                 null,
                 null).size());
         result.put("list",list);
+        result.put("haveCredential",batchRecordService.queryById(postInfo.getBatchRecordId()).getImgUrl()==null?0:1);
         result.put("amount",batchRecordService.queryById(postInfo.getBatchRecordId()).getAmount());
         return result;
     }

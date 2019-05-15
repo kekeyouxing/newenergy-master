@@ -159,6 +159,7 @@ public class ScheduleUpdateWater {
             remainWater.setUpdateTime(LocalDateTime.now());
             scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
         }
+        new PlotFactorService().updateFactor();
     }
 
     /**
