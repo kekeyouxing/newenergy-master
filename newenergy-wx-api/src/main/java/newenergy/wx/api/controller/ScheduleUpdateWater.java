@@ -66,7 +66,7 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
-    @Scheduled(cron = "0/5 * * * * ?")
+//    @Scheduled(cron = "0/5 * * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){

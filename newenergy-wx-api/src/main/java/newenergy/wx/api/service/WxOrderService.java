@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
 
@@ -40,6 +42,8 @@ import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class WxOrderService {
     private final Log logger = LogFactory.getLog(WxOrderService.class);
+
+    private static Map<String,RechargeRecord> orderMap = new HashMap<>();
 
     @Autowired
     private RechargeRecordService rechargeRecordService;
@@ -112,7 +116,12 @@ public class WxOrderService {
             orderRequest.setTotalFee(fee);
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
-            rechargeRecordService.addRechargeRecord(order,null);
+//            rechargeRecordService.addRechargeRecord(order,null);//改为orderMap
+            //判断是否有相同订单号
+            while(orderMap.containsKey(order.getOrderSn())){
+                order.setOrderSn(rechargeRecordService.generateOrderSn());
+            }
+            orderMap.put(order.getOrderSn(),order);
 //            String prepayId = result.getPackageValue();
 //            prepayId = prepayId.replace("prepay_id=","");
 
@@ -156,7 +165,8 @@ public class WxOrderService {
         String payId = result.getTransactionId();
 
         String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
-        RechargeRecord order = rechargeRecordService.findBySn(orderSn);
+//        RechargeRecord order = rechargeRecordService.findBySn(orderSn);//改为orderMap
+        RechargeRecord order = orderMap.get(orderSn);
         if (order == null){
             return WxPayNotifyResponse.fail("订单不存在 sn="+orderSn);
         }
@@ -170,7 +180,9 @@ public class WxOrderService {
 
         order.setTransactionId(payId);
         order.setRechargeTime(LocalDateTime.now());
-        order = rechargeRecordService.updateRechargeRecord(order,null);
+
+//        order = rechargeRecordService.updateRechargeRecord(order,null);//改为添加
+        order = rechargeRecordService.addRechargeRecord(order,null);
         int recordId = order.getId();
 
         //TODO 发送邮件和短信通知，这里采用异步发送
@@ -184,8 +196,6 @@ public class WxOrderService {
         extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
-
-
 
     public Object refund(String body){
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
