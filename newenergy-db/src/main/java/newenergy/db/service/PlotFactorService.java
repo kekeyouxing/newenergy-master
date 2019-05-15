@@ -157,6 +157,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                         if(StringUtilCorey.emptyCheck(plot)) continue;
                         in.value(plot);
                     }
+                    in.value("");
                     lists.add(criteriaBuilder.and(in));
                 }
 

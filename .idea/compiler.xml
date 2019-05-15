@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="newenergy-admin-api" />
-        <module name="newenergy-all" />
-        <module name="newenergy-core" />
         <module name="newenergy-db" />
+        <module name="newenergy-admin-api" />
+        <module name="newenergy-core" />
         <module name="newenergy-wx-api" />
+        <module name="newenergy-all" />
       </profile>
     </annotationProcessing>
   </component>

@@ -30,7 +30,6 @@ import java.util.Map;
 /**
  * Created by HUST Corey on 2019-05-08.
  *
- * TODO 定时任务
  * 定时检查故障记录超时情况
  * 定时轮询用户阈值
  *
