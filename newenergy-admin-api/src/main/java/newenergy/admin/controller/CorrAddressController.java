@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.util.ExcelExport;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrAddress;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -152,5 +155,29 @@ public class CorrAddressController {
         }
         corrAddressService.deleteCorrAddress(id, userid);
         return ResponseUtil.ok();
+    }
+
+    @GetMapping("/download")
+    public void download(HttpServletResponse response){
+        String[] headers = new String[]{"地址编号","安装地址","备注"};
+
+        List<CorrAddress> addresses = corrAddressService.findAll();
+        List<String[]> values = Obj2String(addresses);
+
+        ExcelExport excel = new ExcelExport(headers, values);
+
+        excel.exportExcel("地址信息表", response);
+    }
+
+    private List<String[]> Obj2String(List<CorrAddress> addresses) {
+        List<String[]> values = new ArrayList<>();
+        if(addresses!=null && addresses.size()!=0){
+            for(CorrAddress address : addresses){
+                String[] corrStr = new String[]{address.getAddressNum(),address.getAddressDtl()};
+                values.add(corrStr);
+            }
+        }
+
+        return values;
     }
 }
