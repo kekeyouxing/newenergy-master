@@ -70,6 +70,9 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
+    /**
+     * TODO [TEST]每分钟生成一次
+     */
     @Scheduled(cron = "0 0/1 * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
@@ -78,6 +81,7 @@ public class ScheduleUpdateWater {
             Integer addAmount = extraWater.getAddAmount();
             RechargeRecord rechargeRecord = scheduleUpdateWater.rechargeRecordService.findById(extraWater.getRecordId());
             RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
+
             if (isTrustworthy(remainWater)){
                 updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
                 storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
@@ -88,6 +92,7 @@ public class ScheduleUpdateWater {
     }
 
     private boolean isTrustworthy(RemainWater remainWater){
+        if(remainWater==null) return false;
         LocalDateTime updateTime = remainWater.getUpdateTime();
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(updateTime,now);

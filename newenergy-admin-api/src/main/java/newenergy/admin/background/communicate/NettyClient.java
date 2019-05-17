@@ -1,10 +1,7 @@
 package newenergy.admin.background.communicate;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -28,7 +25,7 @@ public class NettyClient {
 
     private static void init () {
         try {
-            log.info("init...");
+//            log.info("init...");
             b = new Bootstrap();
             b.group(workerGroup);
             b.channel(NioSocketChannel.class);
@@ -58,17 +55,40 @@ public class NettyClient {
     }
 
     public static void main(String[] args) {
-        InetSocketAddress address = new InetSocketAddress("127.0.0.1", 7000);
-        String message = "hello";
-        try {
-            Object result = NettyClient.startAndWrite(address, message);
-            log.info("....result:" + result);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        } finally {
-            f.channel().close();
-            workerGroup.shutdownGracefully();
-            log.info("Closed client!");
+        InetSocketAddress address = new InetSocketAddress("101.37.67.23", 7000);
+        String message = "HGDR123400000ZB300000ZF8C000FINL";
+        for(int i = 0; i < 10000; i++) {
+            try {
+                Object result = NettyClient.startAndWrite(address, message);
+//                log.info("....result:" + result);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            } finally {
+//                f.channel().close();
+            }
         }
+
+        workerGroup.shutdownGracefully();
+        log.info("Closed client!");
+
+        /**
+         * 6w连接测试
+         */
+//        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+//        Bootstrap b = new Bootstrap();
+//        b.group(workerGroup);
+//        b.channel(NioSocketChannel.class);
+//        b.handler(new ChannelInitializer<SocketChannel>() {
+//            @Override
+//            protected void initChannel(SocketChannel socketChannel) throws Exception {
+//                ChannelPipeline pipeline = socketChannel.pipeline();
+//            }
+//        });
+//
+//        for(int k = 0; k < 30000; k++){
+//            ChannelFuture f = b.connect("101.37.67.23",7000);
+////            f.channel().writeAndFlush("HGDR123400000ZB300000ZF8C000FINL");
+//        }
+
     }
 }
