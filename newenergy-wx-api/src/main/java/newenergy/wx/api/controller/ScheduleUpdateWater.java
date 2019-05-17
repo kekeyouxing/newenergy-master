@@ -2,6 +2,7 @@ package newenergy.wx.api.controller;
 
 import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.*;
+import newenergy.db.global.Parameters;
 import newenergy.db.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,13 +92,14 @@ public class ScheduleUpdateWater {
         }
     }
 
+
     private boolean isTrustworthy(RemainWater remainWater){
         if(remainWater==null) return false;
         LocalDateTime updateTime = remainWater.getUpdateTime();
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(updateTime,now);
         long differMinutes = duration.toMinutes();
-        if (differMinutes > 10){
+        if (differMinutes > Parameters.TRUSTDURATION){
             return false;
         }
         else{
