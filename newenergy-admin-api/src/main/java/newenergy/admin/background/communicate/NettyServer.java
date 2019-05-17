@@ -39,7 +39,7 @@ public class NettyServer {
                     .option(ChannelOption.SO_BACKLOG, 2048);
 //                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            f = b.bind(address).syncUninterruptibly();
+            f = b.bind(address.getPort()).syncUninterruptibly();
             channel = f.channel();
         } catch (Exception e) {
             log.error("Netty start error:", e);

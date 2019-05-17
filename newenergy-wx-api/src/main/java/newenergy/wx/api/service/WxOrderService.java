@@ -80,6 +80,7 @@ public class WxOrderService {
         String token = JacksonUtil.parseString(body,"token");
         String openid = UserTokenManager.getOpenId(token);
         String nickname = UserTokenManager.getNickname(token);
+        logger.info("<submit> nickname:" + nickname);
         if (openid == null || openid.isEmpty() || nickname == null || nickname.isEmpty()){
             return ResponseUtil.unauthz();
         }
@@ -90,7 +91,7 @@ public class WxOrderService {
         if (amount == null || deviceid == null){
             return ResponseUtil.badArgument();
         }
-        BigDecimal acturalAmount = new BigDecimal(amount);
+        BigDecimal acturalAmount = new BigDecimal(amount).multiply(new BigDecimal(100));
 
         RechargeRecord order = null;
         order = new RechargeRecord();
@@ -101,7 +102,11 @@ public class WxOrderService {
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
+
+
         BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
+//        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
+
         //生成商户订单号
         order.setOrderSn(rechargeRecordService.generateOrderSn());
         order.setRechargeVolume(recharge_volumn);
@@ -112,7 +117,8 @@ public class WxOrderService {
             orderRequest.setOpenid(openid);
             orderRequest.setBody("订单："+order.getOrderSn());
             // 将充值金额转换为分，微信接口需要以分为单位
-            int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
+//            int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
+            int fee = acturalAmount.intValue();
             orderRequest.setTotalFee(fee);
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
@@ -129,6 +135,7 @@ public class WxOrderService {
             e.printStackTrace();
             return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
         }
+        logger.info("<submit> result:"+result.toString());
         return ResponseUtil.ok(result);
     }
 
@@ -164,17 +171,23 @@ public class WxOrderService {
         String orderSn = result.getOutTradeNo();
         String payId = result.getTransactionId();
 
-        String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
+//        String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
+        Integer totalFee = result.getTotalFee();
+
+        logger.info("<payNotify> orderSn:"+orderSn);
 //        RechargeRecord order = rechargeRecordService.findBySn(orderSn);//改为orderMap
         RechargeRecord order = orderMap.get(orderSn);
+
         if (order == null){
             return WxPayNotifyResponse.fail("订单不存在 sn="+orderSn);
         }
+        logger.info("<payNotify> order.orderSn:"+order.getOrderSn());
 
         //检查这个订单是否被处理过
 
         //检查支付订单金额
-        if(!totalFee.equals(order.getAmount().toString())){
+        if(!totalFee.equals(order.getAmount())){
+            logger.info("<payNotify> retAmount, amount : " +totalFee+","+order.getAmount());
             return WxPayNotifyResponse.fail(order.getOrderSn()+":支付金额不符合 totalFee="+totalFee);
         }
 
@@ -184,7 +197,7 @@ public class WxOrderService {
 //        order = rechargeRecordService.updateRechargeRecord(order,null);//改为添加
         order = rechargeRecordService.addRechargeRecord(order,null);
         int recordId = order.getId();
-
+        logger.info("<payNotify> recordId : " + recordId);
         //TODO 发送邮件和短信通知，这里采用异步发送
 
 //        ExtraWater extraWater = null;

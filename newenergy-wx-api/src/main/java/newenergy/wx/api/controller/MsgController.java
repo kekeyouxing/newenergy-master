@@ -54,17 +54,17 @@ public class MsgController {
     private final String reportRecall =  "/#/wx/faultMsgLeader";
 
     /**
-     * 故障提醒消息id TODO 待修改成正式环境
+     * 故障提醒消息id
      */
-    private final String faultMsgId = "FiSumxdmorUPGgTh8BHmX7hlkxOOASYN3DFTItJjxc4";
+    private final String faultMsgId = "wNKMlHvDzUs48ldxtOwRaL8ljn0cfGMlb8hb_CJ88iY";
     /**
      * 流量预警消息id TODO 待修改成正式环境
      */
     private final String warnMsgId = "e1dLYCj_s17-wEbFvNm3lyPLEN8lQRcf5h38XmXftWQ";
     /**
-     * 故障超时上报消息id TODO 待修改成正式环境
+     * 故障超时上报消息id
      */
-    private final String faultReportId = "nOD-gDlv1w8_bZN5V5NreUgFPA-J1OruL3nAyIb1WSE";
+    private final String faultReportId = "slbtje6sGc6CT68Vs4mNjVLSy2_8HaAB8NcWwf_7NUY";
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -127,7 +127,7 @@ public class MsgController {
     @RequestMapping(value = "threshold/send", method = RequestMethod.POST)
     public MsgRet thresholdMsg(@RequestBody Map<String,Object> body) throws Exception{
         if(!RequestUtil.checkMap(body,
-                new String[]{"touser","remainWater","updateTime"})) return null;
+                new String[]{"touser","remainWater","updateTime","registerId"})) return null;
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",warnMsgId);
@@ -137,9 +137,13 @@ public class MsgController {
         remainWater.put("value",body.get("remainWater"));
         Map<String,Object> updateTime = new HashMap<>();
         updateTime.put("color","#173177");
-        updateTime.put("value",body.get(updateTime));
+        updateTime.put("value",body.get("updateTime"));
+        Map<String,Object> registerId = new HashMap<>();
+        registerId.put("color","#173177");
+        registerId.put("value",body.get("registerId"));
         subBody.put("keyword1",remainWater);
         subBody.put("keyword2",updateTime);
+        subBody.put("keyword3",registerId);
 
         Map<String,Object> first = new HashMap<>();
 
@@ -147,7 +151,7 @@ public class MsgController {
         first.put("color","#173177");
         Map<String,Object> remark = new HashMap<>();
 
-        remark.put("value","请尽快充值");
+        remark.put("value","请尽快充值以免影响正常使用");
         remark.put("color","#173177");
         subBody.put("first",first);
         subBody.put("remark",remark);

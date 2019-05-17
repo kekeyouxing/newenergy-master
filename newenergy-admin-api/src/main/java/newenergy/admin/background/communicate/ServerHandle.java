@@ -29,7 +29,7 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
         SolveResult solveResult = msgSolve.solve(parsingResult);
         if(solveResult != null)
             ctx.channel().writeAndFlush("server send message " + solveResult.replyMsg());
-        ctx.close();
+//        ctx.close();
     }
 
     @Override
