@@ -48,7 +48,7 @@ public class WaterService {
     public BigDecimal getExtraWater(String deviceNum){
         BigDecimal result = new BigDecimal(0);
         if(storageService.containsExtraWater(deviceNum)){
-            result.add(storageService.getAndDropExtraWater(deviceNum));
+            result = result.add(storageService.getAndDropExtraWater(deviceNum));
         }
         return result;
     }
