@@ -111,9 +111,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         return super.addRecord(record,userid,repository);
     }
     public CorrPlotAdmin updateARecord(CorrPlotAdmin corrPlotAdmin, Integer userid){
-        /**
-         * TODO 更新设备信息表？
-         */
+
 //        Integer id = corrPlotAdmin.getId();
 //        if(id == null) return null;
 //        CorrPlotAdmin origin = repository.findById(id).orElse(null);
@@ -128,9 +126,6 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
         res.forEach(e->{
             super.deleteRecord(e.getId(),userid,repository);
         });
-        /**
-         * TODO 更新设备信息表？
-         */
     }
 
     @Override
@@ -148,6 +143,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 Path<Object> path = root.get("plotNum");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 allRes.forEach(e->in.value(e.getPlotNum()));
+                in.value("");
                 list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getMonitorName())){
@@ -155,6 +151,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 Path<Object> path = root.get("monitorId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
+                in.value("");
                 list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getServicerName())){
@@ -162,6 +159,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 Path<Object> path = root.get("servicerId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
+                in.value("");
                 list.add(cb.and(in));
             }
             return cb.and(list.toArray(new Predicate[list.size()]));

@@ -30,7 +30,6 @@ import java.util.Map;
 /**
  * Created by HUST Corey on 2019-05-08.
  *
- * TODO 定时任务
  * 定时检查故障记录超时情况
  * 定时轮询用户阈值
  *
@@ -60,9 +59,9 @@ public class ScheduledTask {
 
     /**
      * 超时时间，秒。
-     * TODO [TEST]模拟120秒超时
+     * TODO [TEST]模拟300秒超时
      */
-    private Integer timeOut = 120;
+    private Integer timeOut = 300;
 
 
     /**
@@ -119,7 +118,7 @@ public class ScheduledTask {
         remainWaterList.forEach(remainWater -> {
             String registerId = remainWater.getRegisterId();
             Resident resident = faultRecordService.getResident(registerId);
-            log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold());
+            log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold()+"; 登记号："+registerId);
             if(remainWater.getRemainVolume()==null || resident.getThreshold()==null) return;
             int compare = remainWater.getRemainVolume().compareTo(new BigDecimal(resident.getThreshold()));
             if(compare <= 0){
@@ -127,6 +126,7 @@ public class ScheduledTask {
                 request.put("touser",resident.getOpenid());
                 request.put("remainWater",remainWater.getRemainVolume());
                 request.put("updateTime",TimeUtil.getString(remainWater.getUpdateTime()));
+                request.put("registerId",registerId);
                 restTemplate.postForObject(sendMsgPrefix+port+thresholdSuffix,request,MsgRet.class);
             }
         });

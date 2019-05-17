@@ -148,6 +148,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
                     if(StringUtilCorey.emptyCheck(plot)) continue;
                     in.value(plot);
                 }
+                in.value("");
                 lists.add(cb.and(in));
             }
 
@@ -183,6 +184,7 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
                     if(StringUtilCorey.emptyCheck(plot)) continue;
                     in.value(plot);
                 }
+                in.value("");
                 lists.add(cb.and(in));
             }
 

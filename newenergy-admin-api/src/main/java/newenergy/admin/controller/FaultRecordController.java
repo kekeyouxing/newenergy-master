@@ -823,9 +823,7 @@ public class FaultRecordController {
         return deviceRequireService.setSetting(setting,id)==null?1:0;
     }
 
-    /**
-     * TODO 开启定时任务
-     */
+
     @RequestMapping(value = "require/start")
     public void startCron(){
         deviceRequireService.updateCron();

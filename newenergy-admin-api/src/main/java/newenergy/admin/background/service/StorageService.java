@@ -1,12 +1,15 @@
 package newenergy.admin.background.service;
 
+import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.Resident;
+import newenergy.db.global.Parameters;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.service.ResidentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,14 +32,19 @@ public class StorageService {
      * value: requireWater
      */
     private ConcurrentHashMap<String, BigDecimal> requireWaterMap;
-
+    /**
+     * key: deviceNum
+     * value: requireWater的过期时间
+     */
+    private ConcurrentHashMap<String, LocalDateTime> requireWaterTrustMap;
     StorageService(){
         extraWaterMap = new ConcurrentHashMap<>();
         requireWaterMap = new ConcurrentHashMap<>();
+        requireWaterTrustMap = new ConcurrentHashMap<>();
     }
 
     /**
-     * TODO 定时任务更新剩余用水量时，需要调用此方法
+     * 定时任务更新剩余用水量时，需要调用此方法
      * @param registerId
      * @param extraWater
      */
@@ -82,13 +90,15 @@ public class StorageService {
         BigDecimal ratedFlow = resident.getRatedFlow();
         if(started){
             requireWaterMap.put(deviceNum,ratedFlow);
+            //添加可信时间
+            requireWaterTrustMap.put(deviceNum, TimeUtil.getUTCNow().plusSeconds(Parameters.TRUSTDURATION));
         }else{
             requireWaterMap.remove(deviceNum);
+            requireWaterTrustMap.remove(deviceNum);
         }
     }
 
     /**
-     * TODO 计算需水量定时任务调用
      * @param plotNum
      * @return
      */
@@ -99,7 +109,14 @@ public class StorageService {
         BigDecimal result = new BigDecimal(0);
         for(Resident resident : residents){
             if(requireWaterMap.containsKey(resident.getDeviceNum())){
-                result = result.add(requireWaterMap.get(resident.getDeviceNum()));
+                //判断是否过期
+                if(!requireWaterTrustMap.containsKey(resident.getDeviceNum())
+                        || requireWaterTrustMap.get(resident.getDeviceNum()).isBefore(TimeUtil.getUTCNow())){
+                    requireWaterMap.remove(resident.getDeviceNum());
+                    requireWaterTrustMap.remove(resident.getDeviceNum());
+                }else {
+                    result = result.add(requireWaterMap.get(resident.getDeviceNum()));
+                }
             }
         }
         return result;

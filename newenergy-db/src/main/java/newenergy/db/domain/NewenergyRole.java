@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 @Entity
 public class NewenergyRole {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;

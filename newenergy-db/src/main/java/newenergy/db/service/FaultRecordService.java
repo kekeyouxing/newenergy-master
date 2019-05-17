@@ -92,6 +92,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 residents.forEach(e -> {
                     in.value(e.getRegisterId());
                 });
+                in.value("");
                 conditions.add(cb.and(in));
             }
             if(predicate.getPlots() != null){
@@ -111,6 +112,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                         in.value(resident.getRegisterId());
                     });
                 }
+                in.value("");
                 conditions.add(cb.and(in));
             }
             if(predicate.getFinishTime() != null){

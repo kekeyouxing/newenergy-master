@@ -74,7 +74,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0));
+        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0),Sort.by(Sort.Direction.DESC,"rechargeTime"));
     }
 
     /**

@@ -1,7 +1,9 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.util.ExcelExport;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
+import newenergy.db.domain.CorrPump;
 import newenergy.db.domain.CorrType;
 import newenergy.db.service.CorrTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,5 +119,35 @@ public class CorrTypeController {
         }
         corrTypeService.deleteCorrType(id, userid);
         return ResponseUtil.ok();
+    }
+
+
+    @GetMapping("/download")
+    public void download(HttpServletResponse response){
+        String[] headers = new String[]{"机型编号","安装机型","额定流量(T/h)","备注"};
+
+        List<CorrType> types = corrTypeService.findAll();
+        List<String[]> values = Obj2String(types);
+
+        ExcelExport excel = new ExcelExport(headers, values);
+
+        excel.exportExcel("机型信息表", response);
+    }
+
+    private List<String[]> Obj2String(List<CorrType> types) {
+        List<String[]> values = new ArrayList<>();
+        if(types!=null && types.size()!=0){
+            for(CorrType type : types){
+                Double ratedFlow = type.getRatedFlow();
+                String ratedFlowStr = "";
+                if(ratedFlow != null){
+                    ratedFlowStr = ratedFlow.toString();
+                }
+                String[] corrStr = new String[]{type.getTypeNum(), type.getTypeDtl(), ratedFlowStr};
+                values.add(corrStr);
+            }
+        }
+
+        return values;
     }
 }
