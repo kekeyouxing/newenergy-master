@@ -1,17 +1,30 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.background.service.DeviceRequireService;
+import newenergy.admin.util.ExcelExport;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrAddress;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPump;
 import newenergy.db.service.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.text.Collator;
 import java.util.*;
 
@@ -178,6 +191,37 @@ public class CorrPlotController {
         deviceRequireService.deletePlot(corrPlot.getPlotNum(),userid);
 
         return ResponseUtil.ok();
+    }
+
+    @GetMapping("/download")
+    public void download(HttpServletResponse response) {
+        String[] headers = new String[]{"小区编号","小区名称","充值系数","备注"};
+
+        List<CorrPlot> corrs = corrPlotService.findAll();
+        List<String[]> values = Obj2String(corrs);
+
+        ExcelExport excel = new ExcelExport(headers, values);
+
+        excel.exportExcel("小区信息表", response);
+
+    }
+
+    private List<String[]> Obj2String(List<CorrPlot> corrs) {
+        List<String[]> values = new ArrayList<>();
+        if(corrs!=null && corrs.size()!=0){
+            for(CorrPlot corrPlot : corrs){
+                BigDecimal plotFactor = corrPlot.getPlotFactor();
+                String plotFactorStr = "";
+                if(plotFactor != null){
+                    plotFactorStr = plotFactor.toString();
+                }
+
+                String[] corrStr = new String[]{corrPlot.getPlotNum(), corrPlot.getPlotDtl(), plotFactorStr};
+                values.add(corrStr);
+            }
+        }
+
+        return values;
     }
 
 }
