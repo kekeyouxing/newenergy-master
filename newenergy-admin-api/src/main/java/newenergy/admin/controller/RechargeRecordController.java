@@ -116,7 +116,8 @@ public class RechargeRecordController {
                 null,
                 null,
                 null,
-                null).size());
+                null,
+                1).size());
         result.put("list",list);
         result.put("haveCredential",batchRecordService.queryById(postInfo.getBatchRecordId()).getImgUrl()==null?0:1);
         result.put("amount",batchRecordService.queryById(postInfo.getBatchRecordId()).getAmount());
@@ -156,6 +157,7 @@ public class RechargeRecordController {
         List<RechargeRecord> queryResult = rechargeRecordService.findByConditions(null,
                 null,
                 postInfo.getRegisterId(),
+                null,
                 null,
                 null);
         List<ResultModel> list = new ArrayList<>();
