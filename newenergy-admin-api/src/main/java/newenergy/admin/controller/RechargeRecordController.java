@@ -202,7 +202,6 @@ public class RechargeRecordController {
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
             rechargeRecord.setCheckId(user.getId());
-            int state = 1;
             if (reviewState.getReviewState()==1){
                 RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
                 if (remainWater == null){
@@ -219,11 +218,10 @@ public class RechargeRecordController {
                         rechargeRecord.getAmount());
             }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
-                state=2;
+                BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
+                batchRecord.setState(2);
+                batchRecordService.updateBatchRecord(batchRecord,user.getId());
             }
-            BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
-            batchRecord.setState(state);
-            batchRecordService.updateBatchRecord(batchRecord,user.getId());
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
             manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),1,newRecord.getId());
         }
