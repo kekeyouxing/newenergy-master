@@ -10,6 +10,7 @@ import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.NewenergyAdminService;
 import newenergy.db.service.RemainWaterService;
+import newenergy.db.util.StringUtilCorey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +99,9 @@ public class ScheduledTask {
             request.put("touser",openid);
             request.put("faultTime",TimeUtil.getString(record.getFaultTime()));
             request.put("address",corrAddress.getAddressDtl());
-            request.put("servicer",servicer.getRealName());
+            String servicerName = "";
+            if(servicer != null && !StringUtilCorey.emptyCheck(servicer.getRealName())) servicerName = servicer.getRealName();
+            request.put("servicer",servicerName);
             request.put("faultId",record.getId());
             restTemplate.postForObject(sendMsgPrefix+port+reportSendSuffix,request, MsgRet.class);
         });

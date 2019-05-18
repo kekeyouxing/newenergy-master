@@ -7,6 +7,7 @@ import newenergy.db.domain.RemainWater;
 import newenergy.db.service.RemainWaterService;
 import newenergy.db.service.ResidentService;
 import newenergy.wx.api.service.WxSearchService;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ public class WxSearchController {
         LocalDateTime updateTime = remainWater.getUpdateTime();
         BigDecimal remainVolume = remainWater.getRemainVolume();
         Map<String, Object> data = new HashMap<>();
-        data.put("updateTime", updateTime);
+        data.put("updateTime", TimeUtil.getString(updateTime) );
         data.put("remainVolume", remainVolume);
         return ResponseUtil.ok(data);
     }
