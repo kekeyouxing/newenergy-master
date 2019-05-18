@@ -202,7 +202,7 @@ public class RechargeRecordController {
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
             rechargeRecord.setCheckId(user.getId());
-            Integer state = 1;
+            int state = 1;
             if (reviewState.getReviewState()==1){
                 RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
                 if (remainWater == null){
