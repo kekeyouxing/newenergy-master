@@ -198,6 +198,7 @@ public class RechargeRecordController {
     public Object review(@RequestBody PostInfo postInfo,
                          HttpServletRequest request,
                          @AdminLoginUser NewenergyAdmin user) throws CloneNotSupportedException {
+        int batchReviewState = 1;
         for (ReviewState reviewState:postInfo.getList()){
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
@@ -218,13 +219,17 @@ public class RechargeRecordController {
                         rechargeRecord.getAmount());
             }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
-                BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
-                batchRecord.setState(2);
-                batchRecordService.updateBatchRecord(batchRecord,user.getId());
+                batchReviewState=2;
             }
+
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
             manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),1,newRecord.getId());
         }
+        BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService
+                .findById(postInfo.getList().get(0).getId())
+                .getBatchRecordId());
+        batchRecord.setState(batchReviewState);
+        batchRecordService.updateBatchRecord(batchRecord,user.getId());
         Map<String,Integer> state = new HashMap<>();
 //        0代表正常、其他代表异常
         state.put("state",0);
