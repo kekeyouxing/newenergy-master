@@ -107,16 +107,16 @@ public class AdvancedUtil {
                 snsUserInfo.setOpenId(jsonObject.getString("openid"));
                 //昵称
                 snsUserInfo.setNickname(jsonObject.getString("nickname"));
-                //性别（1是男性，2是女性，0是未知）
-                snsUserInfo.setSex(jsonObject.getInt("sex"));
-                //用户所在国家
-                snsUserInfo.setCountry(jsonObject.getString("country"));
-                //用户所在省份
-                snsUserInfo.setProvince(jsonObject.getString("province"));
-                //用户所在城市
-                snsUserInfo.setCity(jsonObject.getString("city"));
-                //用户头像
-                snsUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
+//                //性别（1是男性，2是女性，0是未知）
+//                snsUserInfo.setSex(jsonObject.getInt("sex"));
+//                //用户所在国家
+//                snsUserInfo.setCountry(jsonObject.getString("country"));
+//                //用户所在省份
+//                snsUserInfo.setProvince(jsonObject.getString("province"));
+//                //用户所在城市
+//                snsUserInfo.setCity(jsonObject.getString("city"));
+//                //用户头像
+//                snsUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
 //                //用户特权信息
 //                snsUserInfo.setPrivilegeList(JSONArray.toList(jsonObject.getJSONArray("privilege"),List.class));
             }catch (Exception e){
