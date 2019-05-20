@@ -133,7 +133,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum,Integer delegate){
-        Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
+        Sort sort = Sort.by(Sort.Direction.DESC,"rechargeTime");
         return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum,delegate),sort);
     }
 
