@@ -172,7 +172,7 @@ public class RefundRecordController {
                     remainWater.setCurRecharge(new BigDecimal(0));
                 }
                 remainWater.setCurRecharge(remainWater.getCurRecharge().subtract(refundRecord.getRefundVolume()));
-                remainWater.setUpdateTime(LocalDateTime.now());
+//                remainWater.setUpdateTime(LocalDateTime.now());
                 remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(refundRecord.getRegisterId(),
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
