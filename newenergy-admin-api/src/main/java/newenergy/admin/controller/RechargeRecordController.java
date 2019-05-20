@@ -204,15 +204,6 @@ public class RechargeRecordController {
             rechargeRecord.setReviewState(reviewState.getReviewState());
             rechargeRecord.setCheckId(user.getId());
             if (reviewState.getReviewState()==1){
-                RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(rechargeRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(rechargeRecord.getRechargeVolume().add(remainWater.getCurRecharge()));
-//                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(rechargeRecord.getRegisterId(),
                         rechargeRecord.getRechargeVolume(),
                         rechargeRecord.getId(),

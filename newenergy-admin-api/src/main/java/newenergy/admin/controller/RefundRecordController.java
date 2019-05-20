@@ -165,15 +165,6 @@ public class RefundRecordController {
             rechargeRecord.setState(1);
 //            审核通过且为个人充值（非代充），则对剩余水量进行更新
             if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
-                RemainWater remainWater = remainWaterService.findByRegisterId(refundRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(refundRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(remainWater.getCurRecharge().subtract(refundRecord.getRefundVolume()));
-//                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(refundRecord.getRegisterId(),
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
