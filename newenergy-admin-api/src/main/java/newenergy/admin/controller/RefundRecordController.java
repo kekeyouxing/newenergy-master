@@ -3,12 +3,15 @@ package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
+import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -48,6 +51,12 @@ public class RefundRecordController {
 
     @Autowired
     CorrAddressService corrAddressService;
+
+    @Value("${server.port}")
+    private String port;
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/send";
+    private RestTemplate restTemplate = new RestTemplate();
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
     public Object addReview(@RequestBody PostInfo postInfo,
@@ -169,6 +178,9 @@ public class RefundRecordController {
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
                         refundRecord.getRefundAmount()*(-1));
+                Map<String,Object> requestBody = new HashMap<>();
+                requestBody.put("orderId",refundRecord.getRecordId());
+                restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, MsgRet.class);
             }
             RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
             manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
