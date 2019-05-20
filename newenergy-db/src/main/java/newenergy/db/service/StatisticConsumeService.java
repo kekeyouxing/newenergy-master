@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -35,10 +36,8 @@ public class StatisticConsumeService {
      */
     public StatisticConsume findByRegisterIdAndUpdateTime(String registerId, LocalDate currentTime) {
         Specification<StatisticConsume> specification = querySelection(registerId, currentTime,null);
-        List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification);
-        if(consumes.size()==1) {
-            return consumes.get(0);
-        }
+        List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification, Sort.by(Sort.Direction.DESC,"updatedTime"));
+        if(!consumes.isEmpty()) return consumes.get(0);
         return null;
     }
 

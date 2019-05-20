@@ -761,6 +761,7 @@ public class FaultRecordController {
             return ret;
         }
         predicate.setPlots(mngPlots);
+        predicate.setIgnoreSetting(true);
 
         Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,
                 PageRequest.of(requireSearchDTO.getPage()-1, requireSearchDTO.getLimit()),
@@ -769,6 +770,8 @@ public class FaultRecordController {
             ret.put("total",0);
             return ret;
         }
+        ret.put("total",plots.getTotalElements());
+
         DeviceRequire setting = deviceRequireService.getSetting();
 
         LocalDateTime updateTime = null;
@@ -780,14 +783,12 @@ public class FaultRecordController {
         ret.put("updateTime",TimeUtil.getSeconds(updateTime));
         ret.put("updateLoop",updateLoop);
         List<Map<String,Object>> plotlist = new ArrayList<>();
-        Stream<DeviceRequire> realPlots = plots.get().filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS));
-        realPlots.forEach(plot->{
+        plots.forEach(plot->{
                 Map<String,Object> tmp = new HashMap<>();
                 tmp.put("plotDtl",deviceRequireService.getPlotDtl(plot.getPlotNum()));
                 tmp.put("requireVolume",plot.getRequireVolume());
                 plotlist.add(tmp);
             });
-        ret.put("total",plotlist.size());
         ret.put("list",plotlist);
         return ret;
     }

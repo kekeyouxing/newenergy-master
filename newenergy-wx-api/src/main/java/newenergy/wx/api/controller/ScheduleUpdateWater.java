@@ -133,7 +133,7 @@ public class ScheduleUpdateWater {
         rechargeRecord.setUpdatedVolume(updatedVolume);
         scheduleUpdateWater.rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
         remainWater.setRemainVolume(updatedVolume);
-        remainWater.setUpdateTime(LocalDateTime.now());
+//        remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
         remainWater.setCurAmount(remainWater.getCurAmount()+addAmount);
         scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
@@ -167,7 +167,7 @@ public class ScheduleUpdateWater {
             remainWater.setCurRecharge(new BigDecimal(0));
             remainWater.setCurAmount(0);
             remainWater.setCurFirstRemain(remainWater.getRemainVolume());
-            remainWater.setUpdateTime(LocalDateTime.now());
+//            remainWater.setUpdateTime(LocalDateTime.now());
             scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
         }
         new PlotFactorService().updateFactor();
@@ -181,7 +181,7 @@ public class ScheduleUpdateWater {
     /**
      * TODO [TEST]每十分钟生成一次
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 5/10 * * * ?")
     //@Scheduled(cron = "0 30 0 1 1/1 ?")
     public void updatePlotRecharge() {
         List<CorrPlot> plots = scheduleUpdateWater.corrPlotService.findAll();
@@ -196,6 +196,7 @@ public class ScheduleUpdateWater {
             List<Resident> residents = scheduleUpdateWater.residentService.findByPlotNum(plot.getPlotNum());
             for(Resident resident: residents) {
                 StatisticConsume consume = scheduleUpdateWater.consumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
+                if(consume==null) continue;
                 amount = amount + consume.getCurAmount();
                 rechargeVolume = rechargeVolume.add(consume.getCurRecharge());
                 usedVolume = usedVolume.add(consume.getCurUsed());
