@@ -1,30 +1,21 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.background.service.DeviceRequireService;
-import newenergy.admin.util.ExcelExport;
+import newenergy.admin.excel.ExcelAnalysisInfo;
+import newenergy.admin.excel.ExcelCommon;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrAddress;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPump;
 import newenergy.db.service.*;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
 import java.text.Collator;
 import java.util.*;
 
@@ -200,8 +191,8 @@ public class CorrPlotController {
         List<CorrPlot> corrs = corrPlotService.findAll();
         List<String[]> values = Obj2String(corrs);
 
-        ExcelExport excel = new ExcelExport(headers, values);
-
+        ExcelCommon excel = new ExcelCommon();
+        excel.createExcel(headers,values);
         excel.exportExcel("小区信息表", response);
 
     }
@@ -224,4 +215,13 @@ public class CorrPlotController {
         return values;
     }
 
+    @GetMapping("/analysis")
+    public void statistics(HttpServletResponse response){
+        String[] firstRow = new String[]{"小区消费统计表","小区名称"};
+        String[] secondRow = new String[]{"序号","月消费流量(吨)","户数","占比","备注"};
+
+        ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
+        excel.createExcel(firstRow,secondRow);
+        excel.exportExcel("小区消费统计表", response);
+    }
 }

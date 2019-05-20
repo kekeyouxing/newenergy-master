@@ -133,7 +133,7 @@ public class ScheduleUpdateWater {
         rechargeRecord.setUpdatedVolume(updatedVolume);
         scheduleUpdateWater.rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
         remainWater.setRemainVolume(updatedVolume);
-        remainWater.setUpdateTime(LocalDateTime.now());
+//        remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
         remainWater.setCurAmount(remainWater.getCurAmount()+addAmount);
         scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
@@ -167,7 +167,7 @@ public class ScheduleUpdateWater {
             remainWater.setCurRecharge(new BigDecimal(0));
             remainWater.setCurAmount(0);
             remainWater.setCurFirstRemain(remainWater.getRemainVolume());
-            remainWater.setUpdateTime(LocalDateTime.now());
+//            remainWater.setUpdateTime(LocalDateTime.now());
             scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
         }
         new PlotFactorService().updateFactor();

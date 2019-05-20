@@ -211,7 +211,7 @@ public class RechargeRecordController {
                     remainWater.setCurRecharge(new BigDecimal(0));
                 }
                 remainWater.setCurRecharge(rechargeRecord.getRechargeVolume().add(remainWater.getCurRecharge()));
-                remainWater.setUpdateTime(LocalDateTime.now());
+//                remainWater.setUpdateTime(LocalDateTime.now());
                 remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(rechargeRecord.getRegisterId(),
                         rechargeRecord.getRechargeVolume(),

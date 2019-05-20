@@ -1,10 +1,9 @@
 package newenergy.admin.controller;
 
-import newenergy.admin.util.ExcelExport;
+import newenergy.admin.excel.ExcelCommon;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrAddress;
-import newenergy.db.domain.CorrPlot;
 import newenergy.db.service.CorrAddressService;
 import newenergy.db.service.CorrPlotService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -164,8 +162,8 @@ public class CorrAddressController {
         List<CorrAddress> addresses = corrAddressService.findAll();
         List<String[]> values = Obj2String(addresses);
 
-        ExcelExport excel = new ExcelExport(headers, values);
-
+        ExcelCommon excel = new ExcelCommon();
+        excel.createExcel(headers, values);
         excel.exportExcel("地址信息表", response);
     }
 
