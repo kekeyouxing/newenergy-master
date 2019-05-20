@@ -2,6 +2,7 @@ package newenergy;
 
 import io.netty.channel.ChannelFuture;
 import newenergy.admin.background.communicate.NettyServer;
+import newenergy.admin.background.communicate.utils.NumberUtil;
 import newenergy.admin.background.service.DeviceRequireService;
 import newenergy.db.constant.AdminConstant;
 import newenergy.db.domain.NewenergyAdmin;
@@ -18,6 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -59,6 +61,7 @@ public class Application implements CommandLineRunner {
         log.info("添加超级管理员>>>>>");
         addAdmin();
 
+//        test();
 
         InetSocketAddress address = new InetSocketAddress(url,port);
         ChannelFuture future = nettyServer.run(address);
@@ -70,8 +73,15 @@ public class Application implements CommandLineRunner {
         });
         future.channel().closeFuture().syncUninterruptibly();
 
-
-
+    }
+    private void test(){
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(0)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1.5)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1.67)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(12.67)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(42.67)) );
+        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(42)) );
     }
     private void addRoles(){
         NewenergyRole role;
