@@ -83,12 +83,12 @@ public class ScheduleUpdateWater {
             RechargeRecord rechargeRecord = scheduleUpdateWater.rechargeRecordService.findById(extraWater.getRecordId());
             RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
 
-            if (isTrustworthy(remainWater)){
+//            if (isTrustworthy(remainWater)){
                 updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
                 storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
                 scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
 
-            }
+//            }
         }
     }
 
@@ -133,7 +133,8 @@ public class ScheduleUpdateWater {
         rechargeRecord.setRemainVolume(remainVolume);
         rechargeRecord.setUpdatedVolume(updatedVolume);
         scheduleUpdateWater.rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
-        remainWater.setRemainVolume(updatedVolume);
+        //剩余水量表与设备的数据同步，传来多少就更新为多少。无需直接定时更新数据库
+//        remainWater.setRemainVolume(updatedVolume);
 //        remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
         remainWater.setCurAmount(remainWater.getCurAmount()+addAmount);
