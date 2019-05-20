@@ -1,9 +1,8 @@
 package newenergy.admin.controller;
 
-import newenergy.admin.util.ExcelExport;
+import newenergy.admin.excel.ExcelCommon;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
-import newenergy.db.domain.CorrPump;
 import newenergy.db.domain.CorrType;
 import newenergy.db.service.CorrTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,8 +128,8 @@ public class CorrTypeController {
         List<CorrType> types = corrTypeService.findAll();
         List<String[]> values = Obj2String(types);
 
-        ExcelExport excel = new ExcelExport(headers, values);
-
+        ExcelCommon excel = new ExcelCommon();
+        excel.createExcel(headers, values);
         excel.exportExcel("机型信息表", response);
     }
 

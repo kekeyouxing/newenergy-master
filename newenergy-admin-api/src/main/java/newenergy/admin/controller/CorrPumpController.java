@@ -1,10 +1,8 @@
 package newenergy.admin.controller;
 
-import newenergy.admin.util.ExcelExport;
+import newenergy.admin.excel.ExcelCommon;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
-import newenergy.db.domain.CorrAddress;
-import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.CorrPump;
 import newenergy.db.service.CorrPlotService;
 import newenergy.db.service.CorrPumpService;
@@ -13,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -143,8 +140,8 @@ public class CorrPumpController {
         List<CorrPump> pumps = corrPumpService.findAll();
         List<String[]> values = Obj2String(pumps);
 
-        ExcelExport excel = new ExcelExport(headers, values);
-
+        ExcelCommon excel = new ExcelCommon();
+        excel.createExcel(headers, values);
         excel.exportExcel("机房信息表", response);
     }
 

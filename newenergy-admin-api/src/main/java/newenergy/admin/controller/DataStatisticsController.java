@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.excel.ExcelAnalysisInfo;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.Resident;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -269,5 +271,24 @@ public class DataStatisticsController {
         return ResponseUtil.ok(data);
     }
 
+    @GetMapping("/analysis")
+    public void statistics(HttpServletResponse response){
+        String[] firstRow = new String[]{"小区充值及消费表","制表时间"};
+        String[] secondRow = new String[]{"序号","小区名称","当期充值金额","单价","当期充值流量","当期消费流量","小区名称"};
+        //List<CorrPlot> corrs = corrPlotService.findAll();
+
+        ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
+        excel.createExcel(firstRow, secondRow);
+        excel.exportExcel("小区充值及消费", response);
+    }
+
+    @GetMapping("/userAnalysis")
+    public void userAnalysis(HttpServletResponse response){
+        String[] firstRow = new String[]{"用户消费明细月报表v1.0","制表时间"};
+        String[] secondRow = new String[]{"序号","登记号","上期流量余额","本期充值流量总额","当前流量余额","当前消费流量"};
+        ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
+        excel.createExcel(firstRow, secondRow);
+        excel.exportExcel("用户消费明细", response);
+    }
 
 }
