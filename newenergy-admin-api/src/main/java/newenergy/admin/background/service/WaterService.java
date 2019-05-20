@@ -41,6 +41,9 @@ public class WaterService {
             record.setCurFirstRemain(new BigDecimal(0));
             record.setCurRecharge(new BigDecimal(0));
         }
+        if(record.getCurRecharge()==null) record.setCurRecharge(new BigDecimal(0));
+        if(record.getCurFirstRemain()==null) record.setCurFirstRemain(new BigDecimal(0));
+        if(record.getCurAmount()==null) record.setCurAmount(0);
         record.setRemainVolume(remainWater);
         record.setUpdateTime(TimeUtil.getUTCNow());
         return remainWaterService.updateRemainWater(record);

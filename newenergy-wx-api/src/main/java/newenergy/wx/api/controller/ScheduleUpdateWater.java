@@ -94,7 +94,8 @@ public class ScheduleUpdateWater {
 
 
     private boolean isTrustworthy(RemainWater remainWater){
-        if(remainWater==null) return false;
+        if(remainWater==null || remainWater.getRemainVolume()==null || remainWater.getCurAmount()==null || remainWater.getCurFirstRemain() ==null
+        || remainWater.getCurRecharge() == null) return false;
         LocalDateTime updateTime = remainWater.getUpdateTime();
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(updateTime,now);
