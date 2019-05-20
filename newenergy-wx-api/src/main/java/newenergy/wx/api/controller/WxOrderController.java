@@ -1,7 +1,5 @@
 package newenergy.wx.api.controller;
 
-import newenergy.wx.annotation.OAuthUser;
-import newenergy.wx.annotation.Recharge;
 import newenergy.wx.api.service.WxCommonService;
 import newenergy.wx.api.service.WxOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,6 @@ public class WxOrderController {
 
     /**
      * @author yangq
-     * 添加@OAuthUser注解
      * @param body
      * @param request
      * @return
@@ -41,6 +38,11 @@ public class WxOrderController {
     @PostMapping("pay-notify")
     public Object payNotify(HttpServletRequest request, HttpServletResponse response){
         return wxOrderService.payNotify(request,response);
+    }
+
+    @PostMapping("refund")
+    public Object refund(@RequestBody String body){
+        return wxOrderService.refund(body);
     }
 
     /**

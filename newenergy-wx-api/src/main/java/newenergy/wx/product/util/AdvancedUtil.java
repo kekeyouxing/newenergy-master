@@ -2,13 +2,11 @@ package newenergy.wx.product.util;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import newenergy.core.config.WxProductConfig;
 import newenergy.wx.product.pojo.SNSUserInfo;
 import newenergy.wx.product.pojo.WeixinOauth2Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -119,8 +117,8 @@ public class AdvancedUtil {
                 snsUserInfo.setCity(jsonObject.getString("city"));
                 //用户头像
                 snsUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
-                //用户特权信息
-                snsUserInfo.setPrivilegeList(JSONArray.toList(jsonObject.getJSONArray("privilege"),List.class));
+//                //用户特权信息
+//                snsUserInfo.setPrivilegeList(JSONArray.toList(jsonObject.getJSONArray("privilege"),List.class));
             }catch (Exception e){
                 snsUserInfo = null;
                 int errorCode = jsonObject.getInt("errcode");

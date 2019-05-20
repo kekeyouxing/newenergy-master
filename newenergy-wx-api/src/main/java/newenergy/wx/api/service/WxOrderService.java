@@ -3,13 +3,13 @@ package newenergy.wx.api.service;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
+import com.github.binarywang.wxpay.bean.request.WxPayRefundQueryRequest;
+import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
-import com.github.binarywang.wxpay.bean.result.BaseWxPayResult;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.db.domain.ExtraWater;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.service.CorrPlotService;
 import newenergy.db.service.ExtraWaterService;
@@ -69,7 +69,12 @@ public class WxOrderService {
      *</p>
      * @param body
      * @param request
-     * @return
+     * @return result{"appId":"wx2421b1c4370ec43b",     //公众号名称，由商户传入
+     *                  "timeStamp":"1395712654",         //时间戳，自1970年以来的秒数
+     *                  "nonceStr":"e61463f8efa94090b1f366cccfbbb444", //随机串
+     *                  "packageValue":"prepay_id=u802345jgfjsdfgsdg888",
+     *                  "signType":"MD5",         //微信签名方式：
+     *                  "paySign":"70EA570631E4BB79628FBCA90534C63FF7FADD89"  //微信签名}
      */
     @Transactional
     public Object submit(String body,HttpServletRequest request){
@@ -91,6 +96,7 @@ public class WxOrderService {
         if (amount == null || deviceid == null){
             return ResponseUtil.badArgument();
         }
+        //充值金额转化为分
         BigDecimal acturalAmount = new BigDecimal(amount).multiply(new BigDecimal(100));
 
         RechargeRecord order = null;
@@ -98,12 +104,14 @@ public class WxOrderService {
         order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
         order.setUserName(nickname);
+        //有设备号查找小区
         String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
+        //由小区查找充值系数就（元每吨）
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
 
-
+        //充值流量（充值金额（元）/充值系数（元/吨））这里暂时用分代替元进行测试
         BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
 //        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
 
@@ -115,11 +123,14 @@ public class WxOrderService {
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
             orderRequest.setOutTradeNo(order.getOrderSn());
             orderRequest.setOpenid(openid);
+            //设置商品名称
             orderRequest.setBody("订单："+order.getOrderSn());
             // 将充值金额转换为分，微信接口需要以分为单位
 //            int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
             int fee = acturalAmount.intValue();
+            //设置充值金额（分）
             orderRequest.setTotalFee(fee);
+            //设置充值设备的ip
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
 //            rechargeRecordService.addRechargeRecord(order,null);//改为orderMap
@@ -136,6 +147,7 @@ public class WxOrderService {
             return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
         }
         logger.info("<submit> result:"+result.toString());
+
         return ResponseUtil.ok(result);
     }
 
@@ -169,6 +181,7 @@ public class WxOrderService {
         logger.info(result);
         //获取充值成功结果的商户订单号，待后续与订单中对比
         String orderSn = result.getOutTradeNo();
+        //订单的交易号，可用于退款操作
         String payId = result.getTransactionId();
 
 //        String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
@@ -198,20 +211,17 @@ public class WxOrderService {
         order = rechargeRecordService.addRechargeRecord(order,null);
         int recordId = order.getId();
         logger.info("<payNotify> recordId : " + recordId);
-        //TODO 发送邮件和短信通知，这里采用异步发送
-
-//        ExtraWater extraWater = null;
-//        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
-//        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
-//        extraWater.setRegisterId(order.getRegister_id());
-//        extraWater.setRecord_id(null);
-//        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
+        //添加新增水量记录
         extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
 
+    @Transactional
     public Object refund(String body){
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+        if (orderId == null){
+
+        }
         if (orderId==null){
             return ResponseUtil.badArgument();
         }
@@ -220,6 +230,7 @@ public class WxOrderService {
         if (order == null){
             return ResponseUtil.badArgument();
         }
+        WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
         return ResponseUtil.ok();
     }
 }
