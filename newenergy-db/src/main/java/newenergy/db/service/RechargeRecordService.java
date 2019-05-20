@@ -74,7 +74,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0));
+        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0),Sort.by(Sort.Direction.DESC,"rechargeTime"));
     }
 
     /**
@@ -121,7 +121,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     public Page<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum, Integer page, Integer size){
         Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
         Pageable pageable = PageRequest.of(page, size,sort);
-        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),pageable);
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum,1),pageable);
     }
 
     /**
@@ -132,9 +132,9 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param state
      * @return
      */
-    public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum){
+    public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum,Integer delegate){
         Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
-        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),sort);
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum,delegate),sort);
     }
 
     /**
@@ -174,8 +174,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param state
      * @return
      */
-    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum){
-        return findAllByConditions1(batchRecordId, reviewState, registerId, state, plotNum, 1);
+    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum,Integer delegate){
+        return findAllByConditions1(batchRecordId, reviewState, registerId, state, plotNum, delegate);
     }
 
     private Specification<RechargeRecord> findAllByConditions1(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum, Integer delegate){
@@ -198,8 +198,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
                 if (!StringUtils.isEmpty(plotNum)){
                     predicates.add(criteriaBuilder.equal(root.get("plotNum"),plotNum));
                 }
-                if(delegate==1){
-                    predicates.add(criteriaBuilder.equal(root.get("delegate"),1));
+                if(!StringUtils.isEmpty(delegate)){
+                    predicates.add(criteriaBuilder.equal(root.get("delegate"),delegate));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));

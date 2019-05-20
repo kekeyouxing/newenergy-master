@@ -4,6 +4,7 @@ import newenergy.admin.background.service.DeviceRequireService;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.service.CorrPlotService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,7 @@ public class ExternRequireController {
     @Autowired
     private DeviceRequireService deviceRequireService;
 
-    @RequestMapping("require/{plotDtl}")
+    @RequestMapping(value = "require/{plotDtl}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BigDecimal getRequire(@PathVariable String plotDtl){
         List<CorrPlot> corrPlotList =corrPlotService.findAllByPlotDtl(plotDtl);
         if(corrPlotList == null || corrPlotList.isEmpty()) return new BigDecimal(0);

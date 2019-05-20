@@ -11,4 +11,12 @@
     <artifactId>newenergy-db</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>newenergy-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 </project>

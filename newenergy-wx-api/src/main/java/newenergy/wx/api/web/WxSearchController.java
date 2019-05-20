@@ -1,11 +1,15 @@
 package newenergy.wx.api.web;
 
 import newenergy.core.util.ResponseUtil;
+import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.RemainWater;
 import newenergy.db.service.RemainWaterService;
 import newenergy.db.service.ResidentService;
 import newenergy.wx.api.service.WxSearchService;
+import org.apache.poi.ss.formula.functions.T;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +32,8 @@ import static newenergy.admin.util.AdminResponseCode.NO_RECHARGE_RECORD;
 @RequestMapping("/wx/search")
 public class WxSearchController {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private RemainWaterService remainWaterService;
 
@@ -48,6 +54,7 @@ public class WxSearchController {
     @GetMapping("/remainWaterInfo")
     public Object remainWaterInfo(@RequestParam String registerId,
                                   @RequestParam String username){
+        logger.info("<remainWaterInfo> params : " + registerId+","+username);
         if(StringUtils.isEmpty(username) || StringUtils.isEmpty(registerId)){
             return ResponseUtil.badArgument();
         }
@@ -61,7 +68,7 @@ public class WxSearchController {
         LocalDateTime updateTime = remainWater.getUpdateTime();
         BigDecimal remainVolume = remainWater.getRemainVolume();
         Map<String, Object> data = new HashMap<>();
-        data.put("updateTime", updateTime);
+        data.put("updateTime", TimeUtil.getString(updateTime) );
         data.put("remainVolume", remainVolume);
         return ResponseUtil.ok(data);
     }
@@ -96,9 +103,9 @@ public class WxSearchController {
             return ResponseUtil.fail(USER_INVALID_NAME, "用户名或登记号不正确");
         }
         RemainWater remainWater = wxSearchService.remainWaterInfo(registerId);
-        if(null == remainWater){
-            return ResponseUtil.fail(NO_REMAIN_WATER, "暂时还没有剩余用水量");
-        }
+//        if(null == remainWater){
+//            return ResponseUtil.fail(NO_REMAIN_WATER, "暂时还没有剩余用水量");
+//        }
         List<RechargeRecord> rechargeRecords = wxSearchService.rechargeRecordInfo(registerId, year, startMonth, endMonth);
             if(null == rechargeRecords || rechargeRecords.isEmpty()){
             return ResponseUtil.fail(NO_RECHARGE_RECORD, "暂时还没有充值记录");
@@ -107,8 +114,8 @@ public class WxSearchController {
         for (RechargeRecord rechargeRecord : rechargeRecords) {
             Map<String, Object> temp = new HashMap<>();
             temp.put("amount", rechargeRecord.getAmount());
-            temp.put("rechargeTime", rechargeRecord.getRechargeTime());
-            temp.put("rechargeVolume", rechargeRecord.getRechargeVolume());
+            temp.put("rechargeTime", TimeUtil.getString( rechargeRecord.getRechargeTime()) );
+            temp.put("rechargeVolume",rechargeRecord.getRechargeVolume());
             temp.put("username", rechargeRecord.getUserName());
             temp.put("state", rechargeRecord.getState());
             temp.put("delegate", rechargeRecord.getDelegate());
@@ -116,8 +123,12 @@ public class WxSearchController {
         }
         Map<String, Object> data = new HashMap<>();
         data.put("rechargeRecords", rechargeRecordsData);
-        data.put("updateTime", remainWater.getUpdateTime());
-        data.put("remainVolume", remainWater.getRemainVolume());
+        data.put("remainExisted",remainWater==null?0:1);
+        if(remainWater!=null){
+            data.put("updateTime", TimeUtil.getString( remainWater.getUpdateTime()) );
+            data.put("remainVolume", remainWater.getRemainVolume());
+        }
+
         return ResponseUtil.ok(data);
     }
 }

@@ -9,6 +9,15 @@ public class DeviceRequirePredicate {
     String plotDtl;
     String plotNum;
     List<String> plots;
+    boolean ignoreSetting;
+
+    public boolean isIgnoreSetting() {
+        return ignoreSetting;
+    }
+
+    public void setIgnoreSetting(boolean ignoreSetting) {
+        this.ignoreSetting = ignoreSetting;
+    }
 
     public List<String> getPlots() {
         return plots;

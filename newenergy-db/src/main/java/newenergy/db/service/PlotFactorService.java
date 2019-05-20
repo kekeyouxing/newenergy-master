@@ -1,5 +1,6 @@
 package newenergy.db.service;
 
+import newenergy.core.util.SpringUtil;
 import newenergy.db.constant.ApplyFactorConstant;
 import newenergy.db.constant.ResultConstant;
 import newenergy.db.constant.SafeConstant;
@@ -33,14 +34,21 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPredicate> {
-    @Autowired
+//    @Autowired
     private ApplyFactorRepository repository;
-    @Autowired
+//    @Autowired
     private CorrPlotService corrPlotService;
-    @Autowired
+//    @Autowired
     CorrPlotRepository corrPlotRepository;
-    @Autowired
+//    @Autowired
     NewenergyAdminRepository newenergyAdminRepository;
+
+    public PlotFactorService(){
+        repository = SpringUtil.getBean(ApplyFactorRepository.class);
+        corrPlotService = SpringUtil.getBean(CorrPlotService.class);
+        corrPlotRepository = SpringUtil.getBean(CorrPlotRepository.class);
+        newenergyAdminRepository = SpringUtil.getBean(NewenergyAdminRepository.class);
+    }
 
     /**
      * 后台批量充值模块

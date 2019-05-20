@@ -31,7 +31,8 @@ public class FaultService {
 
     @Value("${server.port}")
     private String port;
-    private  String sendMsgUrl = "http://localhost:" + port + "/wx/fault/send";
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix = "/wx/fault/send";
     private RestTemplate restTemplate;
 
     public FaultService(){
@@ -57,7 +58,7 @@ public class FaultService {
         faultRecord.setPhenomenon(faultDtl);
         FaultRecord result = faultRecordService.addRecord(faultRecord);
         if(result == null) return;
-        if(StringUtilCorey.emptyCheck(servicer.getOpenid())) return;
+        if(servicer==null || StringUtilCorey.emptyCheck(servicer.getOpenid())) return;
         Map<String,Object> request = new HashMap<>();
 
         String partName = String.format("%s*",resident.getUserName().substring(0,1));
@@ -68,7 +69,7 @@ public class FaultService {
         request.put("phenomenon",faultDtl);
         request.put("address",corrAddress.getAddressDtl());
 
-        restTemplate.postForObject(sendMsgUrl,request, MsgRet.class);
+        restTemplate.postForObject(sendMsgPrefix+port+sendMsgSuffix,request, MsgRet.class);
     }
 
 }

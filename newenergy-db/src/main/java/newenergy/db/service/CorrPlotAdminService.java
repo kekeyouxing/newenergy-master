@@ -151,7 +151,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 Path<Object> path = root.get("monitorId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
-                in.value("");
+                in.value(-1);
                 list.add(cb.and(in));
             }
             if(!StringUtilCorey.emptyCheck(predicate.getServicerName())){
@@ -159,7 +159,7 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
                 Path<Object> path = root.get("servicerId");
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 admins.forEach(admin-> in.value(admin.getId()));
-                in.value("");
+                in.value(-1);
                 list.add(cb.and(in));
             }
             return cb.and(list.toArray(new Predicate[list.size()]));

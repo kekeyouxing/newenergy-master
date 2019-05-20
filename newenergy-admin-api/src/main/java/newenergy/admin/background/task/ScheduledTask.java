@@ -10,6 +10,7 @@ import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.NewenergyAdminService;
 import newenergy.db.service.RemainWaterService;
+import newenergy.db.util.StringUtilCorey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +60,9 @@ public class ScheduledTask {
 
     /**
      * 超时时间，秒。
-     * TODO [TEST]模拟120秒超时
+     * TODO [TEST]模拟300秒超时
      */
-    private Integer timeOut = 120;
+    private Integer timeOut = 300;
 
 
     /**
@@ -98,7 +99,9 @@ public class ScheduledTask {
             request.put("touser",openid);
             request.put("faultTime",TimeUtil.getString(record.getFaultTime()));
             request.put("address",corrAddress.getAddressDtl());
-            request.put("servicer",servicer.getRealName());
+            String servicerName = "";
+            if(servicer != null && !StringUtilCorey.emptyCheck(servicer.getRealName())) servicerName = servicer.getRealName();
+            request.put("servicer",servicerName);
             request.put("faultId",record.getId());
             restTemplate.postForObject(sendMsgPrefix+port+reportSendSuffix,request, MsgRet.class);
         });
@@ -118,7 +121,7 @@ public class ScheduledTask {
         remainWaterList.forEach(remainWater -> {
             String registerId = remainWater.getRegisterId();
             Resident resident = faultRecordService.getResident(registerId);
-            log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold());
+            log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold()+"; 登记号："+registerId);
             if(remainWater.getRemainVolume()==null || resident.getThreshold()==null) return;
             int compare = remainWater.getRemainVolume().compareTo(new BigDecimal(resident.getThreshold()));
             if(compare <= 0){
@@ -126,6 +129,7 @@ public class ScheduledTask {
                 request.put("touser",resident.getOpenid());
                 request.put("remainWater",remainWater.getRemainVolume());
                 request.put("updateTime",TimeUtil.getString(remainWater.getUpdateTime()));
+                request.put("registerId",registerId);
                 restTemplate.postForObject(sendMsgPrefix+port+thresholdSuffix,request,MsgRet.class);
             }
         });

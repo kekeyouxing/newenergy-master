@@ -37,6 +37,9 @@ public class WaterService {
         if(record == null) {
             record = new RemainWater();
             record.setRegisterId(resident.getRegisterId());
+            record.setCurAmount(0);
+            record.setCurFirstRemain(new BigDecimal(0));
+            record.setCurRecharge(new BigDecimal(0));
         }
         record.setRemainVolume(remainWater);
         record.setUpdateTime(TimeUtil.getUTCNow());
@@ -45,7 +48,7 @@ public class WaterService {
     public BigDecimal getExtraWater(String deviceNum){
         BigDecimal result = new BigDecimal(0);
         if(storageService.containsExtraWater(deviceNum)){
-            result.add(storageService.getAndDropExtraWater(deviceNum));
+            result = result.add(storageService.getAndDropExtraWater(deviceNum));
         }
         return result;
     }
