@@ -48,10 +48,6 @@ public class StorageService {
         requireWaterMap = loadRequireWaterMap();
         requireWaterTrustMap = loadRequireTrustMap();
 
-        extraWaterMap.put("00AZ",new BigDecimal(0));
-        requireWaterMap.put("00AZ",new BigDecimal(1.6));
-        requireWaterTrustMap.put("00AZ",TimeUtil.getUTCNow().plusHours(1));
-        saveMaps();
     }
 
     public void saveMaps(){
