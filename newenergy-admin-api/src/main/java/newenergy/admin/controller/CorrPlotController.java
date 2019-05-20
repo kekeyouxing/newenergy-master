@@ -219,9 +219,8 @@ public class CorrPlotController {
     public void statistics(HttpServletResponse response){
         String[] firstRow = new String[]{"小区消费统计表","小区名称"};
         String[] secondRow = new String[]{"序号","月消费流量(吨)","户数","占比","备注"};
-        //List<CorrPlot> corrs = corrPlotService.findAll();
 
-        ExcelAnalysisInfo excel = new ExcelAnalysisInfo(firstRow, secondRow);
+        ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
         excel.createExcel(firstRow,secondRow);
         excel.exportExcel("小区消费统计表", response);
     }
