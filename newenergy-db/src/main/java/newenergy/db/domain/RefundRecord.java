@@ -24,6 +24,7 @@ public class RefundRecord  implements Cloneable{
     private Integer safeChangedUserid;
     private Integer safeDelete;
     private Integer safeParent;
+    private String rejectReason;
 
     public Integer getId() {
         return id;
@@ -135,6 +136,14 @@ public class RefundRecord  implements Cloneable{
 
     public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 
     @Override

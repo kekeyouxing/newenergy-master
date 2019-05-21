@@ -32,6 +32,7 @@ public class RechargeRecord implements Cloneable{
     private Integer safeParent;
     private Integer batchRecordId;
     private Integer reviewState;
+    private String rejectReason;
 
     public Integer getId() {
         return id;
@@ -199,6 +200,14 @@ public class RechargeRecord implements Cloneable{
 
     public void setReviewState(Integer reviewState) {
         this.reviewState = reviewState;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 
     @Override

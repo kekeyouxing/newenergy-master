@@ -3,12 +3,15 @@ package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
+import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -48,6 +51,12 @@ public class RefundRecordController {
 
     @Autowired
     CorrAddressService corrAddressService;
+
+    @Value("${server.port}")
+    private String port;
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/send";
+    private RestTemplate restTemplate = new RestTemplate();
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
     public Object addReview(@RequestBody PostInfo postInfo,
@@ -93,6 +102,7 @@ public class RefundRecordController {
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
             resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
             resultInfo.setState(refundRecord.getState());
             resultInfos.add(resultInfo);
         }
@@ -131,6 +141,8 @@ public class RefundRecordController {
             resultInfo.setCheckTime(localDateTimeToLong(refundRecord.getSafeChangedTime()));
             resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getRealName());
             resultInfo.setState(refundRecord.getState());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
+            resultInfo.setRejectReason(refundRecord.getRejectReason());
             resultInfos.add(resultInfo);
         }
         Map<String,Object> result = new HashMap<>();
@@ -165,19 +177,15 @@ public class RefundRecordController {
             rechargeRecord.setState(1);
 //            审核通过且为个人充值（非代充），则对剩余水量进行更新
             if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
-                RemainWater remainWater = remainWaterService.findByRegisterId(refundRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(refundRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(remainWater.getCurRecharge().subtract(refundRecord.getRefundVolume()));
-//                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(refundRecord.getRegisterId(),
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
                         refundRecord.getRefundAmount()*(-1));
+                Map<String,Object> requestBody = new HashMap<>();
+                requestBody.put("orderId",refundRecord.getRecordId());
+                restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, MsgRet.class);
+            }else if (reviewState.getReviewState()==2){
+                refundRecord.setRejectReason(reviewState.getRejectReason());
             }
             RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
             manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
@@ -191,6 +199,15 @@ public class RefundRecordController {
     private static class ReviewState{
         private Integer id;
         private Integer reviewState;
+        private String rejectReason;
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
+        }
 
         public Integer getId() {
             return id;
@@ -289,6 +306,8 @@ public class RefundRecordController {
         private Integer state;
         private String checkName;
         private Long checkTime;
+        private String refundReason;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -393,6 +412,22 @@ public class RefundRecordController {
 
         public void setCheckTime(Long checkTime) {
             this.checkTime = checkTime;
+        }
+
+        public String getRefundReason() {
+            return refundReason;
+        }
+
+        public void setRefundReason(String refundReason) {
+            this.refundReason = refundReason;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
         }
     }
 

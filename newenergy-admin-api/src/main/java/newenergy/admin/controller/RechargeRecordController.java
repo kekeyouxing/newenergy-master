@@ -109,6 +109,7 @@ public class RechargeRecordController {
             resultModel.setAmount(rechargeRecord.getAmount());
             resultModel.setReviewState(rechargeRecord.getReviewState());
             resultModel.setRefundState(refundRecordService.haveRefundRecord(rechargeRecord.getId()));
+            resultModel.setRejectReason(rechargeRecord.getRejectReason());
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
@@ -171,6 +172,8 @@ public class RechargeRecordController {
             resultModel.setRemainVolume(rechargeRecord.getRemainVolume());
             resultModel.setUpdateVolume(rechargeRecord.getUpdatedVolume());
             resultModel.setRefundState(refundRecordService.haveRefundRecord(rechargeRecord.getId()));
+            resultModel.setDelegate(rechargeRecord.getDelegate());
+            resultModel.setRejectReason(rechargeRecord.getRejectReason());
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
@@ -204,15 +207,6 @@ public class RechargeRecordController {
             rechargeRecord.setReviewState(reviewState.getReviewState());
             rechargeRecord.setCheckId(user.getId());
             if (reviewState.getReviewState()==1){
-                RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(rechargeRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(rechargeRecord.getRechargeVolume().add(remainWater.getCurRecharge()));
-//                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(rechargeRecord.getRegisterId(),
                         rechargeRecord.getRechargeVolume(),
                         rechargeRecord.getId(),
@@ -220,6 +214,7 @@ public class RechargeRecordController {
             }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
                 batchReviewState=2;
+                rechargeRecord.setRejectReason(reviewState.getRejectReason());
             }
 
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
@@ -239,6 +234,7 @@ public class RechargeRecordController {
     private static class ReviewState {
         private Integer id;
         private Integer reviewState;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -254,6 +250,14 @@ public class RechargeRecordController {
 
         public void setReviewState(Integer reviewState) {
             this.reviewState = reviewState;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
         }
     }
 
@@ -340,6 +344,8 @@ public class RechargeRecordController {
         private BigDecimal updateVolume;
         private BigDecimal rechargeVolume;
         private Integer refundState;
+        private Integer delegate;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -467,6 +473,22 @@ public class RechargeRecordController {
 
         public void setRefundState(Integer refundState) {
             this.refundState = refundState;
+        }
+
+        public Integer getDelegate() {
+            return delegate;
+        }
+
+        public void setDelegate(Integer delegate) {
+            this.delegate = delegate;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
         }
     }
 
