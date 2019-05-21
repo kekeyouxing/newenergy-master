@@ -37,7 +37,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return RechargeRecord
      */
     public RechargeRecord findBySn(String orderSn){
-        return repository.findFirstByOrderSn(orderSn);
+        return repository.findFirstByOrderSnAndSafeDelete(orderSn,0);
     }
     /**
      * 添加记录
@@ -84,7 +84,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      */
 //    根据id查询批量充值记录
     public RechargeRecord findById(int id){
-        return repository.findFirstById(id);
+//        return repository.findFirstById(id);
+        return repository.findFirstByIdAndSafeDelete(id,0);
     }
 
     //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性

@@ -13,11 +13,14 @@ import java.util.List;
 public interface RefundRecordRepository extends JpaRepository<RefundRecord,Integer>,
         JpaSpecificationExecutor<RefundRecord> {
 
-    RefundRecord findFirstById(Integer id);
+//    RefundRecord findFirstById(Integer id);
+    RefundRecord findFirstByIdAndSafeDelete(Integer id,Integer safeDelete);
 
     List<RefundRecord> findAll(Specification<RefundRecord> specification);
 
     List<RefundRecord> findAllByRecordIdAndSafeDelete(Integer recordRecord, Integer safeDelete);
+
+    RefundRecord findFirstByOutRefundNoAnAndSafeDelete(String outRefundNo,Integer safeDelete);
 
 
 }

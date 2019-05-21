@@ -25,6 +25,16 @@ public class RefundRecord  implements Cloneable{
     private Integer safeDelete;
     private Integer safeParent;
     private String rejectReason;
+    //微信退款单号
+    private String outRefundNo;
+
+    public String getOutRefundNo() {
+        return outRefundNo;
+    }
+
+    public void setOutRefundNo(String outRefundNo) {
+        this.outRefundNo = outRefundNo;
+    }
 
     public Integer getId() {
         return id;
