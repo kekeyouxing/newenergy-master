@@ -1,6 +1,5 @@
 package newenergy.wx.product.manager;
 
-import newenergy.core.service.WxProductService;
 import newenergy.wx.product.menu.*;
 import newenergy.wx.product.pojo.Token;
 import newenergy.wx.product.util.CommonUtil;
@@ -31,13 +30,9 @@ public class MenuManager implements ApplicationRunner {
     private String appId;
     @Value("${quwen.wx.app-secret}")
     private String appSecret;
-    //private static String domainName = "http://wp86h5.natappfree.cc/";
-//    @Autowired
-//    private WxProductService wxProductService;
     @Override
     public void run(ApplicationArguments args) throws Exception {
 //        Token token = CommonUtil.getAccessToken("wx56acef520e1b0030","3848a4749c6337c86f3dcf42b3d21d2a");
-//        Token token = CommonUtil.getAccessToken(wxProductService.getWxProductConfig().getAppId(),wxProductService.getWxProductConfig().getAppSecret());
         Token token = CommonUtil.getAccessToken(appId,appSecret);
 
         if (null != token){
@@ -53,7 +48,6 @@ public class MenuManager implements ApplicationRunner {
 
 //        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID", "wx56acef520e1b0030");
 
-//        String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",wxProductService.getWxProductConfig().getAppId());
         String URI = baseUrl.replace("SCOPE","snsapi_userinfo").replace("APPID",appId);
         String bindUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/userBind"));
         String rechargeUrl = URI.replace("REDIRECT_URI",CommonUtil.urlEncodeUTF8(domainName+"wx/OAuth/recharge"));

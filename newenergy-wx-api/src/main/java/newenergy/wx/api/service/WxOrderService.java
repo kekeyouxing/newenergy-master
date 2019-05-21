@@ -2,19 +2,20 @@ package newenergy.wx.api.service;
 
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
+import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
+import com.github.binarywang.wxpay.bean.request.WxPayRefundQueryRequest;
+import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
 import com.github.binarywang.wxpay.bean.result.BaseWxPayResult;
+import com.github.binarywang.wxpay.bean.result.WxPayRefundResult;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.db.domain.ExtraWater;
 import newenergy.db.domain.RechargeRecord;
-import newenergy.db.service.CorrPlotService;
-import newenergy.db.service.ExtraWaterService;
-import newenergy.db.service.RechargeRecordService;
-import newenergy.db.service.ResidentService;
+import newenergy.db.domain.RefundRecord;
+import newenergy.db.service.*;
 import newenergy.wx.api.util.IpUtil;
 import newenergy.wx.product.manager.UserTokenManager;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
+import static newenergy.wx.api.util.WxResponseCode.ORDER_REFUND_FAILED;
 
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
@@ -60,6 +62,9 @@ public class WxOrderService {
     @Autowired
     private CorrPlotService corrPlotService;
 
+    @Autowired
+    private RefundRecordService refundRecordService;
+
     /**
      * 提交充值申请
      * @author yangq
@@ -69,7 +74,12 @@ public class WxOrderService {
      *</p>
      * @param body
      * @param request
-     * @return
+     * @return result{"appId":"wx2421b1c4370ec43b",     //公众号名称，由商户传入
+     *                  "timeStamp":"1395712654",         //时间戳，自1970年以来的秒数
+     *                  "nonceStr":"e61463f8efa94090b1f366cccfbbb444", //随机串
+     *                  "packageValue":"prepay_id=u802345jgfjsdfgsdg888",
+     *                  "signType":"MD5",         //微信签名方式：
+     *                  "paySign":"70EA570631E4BB79628FBCA90534C63FF7FADD89"  //微信签名}
      */
     @Transactional
     public Object submit(String body,HttpServletRequest request){
@@ -91,6 +101,7 @@ public class WxOrderService {
         if (amount == null || deviceid == null){
             return ResponseUtil.badArgument();
         }
+        //充值金额转化为分
         BigDecimal acturalAmount = new BigDecimal(amount).multiply(new BigDecimal(100));
 
         RechargeRecord order = null;
@@ -98,36 +109,45 @@ public class WxOrderService {
         order.setRegisterId(deviceid);
         order.setAmount(acturalAmount.intValue());
         order.setUserName(nickname);
+        //有设备号查找小区
         String plot_num = residentService.findPlotNumByRegisterid(deviceid,0);
 //        Double plot_factor = rechargeRecordService.findByPlotNum(plot_num);
+        //由小区查找充值系数就（元每吨）
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
 
-
+        //充值流量（充值金额（元）/充值系数（元/吨））这里暂时用分代替元进行测试
         BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
 //        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
 
         //生成商户订单号
         order.setOrderSn(rechargeRecordService.generateOrderSn());
         order.setRechargeVolume(recharge_volumn);
+        order.setPlotNum(plot_num);
+        order.setState(2);
+        order.setReviewState(0);
         WxPayMpOrderResult result = null;
         try{
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
             orderRequest.setOutTradeNo(order.getOrderSn());
             orderRequest.setOpenid(openid);
+            //设置商品名称
             orderRequest.setBody("订单："+order.getOrderSn());
             // 将充值金额转换为分，微信接口需要以分为单位
 //            int fee = acturalAmount.multiply(new BigDecimal(100)).intValue();
             int fee = acturalAmount.intValue();
+            //设置充值金额（分）
             orderRequest.setTotalFee(fee);
+            //设置充值设备的ip
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
             result = wxPayService.createOrder(orderRequest);
-//            rechargeRecordService.addRechargeRecord(order,null);//改为orderMap
-            //判断是否有相同订单号
-            while(orderMap.containsKey(order.getOrderSn())){
-                order.setOrderSn(rechargeRecordService.generateOrderSn());
-            }
-            orderMap.put(order.getOrderSn(),order);
+
+            rechargeRecordService.addRechargeRecord(order,null);
+//            //判断是否有相同订单号
+//            while(orderMap.containsKey(order.getOrderSn())){
+//                order.setOrderSn(rechargeRecordService.generateOrderSn());
+//            }
+//            orderMap.put(order.getOrderSn(),order);
 //            String prepayId = result.getPackageValue();
 //            prepayId = prepayId.replace("prepay_id=","");
 
@@ -136,6 +156,7 @@ public class WxOrderService {
             return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
         }
         logger.info("<submit> result:"+result.toString());
+
         return ResponseUtil.ok(result);
     }
 
@@ -144,11 +165,10 @@ public class WxOrderService {
      *
      * @author yangq
      * @param request
-     * @param response
      * @return
      */
     @Transactional
-    public Object payNotify(HttpServletRequest request, HttpServletResponse response){
+    public Object payNotify(HttpServletRequest request){
         String xmlResult = null;
         try{
             xmlResult = IOUtils.toString(request.getInputStream(),request.getCharacterEncoding());
@@ -169,6 +189,7 @@ public class WxOrderService {
         logger.info(result);
         //获取充值成功结果的商户订单号，待后续与订单中对比
         String orderSn = result.getOutTradeNo();
+        //订单的交易号，可用于退款操作
         String payId = result.getTransactionId();
 
 //        String totalFee = BaseWxPayResult.fenToYuan(result.getTotalFee());
@@ -183,8 +204,8 @@ public class WxOrderService {
         }
         logger.info("<payNotify> order.orderSn:"+order.getOrderSn());
 
-        //检查这个订单是否被处理过
-
+        //检查这个订单是否被处理过(因为微信会发送多次请求)
+        if (order.getTransactionId() != null || order.getState() == 0) return WxPayNotifyResponse.success("订单已经处理成功!");
         //检查支付订单金额
         if(!totalFee.equals(order.getAmount())){
             logger.info("<payNotify> retAmount, amount : " +totalFee+","+order.getAmount());
@@ -193,33 +214,116 @@ public class WxOrderService {
 
         order.setTransactionId(payId);
         order.setRechargeTime(LocalDateTime.now());
-
+        order.setState(0);
+        order.setDelegate(0);
+        order.setReviewState(1);
 //        order = rechargeRecordService.updateRechargeRecord(order,null);//改为添加
         order = rechargeRecordService.addRechargeRecord(order,null);
         int recordId = order.getId();
         logger.info("<payNotify> recordId : " + recordId);
-        //TODO 发送邮件和短信通知，这里采用异步发送
-
-//        ExtraWater extraWater = null;
-//        extraWater = new ExtraWater(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
-//        extraWater = new ExtraWater(order.getRegisterId(),new BigDecimal(order.getRechargeVolume()),null);
-//        extraWater.setRegisterId(order.getRegister_id());
-//        extraWater.setRecord_id(null);
-//        extraWater.setAdd_volume(new BigDecimal(order.getRecharge_volume()));
+        //添加新增水量记录
         extraWaterService.add(order.getRegisterId(),order.getRechargeVolume(),recordId,order.getAmount());
         return WxPayNotifyResponse.success("处理成功");
     }
 
+    @Transactional
     public Object refund(String body){
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
         if (orderId==null){
             return ResponseUtil.badArgument();
         }
-
-        RechargeRecord order = rechargeRecordService.findById(orderId);
+        RefundRecord order = refundRecordService.findById(orderId);
         if (order == null){
             return ResponseUtil.badArgument();
         }
+        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
+        WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
+
+        RechargeRecord rechargeRecord = rechargeRecordService.findById(order.getRecordId());
+        if (rechargeRecord == null || rechargeRecord.getState() == 1) return ResponseUtil.badArgument();
+
+        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
+        String outRefundNo = "refund_"+rechargeRecord.getOrderSn();
+        wxPayRefundRequest.setOutRefundNo(outRefundNo);
+        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
+        wxPayRefundRequest.setTotalFee(totalFee);
+        wxPayRefundRequest.setRefundFee(refundFee);
+
+        WxPayRefundResult wxPayRefundResult = null;
+        try{
+            wxPayRefundResult = wxPayService.refund(wxPayRefundRequest);
+        }catch (WxPayException e){
+            e.printStackTrace();
+            return ResponseUtil.fail(ORDER_REFUND_FAILED,"订单退款失败");
+        }
+        if(!wxPayRefundResult.getReturnCode().equals("SUCCESS")){
+            logger.info("refund fail:"+wxPayRefundResult.getReturnMsg());
+            return ResponseUtil.fail(ORDER_REFUND_FAILED, "订单退款失败");
+        }
+        order.setOutRefundNo(outRefundNo);
+        order.setState(3);
+        refundRecordService.updateRefundRecord(order,order.getSafeChangedUserid());
         return ResponseUtil.ok();
+    }
+
+    @Transactional
+    public Object refundNotify(HttpServletRequest request){
+        String xmlResult = null;
+        try{
+            xmlResult = IOUtils.toString(request.getInputStream(),request.getCharacterEncoding());
+        }catch(IOException e){
+            e.printStackTrace();
+            return WxPayNotifyResponse.fail(e.getMessage());
+        }
+        WxPayRefundNotifyResult result = null;
+        try{
+            result = wxPayService.parseRefundNotifyResult(xmlResult);
+        }catch (WxPayException e){
+            e.printStackTrace();
+            return WxPayNotifyResponse.fail(e.getMessage());
+        }
+        //添加退款成功逻辑
+
+        WxPayRefundNotifyResult.ReqInfo reqInfo = result.getReqInfo();
+        //订单号
+        String outTradeNo = reqInfo.getOutTradeNo();
+        //微信退款单号
+        String outRefundNo = reqInfo.getOutRefundNo();
+        //订单金额
+        Integer totalFee = reqInfo.getTotalFee();
+        //实际退款金额
+        Integer refundFee = reqInfo.getSettlementRefundFee();
+        //退款状态
+        String refundStatus = reqInfo.getRefundStatus();
+        //退款成功时间
+        String successTime = reqInfo.getSuccessTime();
+        //退款账户
+        String refundRecvAccount = reqInfo.getRefundRecvAccout();
+        //退款资金来源
+        String refundRequestSource = reqInfo.getRefundRequestSource();
+
+        RechargeRecord order = rechargeRecordService.findBySn(outTradeNo);
+        RefundRecord refundRecord = refundRecordService.findBySn(outRefundNo);
+        if (order == null || refundRecord == null) return WxPayNotifyResponse.fail("订单不存在 sn="+outTradeNo);
+        if (order.getState() == 1 || refundRecord.getState() == 0) return WxPayNotifyResponse.success("订单已经处理成功");
+
+        Integer refundAmount = new BigDecimal(BaseWxPayResult.fenToYuan(refundFee)).intValue();
+        refundRecord.setRefundAmount(refundAmount);
+
+        String plot_num = residentService.findPlotNumByRegisterid(refundRecord.getRegisterId(),0);
+        BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
+        BigDecimal refundVolume = new BigDecimal(refundAmount).divide(plot_factor,3,RoundingMode.HALF_DOWN);
+        refundRecord.setRefundVolume(refundVolume);
+
+        refundRecord.setRefundTime(LocalDateTime.now());
+
+        refundRecord.setState(0);
+        Integer userId = refundRecord.getSafeChangedUserid();
+        refundRecordService.updateRefundRecord(refundRecord,userId);
+
+        order.setState(1);
+        rechargeRecordService.updateRechargeRecord(order,userId);
+
+        return WxPayNotifyResponse.success("成功");
     }
 }

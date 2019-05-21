@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -210,10 +211,28 @@ public class FaultRecordController {
     }
 
     @RequestMapping(value = "addother",method = RequestMethod.POST)
-    public void addOtherRecord(@RequestBody FaultRecord record, @AdminLoginUser NewenergyAdmin admin){
+    public Integer addOtherRecord(@RequestBody Map<String,Object> request, @AdminLoginUser NewenergyAdmin admin){
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        FaultRecord record = new FaultRecord();
+        record.setRegisterId((String)request.get("registerId"));
+        record.setServicerId(Integer.valueOf((String)request.get("servicerId")));
+        record.setPhenomenon((String)request.get("phenomenon"));
+        record.setSolution((String)request.get("solution"));
+        record.setFaultTime(LocalDateTime.parse((String)request.get("faultTime"),df));
+        record.setResponseTime(LocalDateTime.parse((String)request.get("responseTime"),df));
+        record.setFinishTime(LocalDateTime.parse((String)request.get("finishTime"),df));
+
         record.setState(FaultRecordConstant.STATE_FINISH);
-        record.setState(FaultRecordConstant.RESULT_SUCCESS);
-        faultRecordService.addRecord(record);
+        record.setResult(FaultRecordConstant.RESULT_SUCCESS);
+        String registerId = record.getRegisterId();
+        Resident resident = faultRecordService.getResident(registerId);
+        if(resident == null) return 1;
+        if(!StringUtilCorey.emptyCheck(resident.getPlotNum()) ){
+            CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
+            if(corrPlotAdmin != null) record.setMonitorId( corrPlotAdmin.getMonitorId() );
+        }
+        return faultRecordService.addRecord(record)!=null?0:1;
     }
 
 

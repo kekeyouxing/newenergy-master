@@ -59,7 +59,8 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
      * @param id 待查id
      */
     public RefundRecord findById(int id){
-        return repository.findFirstById(id);
+//        return repository.findFirstById(id);
+        return repository.findFirstByIdAndSafeDelete(id,0);
     }
 
     public Integer haveRefundRecord(Integer rechargeRecordId){
@@ -124,6 +125,10 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
             }
         };
         return specification;
+    }
+
+    public RefundRecord findBySn(String outRefundNo){
+        return repository.findFirstByOutRefundNoAndSafeDelete(outRefundNo,0);
     }
 
 }

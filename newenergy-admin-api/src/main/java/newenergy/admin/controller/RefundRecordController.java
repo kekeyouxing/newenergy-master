@@ -3,12 +3,15 @@ package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
+import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -48,6 +51,12 @@ public class RefundRecordController {
 
     @Autowired
     CorrAddressService corrAddressService;
+
+    @Value("${server.port}")
+    private String port;
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/refund";
+    private RestTemplate restTemplate = new RestTemplate();
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
     public Object addReview(@RequestBody PostInfo postInfo,
@@ -93,6 +102,7 @@ public class RefundRecordController {
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
             resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
             resultInfo.setState(refundRecord.getState());
             resultInfos.add(resultInfo);
         }
@@ -131,6 +141,8 @@ public class RefundRecordController {
             resultInfo.setCheckTime(localDateTimeToLong(refundRecord.getSafeChangedTime()));
             resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getRealName());
             resultInfo.setState(refundRecord.getState());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
+            resultInfo.setRejectReason(refundRecord.getRejectReason());
             resultInfos.add(resultInfo);
         }
         Map<String,Object> result = new HashMap<>();
@@ -162,23 +174,32 @@ public class RefundRecordController {
             refundRecord.setState(reviewState.getReviewState());
             refundRecord.setCheckId(user.getId());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
-            rechargeRecord.setState(1);
-//            审核通过且为个人充值（非代充），则对剩余水量进行更新
-            if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
-                RemainWater remainWater = remainWaterService.findByRegisterId(refundRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(refundRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
+//            如果审核通过，进一步判断
+            if ((reviewState.getReviewState()==0)){
+                //应该先发送微信退款请求，返回success之后再添加数据库记录
+//                extraWaterService.add(refundRecord.getRegisterId(),
+//                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
+//                        refundRecord.getId(),
+//                        refundRecord.getRefundAmount()*(-1));
+//                如果为非代充，即微信充值，发送退款请求
+                if (rechargeRecord.getDelegate()==0){
+                    Map<String,Object> requestBody = new HashMap<>();
+                    requestBody.put("orderId",refundRecord.getRecordId());
+                    ErrorMsg e = restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, ErrorMsg.class);
+//                    如果返回为空或者未返回“成功”，则判断审核失败，失败原因为退款失败
+                    if ((e==null)||(!e.getErrmsg().equals("成功"))){
+                        refundRecord.setState(2);
+                        refundRecord.setRejectReason("微信退款失败");
+                    }
+                }else if (rechargeRecord.getDelegate()==1){
+//                    若为代充，则直接将充值订单作废
+                    rechargeRecord.setState(1);
                 }
-                remainWater.setCurRecharge(remainWater.getCurRecharge().subtract(refundRecord.getRefundVolume()));
-//                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
-                extraWaterService.add(refundRecord.getRegisterId(),
-                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
-                        refundRecord.getId(),
-                        refundRecord.getRefundAmount()*(-1));
+            }else if (reviewState.getReviewState()==2){
+//                若审核不通过，则添加审核不通过原因
+                refundRecord.setRejectReason(reviewState.getRejectReason());
             }
+            rechargeRecordService.updateRechargeRecord(rechargeRecord,user.getId());
             RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
             manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
         }
@@ -191,6 +212,15 @@ public class RefundRecordController {
     private static class ReviewState{
         private Integer id;
         private Integer reviewState;
+        private String rejectReason;
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
+        }
 
         public Integer getId() {
             return id;
@@ -289,6 +319,8 @@ public class RefundRecordController {
         private Integer state;
         private String checkName;
         private Long checkTime;
+        private String refundReason;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -393,6 +425,43 @@ public class RefundRecordController {
 
         public void setCheckTime(Long checkTime) {
             this.checkTime = checkTime;
+        }
+
+        public String getRefundReason() {
+            return refundReason;
+        }
+
+        public void setRefundReason(String refundReason) {
+            this.refundReason = refundReason;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
+        }
+    }
+
+    private static class ErrorMsg{
+        private Integer errno;
+        private String errmsg;
+
+        public Integer getErrno() {
+            return errno;
+        }
+
+        public void setErrno(Integer errno) {
+            this.errno = errno;
+        }
+
+        public String getErrmsg() {
+            return errmsg;
+        }
+
+        public void setErrmsg(String errmsg) {
+            this.errmsg = errmsg;
         }
     }
 

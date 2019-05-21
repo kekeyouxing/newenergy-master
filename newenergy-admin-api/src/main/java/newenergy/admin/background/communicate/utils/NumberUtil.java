@@ -56,6 +56,7 @@ public class NumberUtil {
     }
     public static String transform10to36(long num){
         List<Long> result = new ArrayList<>();
+        if(num==0) result.add((long)0);
         while(num != 0){
             result.add(num % 36);
             num /= 36;
