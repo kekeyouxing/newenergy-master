@@ -36,13 +36,18 @@ public class WxOrderController {
     }
 
     @PostMapping("pay-notify")
-    public Object payNotify(HttpServletRequest request, HttpServletResponse response){
-        return wxOrderService.payNotify(request,response);
+    public Object payNotify(HttpServletRequest request){
+        return wxOrderService.payNotify(request);
     }
 
     @PostMapping("refund")
     public Object refund(@RequestBody String body){
         return wxOrderService.refund(body);
+    }
+
+    @PostMapping("refund-notify")
+    public Object refundNotify(HttpServletRequest request){
+        return wxOrderService.refundNotify(request);
     }
 
     /**

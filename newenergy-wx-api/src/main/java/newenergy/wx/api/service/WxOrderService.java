@@ -2,19 +2,19 @@ package newenergy.wx.api.service;
 
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
+import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
 import com.github.binarywang.wxpay.bean.request.WxPayRefundQueryRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
+import com.github.binarywang.wxpay.bean.result.WxPayRefundResult;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import newenergy.core.util.JacksonUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.RechargeRecord;
-import newenergy.db.service.CorrPlotService;
-import newenergy.db.service.ExtraWaterService;
-import newenergy.db.service.RechargeRecordService;
-import newenergy.db.service.ResidentService;
+import newenergy.db.domain.RefundRecord;
+import newenergy.db.service.*;
 import newenergy.wx.api.util.IpUtil;
 import newenergy.wx.product.manager.UserTokenManager;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static newenergy.wx.api.util.WxResponseCode.ORDER_PAY_FAIL;
+import static newenergy.wx.api.util.WxResponseCode.ORDER_REFUND_FAILED;
 
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
@@ -59,6 +60,9 @@ public class WxOrderService {
 
     @Autowired
     private CorrPlotService corrPlotService;
+
+    @Autowired
+    private RefundRecordService refundRecordService;
 
     /**
      * 提交充值申请
@@ -156,11 +160,10 @@ public class WxOrderService {
      *
      * @author yangq
      * @param request
-     * @param response
      * @return
      */
     @Transactional
-    public Object payNotify(HttpServletRequest request, HttpServletResponse response){
+    public Object payNotify(HttpServletRequest request){
         String xmlResult = null;
         try{
             xmlResult = IOUtils.toString(request.getInputStream(),request.getCharacterEncoding());
@@ -216,21 +219,60 @@ public class WxOrderService {
         return WxPayNotifyResponse.success("处理成功");
     }
 
-    @Transactional
+
     public Object refund(String body){
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
-        if (orderId == null){
-
-        }
         if (orderId==null){
             return ResponseUtil.badArgument();
         }
-
-        RechargeRecord order = rechargeRecordService.findById(orderId);
+        RefundRecord order = refundRecordService.findById(orderId);
         if (order == null){
             return ResponseUtil.badArgument();
         }
+        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
         WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
+
+        RechargeRecord rechargeRecord = rechargeRecordService.findById(order.getRecordId());
+        if (rechargeRecord == null) return ResponseUtil.badArgument();
+
+        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
+        wxPayRefundRequest.setOutRefundNo("refund_"+rechargeRecord.getOrderSn());
+        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
+        wxPayRefundRequest.setTotalFee(totalFee);
+        wxPayRefundRequest.setRefundFee(refundFee);
+
+        WxPayRefundResult wxPayRefundResult = null;
+        try{
+            wxPayRefundResult = wxPayService.refund(wxPayRefundRequest);
+        }catch (WxPayException e){
+            e.printStackTrace();
+            return ResponseUtil.fail(ORDER_REFUND_FAILED,"订单退款失败");
+        }
+        if(!wxPayRefundResult.getReturnCode().equals("SUCCESS")){
+            logger.info("refund fail:"+wxPayRefundResult.getReturnMsg());
+            return ResponseUtil.fail(ORDER_REFUND_FAILED, "订单退款失败");
+        }
         return ResponseUtil.ok();
+    }
+
+    @Transactional
+    public Object refundNotify(HttpServletRequest request){
+        String xmlResult = null;
+        try{
+            xmlResult = IOUtils.toString(request.getInputStream(),request.getCharacterEncoding());
+        }catch(IOException e){
+            e.printStackTrace();
+            return WxPayNotifyResponse.fail(e.getMessage());
+        }
+        WxPayRefundNotifyResult result = null;
+        try{
+            result = wxPayService.parseRefundNotifyResult(xmlResult);
+        }catch (WxPayException e){
+            e.printStackTrace();
+            return WxPayNotifyResponse.fail(e.getMessage());
+        }
+        //添加退款成功逻辑
+
+        return WxPayNotifyResponse.success("成功");
     }
 }
