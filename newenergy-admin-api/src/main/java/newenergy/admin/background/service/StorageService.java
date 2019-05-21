@@ -1,16 +1,21 @@
 package newenergy.admin.background.service;
 
+import newenergy.admin.background.communicate.constant.StoragePath;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.Resident;
 import newenergy.db.global.Parameters;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.service.ResidentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,6 +27,7 @@ public class StorageService {
     ResidentService residentService;
     @Autowired
     ResidentRepository residentRepository;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * key: deviceNum
      * value: extraWater
@@ -38,10 +44,85 @@ public class StorageService {
      */
     private ConcurrentHashMap<String, LocalDateTime> requireWaterTrustMap;
     StorageService(){
-        extraWaterMap = new ConcurrentHashMap<>();
-        requireWaterMap = new ConcurrentHashMap<>();
-        requireWaterTrustMap = new ConcurrentHashMap<>();
+        extraWaterMap = loadExtraWaterMap();
+        requireWaterMap = loadRequireWaterMap();
+        requireWaterTrustMap = loadRequireTrustMap();
+
     }
+
+    public void saveMaps(){
+        try(ObjectOutputStream oosExtra = new ObjectOutputStream(new FileOutputStream(StoragePath.EXTRA_WATER));
+            ObjectOutputStream oosRequire = new ObjectOutputStream(new FileOutputStream(StoragePath.REQUIRE_WATER));
+            ObjectOutputStream oosRequireTrust = new ObjectOutputStream(new FileOutputStream(StoragePath.REQUIRE_TRUST))
+        ){
+            oosExtra.writeObject(extraWaterMap);
+            oosRequire.writeObject(requireWaterMap);
+            oosRequireTrust.writeObject(requireWaterTrustMap);
+        }catch (IOException e){
+            e.printStackTrace();
+            logger.error("存储maps失败");
+        }
+    }
+    public ConcurrentHashMap<String,BigDecimal> loadExtraWaterMap(){
+        ConcurrentHashMap<String,BigDecimal> extra = null;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(StoragePath.EXTRA_WATER))
+        ){
+            extra = (ConcurrentHashMap<String, BigDecimal>) ois.readObject();
+        }catch (IOException e){
+            logger.error("读取extraWaterMap失败");
+        }catch (ClassNotFoundException e){
+            logger.info("未找到extraWaterMap");
+        }
+        if(extra==null) extra = new ConcurrentHashMap<>();
+
+//DEBUG
+for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
+    System.out.println(entry.getKey()+":"+entry.getValue());
+}
+
+        return extra;
+    }
+
+    public ConcurrentHashMap<String,BigDecimal> loadRequireWaterMap(){
+        ConcurrentHashMap<String,BigDecimal> require = null;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(StoragePath.REQUIRE_WATER))
+        ){
+            require = (ConcurrentHashMap<String, BigDecimal>) ois.readObject();
+        }catch (IOException e){
+            logger.error("读取requireWaterMap失败");
+        }catch (ClassNotFoundException e){
+            logger.info("未找到requireWaterMap");
+        }
+        if(require==null) require = new ConcurrentHashMap<>();
+
+//DEBUG
+        for(Map.Entry<String,BigDecimal> entry : require.entrySet()){
+            System.out.println(entry.getKey()+":"+entry.getValue());
+        }
+
+        return require;
+    }
+
+    public ConcurrentHashMap<String,LocalDateTime> loadRequireTrustMap(){
+        ConcurrentHashMap<String,LocalDateTime> trust = null;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(StoragePath.REQUIRE_TRUST))
+        ){
+            trust = (ConcurrentHashMap<String, LocalDateTime>) ois.readObject();
+        }catch (IOException e){
+            logger.error("读取requireTrustMap失败");
+        }catch (ClassNotFoundException e){
+            logger.info("未找到requireTrustMap");
+        }
+        if(trust==null) trust = new ConcurrentHashMap<>();
+
+//DEBUG
+        for(Map.Entry<String,LocalDateTime> entry : trust.entrySet()){
+            System.out.println(entry.getKey()+":"+entry.getValue());
+        }
+
+        return trust;
+    }
+
 
     /**
      * 定时任务更新剩余用水量时，需要调用此方法
@@ -56,6 +137,7 @@ public class StorageService {
             lastWater = lastWater.add(extraWaterMap.get(deviceNum));
         }
         extraWaterMap.put(deviceNum,lastWater.add(extraWater));
+        saveMaps();
     }
 
     /**
@@ -78,6 +160,7 @@ public class StorageService {
             result = extraWaterMap.get(deviceNum);
             extraWaterMap.remove(deviceNum);
         }
+        saveMaps();
         return result;
     }
 
@@ -96,6 +179,7 @@ public class StorageService {
             requireWaterMap.remove(deviceNum);
             requireWaterTrustMap.remove(deviceNum);
         }
+        saveMaps();
     }
 
     /**
@@ -119,6 +203,7 @@ public class StorageService {
                 }
             }
         }
+        saveMaps();
         return result;
     }
 
