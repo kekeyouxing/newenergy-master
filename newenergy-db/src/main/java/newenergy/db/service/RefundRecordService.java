@@ -128,7 +128,7 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
     }
 
     public RefundRecord findBySn(String outRefundNo){
-        return repository.findFirstByOutRefundNoAnAndSafeDelete(outRefundNo,0);
+        return repository.findFirstByOutRefundNoAndSafeDelete(outRefundNo,0);
     }
 
 }
