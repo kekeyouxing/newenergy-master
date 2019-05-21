@@ -1,5 +1,6 @@
 package newenergy.db.service;
 
+import newenergy.db.domain.StatisticConsume;
 import newenergy.db.domain.StatisticPlotRecharge;
 import newenergy.db.repository.StatisticPlotRechargeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,12 @@ public class StatisticPlotRechargeService {
         Pageable pageable = PageRequest.of(page, limit);
         Specification<StatisticPlotRecharge> specification = querySelection(plotNum, curTime);
         return statisticPlotRechargeRepository.findAll(specification, pageable);
+    }
+
+
+    public List<StatisticPlotRecharge> curPlotRecharge(LocalDate curTime){
+        Specification<StatisticPlotRecharge> specification = querySelection(null, curTime);
+        return statisticPlotRechargeRepository.findAll(specification);
     }
 
     /**

@@ -23,15 +23,15 @@ public class ExcelCommon {
         excelUtil.createCell(row,0, "序号");
 
         for(int i = 0; i < headers.length; i++){
-            HSSFCell cell = row.createCell(i+1);
-            cell.setCellValue(headers[i]);
+            excelUtil.setColumnWidth(i, 20 * 256);
+            excelUtil.createCell(row, i+1, headers[i]);
         }
     }
     private void createValue(List<String[]> values) {
         if(values != null){
             for(int i = 0; i < values.size(); i++){
                 HSSFRow row = excelUtil.createRow(i+1);
-                HSSFCell valueCell = excelUtil.createCell(row,0,(i+1)+"");
+                excelUtil.createCell(row,0,(i+1)+"");
                 String[] cols = values.get(i);
                 for(int j = 0; j<cols.length;j++){
                     excelUtil.createCell(row,j+1,cols[j]);
