@@ -55,7 +55,7 @@ public class RefundRecordController {
     @Value("${server.port}")
     private String port;
     private String sendMsgPrefix = "http://localhost:";
-    private String sendMsgSuffix ="/wx/fault/send";
+    private String sendMsgSuffix ="/wx/fault/refund";
     private RestTemplate restTemplate = new RestTemplate();
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
@@ -174,21 +174,32 @@ public class RefundRecordController {
             refundRecord.setState(reviewState.getReviewState());
             refundRecord.setCheckId(user.getId());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
-            //作废处理比较早，且未更新数据库
-            rechargeRecord.setState(1);
-//            审核通过且为个人充值（非代充），则对剩余水量进行更新
-            if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
+//            如果审核通过，进一步判断
+            if ((reviewState.getReviewState()==0)){
                 //应该先发送微信退款请求，返回success之后再添加数据库记录
-                extraWaterService.add(refundRecord.getRegisterId(),
-                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
-                        refundRecord.getId(),
-                        refundRecord.getRefundAmount()*(-1));
-                Map<String,Object> requestBody = new HashMap<>();
-                requestBody.put("orderId",refundRecord.getRecordId());
-                restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, MsgRet.class);
+//                extraWaterService.add(refundRecord.getRegisterId(),
+//                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
+//                        refundRecord.getId(),
+//                        refundRecord.getRefundAmount()*(-1));
+//                如果为非代充，即微信充值，发送退款请求
+                if (rechargeRecord.getDelegate()==0){
+                    Map<String,Object> requestBody = new HashMap<>();
+                    requestBody.put("orderId",refundRecord.getRecordId());
+                    ErrorMsg e = restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, ErrorMsg.class);
+//                    如果返回为空或者未返回“成功”，则判断审核失败，失败原因为退款失败
+                    if ((e==null)||(!e.getErrmsg().equals("成功"))){
+                        refundRecord.setState(2);
+                        refundRecord.setRejectReason("微信退款失败");
+                    }
+                }else if (rechargeRecord.getDelegate()==1){
+//                    若为代充，则直接将充值订单作废
+                    rechargeRecord.setState(1);
+                }
             }else if (reviewState.getReviewState()==2){
+//                若审核不通过，则添加审核不通过原因
                 refundRecord.setRejectReason(reviewState.getRejectReason());
             }
+            rechargeRecordService.updateRechargeRecord(rechargeRecord,user.getId());
             RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
             manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
         }
@@ -430,6 +441,27 @@ public class RefundRecordController {
 
         public void setRejectReason(String rejectReason) {
             this.rejectReason = rejectReason;
+        }
+    }
+
+    private static class ErrorMsg{
+        private Integer errno;
+        private String errmsg;
+
+        public Integer getErrno() {
+            return errno;
+        }
+
+        public void setErrno(Integer errno) {
+            this.errno = errno;
+        }
+
+        public String getErrmsg() {
+            return errmsg;
+        }
+
+        public void setErrmsg(String errmsg) {
+            this.errmsg = errmsg;
         }
     }
 
