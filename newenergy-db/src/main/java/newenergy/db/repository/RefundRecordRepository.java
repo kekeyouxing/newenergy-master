@@ -22,5 +22,8 @@ public interface RefundRecordRepository extends JpaRepository<RefundRecord,Integ
 
     RefundRecord findFirstByOutRefundNoAndSafeDelete(String outRefundNo,Integer safeDelete);
 
-
+    /**
+     * By Zeng Hui
+     */
+    List<RefundRecord> findAllByRegisterIdAndSafeDelete(String registerId, Integer safeDelete);
 }
