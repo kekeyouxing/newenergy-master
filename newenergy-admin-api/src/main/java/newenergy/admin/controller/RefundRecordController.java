@@ -174,9 +174,11 @@ public class RefundRecordController {
             refundRecord.setState(reviewState.getReviewState());
             refundRecord.setCheckId(user.getId());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
+            //作废处理比较早，且未更新数据库
             rechargeRecord.setState(1);
 //            审核通过且为个人充值（非代充），则对剩余水量进行更新
             if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
+                //应该先发送微信退款请求，返回success之后再添加数据库记录
                 extraWaterService.add(refundRecord.getRegisterId(),
                         refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
                         refundRecord.getId(),
