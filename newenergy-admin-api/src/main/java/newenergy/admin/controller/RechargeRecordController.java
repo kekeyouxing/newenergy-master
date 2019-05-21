@@ -156,7 +156,7 @@ public class RechargeRecordController {
     @RequestMapping(value = "/findPersonal", method = RequestMethod.POST,produces = "application/json;charset=utf-8")
     public Object findPersonal(@RequestBody PostInfo postInfo){
         List<RechargeRecord> queryResult = rechargeRecordService.findByConditions(null,
-                null,
+                1,
                 postInfo.getRegisterId(),
                 null,
                 null,
