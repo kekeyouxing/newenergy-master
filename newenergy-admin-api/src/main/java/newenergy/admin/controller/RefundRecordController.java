@@ -2,6 +2,7 @@ package newenergy.admin.controller;
 
 
 import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.background.service.StorageService;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.ResponseUtil;
@@ -51,6 +52,9 @@ public class RefundRecordController {
 
     @Autowired
     CorrAddressService corrAddressService;
+
+    @Autowired
+    StorageService storageService;
 
     @Value("${server.port}")
     private String port;
@@ -183,14 +187,16 @@ public class RefundRecordController {
 //                        refundRecord.getRefundAmount()*(-1));
 //                如果为非代充，即微信充值，发送退款请求
                 if (rechargeRecord.getDelegate()==0){
-                    Map<String,Object> requestBody = new HashMap<>();
-                    requestBody.put("orderId",refundRecord.getRecordId());
-                    ErrorMsg e = restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, ErrorMsg.class);
-//                    如果返回为空或者未返回“成功”，则判断审核失败，失败原因为退款失败
-                    if ((e==null)||(!e.getErrmsg().equals("成功"))){
-                        refundRecord.setState(2);
-                        refundRecord.setRejectReason("微信退款失败");
-                    }
+//                    Map<String,Object> requestBody = new HashMap<>();
+//                    requestBody.put("orderId",refundRecord.getRecordId());
+//                    ErrorMsg e = restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, ErrorMsg.class);
+////                    如果返回为空或者未返回“成功”，则判断审核失败，失败原因为退款失败
+//                    if ((e==null)||(!e.getErrmsg().equals("成功"))){
+//                        refundRecord.setState(2);
+//                        refundRecord.setRejectReason("微信退款失败");
+//                    }
+                    storageService.setRefundWater(refundRecord.getId(),refundRecord.getRefundVolume());
+
                 }else if (rechargeRecord.getDelegate()==1){
 //                    若为代充，则直接将充值订单作废
                     rechargeRecord.setState(1);
