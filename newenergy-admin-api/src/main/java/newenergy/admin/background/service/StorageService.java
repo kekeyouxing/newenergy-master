@@ -179,6 +179,7 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
         BigDecimal success = new BigDecimal(RefundState.SUCCESS);
         BigDecimal failed = new BigDecimal(RefundState.FAILED);
         for(Integer id : ids){
+            logger.info("orderId:"+id+",refundWater:"+refundWaterMap.get(id));
             //退款成功
             if(success.equals( refundWaterMap.get(id) )){
                 Map<String,Object> request = new HashMap<>();
