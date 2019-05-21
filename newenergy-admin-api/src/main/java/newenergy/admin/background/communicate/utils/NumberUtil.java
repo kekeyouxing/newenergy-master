@@ -19,13 +19,14 @@ public class NumberUtil {
      */
     public static BigDecimal transformNum36to10(String num){
         if(num == null || num.length() != 8) return null;
-        long prefix = transform36to10(num.substring(0,7));
+        int sign = num.charAt(0)=='0'?1:-1;
+        long prefix = transform36to10(num.substring(1,7));
         long suffix = transform36to10(num.substring(7));
         if(suffix >= 10) return null;
         BigDecimal prefixNum = new BigDecimal(prefix);
         BigDecimal suffixNum = new BigDecimal(suffix);
         suffixNum = suffixNum.divide(new BigDecimal(10));
-        return prefixNum.add(suffixNum);
+        return prefixNum.add(suffixNum).multiply(new BigDecimal(sign));
     }
 
     /**
@@ -34,6 +35,8 @@ public class NumberUtil {
      * @return
      */
     public static String transformNum10to36(BigDecimal num){
+        char sign = num.signum()<0?'1':'0';
+        num = num.abs();
         String prefix = transform10to36(num.longValue());
         String suffix = transform10to36(
                 num.remainder(new BigDecimal(1))
@@ -43,11 +46,12 @@ public class NumberUtil {
         );
         if(!suffix.isEmpty()) suffix = suffix.substring(0,1);
         String numStr = prefix + suffix;
-        if(numStr.length() > 8) return null;
+        if(numStr.length() >= 8) return null;
 
-        int padding = 8 - numStr.length();
-        String[] paddingStr = new String[padding];
+        int padding = 8 - numStr.length() - 1;
+        String[] paddingStr = new String[padding+1];
         Arrays.fill(paddingStr,"0");
+        paddingStr[0] = String.valueOf(sign);
         return String.join("", paddingStr) + numStr;
 
     }

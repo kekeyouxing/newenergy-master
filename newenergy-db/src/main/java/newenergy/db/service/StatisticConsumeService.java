@@ -55,6 +55,13 @@ public class StatisticConsumeService {
         return statisticConsumeRepository.findAll(specification, pageable);
     }
 
+    public List<StatisticConsume> getCurConsume(LocalDate curTime, String plotNum){
+        Specification<StatisticConsume> specification = querySelection(null, curTime, plotNum);
+        return statisticConsumeRepository.findAll(specification);
+    }
+
+
+
     /**
      * 每月定时生成设备用水量月表
      * @param consume

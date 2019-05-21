@@ -7,4 +7,5 @@ public class StoragePath {
     public static final String EXTRA_WATER = "MAP_EXTRA";
     public static final String REQUIRE_WATER = "MAP_REQUIRE";
     public static final String REQUIRE_TRUST = "MAP_REQUIRE_TRUST";
+    public static final String REFUND_WATER = "MAP_REFUND";
 }

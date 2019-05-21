@@ -1,13 +1,14 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.excel.ExcelAnalysisInfo;
+import newenergy.admin.excel.ExcelAfterSale;
+import newenergy.admin.excel.ExcelUserRecharge;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.Resident;
 import newenergy.db.domain.StatisticConsume;
 import newenergy.db.domain.StatisticPlotRecharge;
 import newenergy.db.service.*;
-import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +19,6 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -135,7 +135,7 @@ public class DataStatisticsController {
         List<StatisticPlotRecharge> plotRecharges = pagePlotRecharges.getContent();
         Map<String, Object> data = new HashMap<>();
         List<Map<String, Object>> list = new ArrayList<>();
-        for(StatisticPlotRecharge plotRecharge : pagePlotRecharges) {
+        for(StatisticPlotRecharge plotRecharge : plotRecharges) {
             Map<String, Object> info = new HashMap<>();
             info.put("plotDtl", corrPlotService.findByPlotNum(plotRecharge.getPlotNum()));
             info.put("amount", plotRecharge.getAmount());
@@ -271,24 +271,136 @@ public class DataStatisticsController {
         return ResponseUtil.ok(data);
     }
 
-    @GetMapping("/analysis")
-    public void statistics(HttpServletResponse response){
-        String[] firstRow = new String[]{"小区充值及消费表","制表时间"};
-        String[] secondRow = new String[]{"序号","小区名称","当期充值金额","单价","当期充值流量","当期消费流量","小区名称"};
-        //List<CorrPlot> corrs = corrPlotService.findAll();
+    //4
+    @GetMapping("/plotRechargeDownload")
+    public void plotRechargeDownload(HttpServletResponse response, @RequestParam String year,
+                           @RequestParam String month, String filename){
+        String[] firstRow = new String[]{"小区充值及消费表","制表时间:"+year+"-"+month+"-01"};
+        String[] secondRow = new String[]{"序号","小区名称","当期充值金额","单价","当期充值流量","当期消费流量"};
+        LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
+        List<StatisticPlotRecharge> plotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime);
+        List<String[]> values = new ArrayList<>();
+        for(StatisticPlotRecharge plotRecharge : plotRecharges) {
+            String[] info = new String[]{corrPlotService.findByPlotNum(plotRecharge.getPlotNum()),
+                    plotRecharge.getAmount()+"",plotRecharge.getPlotFactor()+"",
+                    plotRecharge.getRechargeVolume()+"",plotRecharge.getCurUsed()+""};
 
+            values.add(info);
+        }
         ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
-        excel.createExcel(firstRow, secondRow);
-        excel.exportExcel("小区充值及消费", response);
+        excel.createExcel(firstRow, secondRow, values);
+        excel.exportExcel(filename, response);
     }
 
-    @GetMapping("/userAnalysis")
-    public void userAnalysis(HttpServletResponse response){
-        String[] firstRow = new String[]{"用户消费明细月报表v1.0","制表时间"};
-        String[] secondRow = new String[]{"序号","登记号","上期流量余额","本期充值流量总额","当前流量余额","当前消费流量"};
+    //1 year=2019&month=2&plotNum=00&filename=用户消费明细
+    @GetMapping("/userConsumeDownload")
+    public void userConsumeDownload(HttpServletResponse response, @RequestParam String year,
+                             @RequestParam String month, @RequestParam String plotNum, String filename){
+        LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
+
+        List<StatisticConsume> listConsume = statisticConsumeService.getCurConsume(curTime, plotNum);
+
+
+        List<String[]> values = new ArrayList<>();
+        for(StatisticConsume consume: listConsume) {
+            String[] info = new String[]{consume.getRegisterId(),consume.getLastRemain()+"",
+                    consume.getCurRecharge()+"",consume.getCurRemain()+"",
+                    consume.getCurUsed()+"",corrPlotService.findByPlotNum(residentService.findPlotNumByRegisterid(consume.getRegisterId(),0))};
+
+            values.add(info);
+        }
+        String[] firstRow = new String[]{"用户消费明细月报表v1.0","制表时间"+year+"-"+month+"-01"};
+        String[] secondRow = new String[]{"序号","登记号","上期流量余额","本期充值流量总额","当期流量余额","当期消费流量","小区名称"};
         ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
-        excel.createExcel(firstRow, secondRow);
-        excel.exportExcel("用户消费明细", response);
+        excel.createExcel(firstRow, secondRow, values);
+        excel.exportExcel(filename, response);
+    }
+
+    //3 year=2019&month=3&plotNum=00&interval=123&filename=小区消费统计表-美联
+    @GetMapping("/plotConsumeDownload")
+    public void plotConsumeDownload(HttpServletResponse response, @RequestParam String year,
+                           @RequestParam String month, @RequestParam String plotNum,@RequestParam String interval,
+                           @RequestParam String filename){
+        LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
+        String[] intervalStrings = interval.split("-");
+        List<BigDecimal> intervalList = new ArrayList<>();
+        for(int i=0; i<intervalStrings.length;i++){
+            intervalList.add(new BigDecimal(intervalStrings[i]));
+        }
+
+        List<Resident> residents = residentService.findByPlotNum(plotNum);
+        Integer[] households = new Integer[intervalList.size()+1];
+        for(int j=0; j<households.length; j++) {
+            households[j]=0;
+        }
+        String[] proportion = new String[intervalList.size()+1];
+        for(Resident resident: residents) {
+            StatisticConsume statisticConsume = statisticConsumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
+            if(statisticConsume==null){
+                continue;
+            }
+            BigDecimal curUsed = statisticConsume.getCurUsed();
+            if(curUsed.compareTo(intervalList.get(0))<0) {
+                households[0]+=1;
+            }
+            if((curUsed.compareTo(intervalList.get(intervalList.size()-1))>=0)) {
+                households[intervalList.size()] += 1;
+            }
+            for(int i=1; i<intervalList.size(); i++) {
+                if(((curUsed.compareTo(intervalList.get(i-1))>=0))
+                        &&(curUsed.compareTo(intervalList.get(i))<0)) {
+                    households[i]+=1;
+                }
+            }
+        }
+        DecimalFormat nf = (DecimalFormat) NumberFormat.getCurrencyInstance();
+        nf.applyPattern("00%");
+        nf.setMaximumFractionDigits(2);
+        for (int i=0; i<households.length; i++) {
+            proportion[i] = nf.format((double)households[i]/residents.size());
+        }
+        List<String[]> values = new ArrayList<>();
+        int j = 0;
+        while(j<=intervalStrings.length) {
+            String intervalString = null;
+            if(j==0){
+                intervalString = "小于" + intervalStrings[j];
+            }
+            else if(j==intervalStrings.length){
+                intervalString = "大于等于"+ intervalStrings[j-1];
+            }
+            else{
+                intervalString = intervalStrings[j-1]+"-" +intervalStrings[j];
+            }
+            String[] info = new String[]{intervalString, households[j]+"", proportion[j]};
+            values.add(info);
+            j++;
+        }
+        ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
+        String[] firstRow = new String[]{"小区消费统计表","小区名称"};
+        String[] secondRow = new String[]{"序号","月消费流量(吨)","户数","占比","备注"};
+        excel.createExcel(firstRow,secondRow, values);
+        excel.exportExcel(filename, response);
+    }
+    //2
+    @GetMapping("/userRechargeDownload")
+    public void userRechargeDownload(HttpServletResponse response,@RequestParam String registerId,
+                                     @RequestParam String filename){
+        ExcelUserRecharge excel = new ExcelUserRecharge();
+        excel.createExcel();
+        excel.exportExcel(filename,response);
+    }
+    //
+    @GetMapping("/afterSaleDownload")
+    public void afterSaleDownload(HttpServletResponse response,@RequestParam String year,
+                                 @RequestParam String month,@RequestParam String servicerName,
+                                  @RequestParam String servicerId, @RequestParam String filename){
+        ExcelAfterSale excel = new ExcelAfterSale();
+        excel.setTime(year+"-"+month+"-01");
+        excel.setServicerId(servicerId);
+        excel.setServicerName(servicerName);
+        excel.createExcel();
+        excel.exportExcel(filename,response);
     }
 
 }

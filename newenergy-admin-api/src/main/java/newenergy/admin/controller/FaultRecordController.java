@@ -2,6 +2,7 @@ package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.background.service.DeviceRequireService;
+import newenergy.admin.excel.ExcelMaintain;
 import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.DeviceRequireConstant;
@@ -18,12 +19,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -849,5 +848,18 @@ public class FaultRecordController {
         deviceRequireService.updateCron();
     }
 
+    /**
+     * @Auther ke
+     * <p>
+     *     导出
+     * </p>
+     */
+    @GetMapping("/maintainDownload")
+    public void maintainDownload(HttpServletResponse response, @RequestParam String registerId,
+                                 @RequestParam String filename){
+        ExcelMaintain excel = new ExcelMaintain();
+        excel.createExcel();
+        excel.exportExcel(filename,response);
+    }
 
 }

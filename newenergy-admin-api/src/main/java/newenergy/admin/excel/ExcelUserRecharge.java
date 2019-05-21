@@ -3,10 +3,12 @@ package newenergy.admin.excel;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import javax.servlet.http.HttpServletResponse;
+
 public class ExcelUserRecharge {
     ExcelUtil excelUtil = null;
 
-    private void createExcel(){
+    public void createExcel(){
         HSSFWorkbook workbook = new HSSFWorkbook();
         excelUtil = new ExcelUtil(workbook);
         createHeader();
@@ -41,5 +43,7 @@ public class ExcelUserRecharge {
             excelUtil.createCell(sixthRow, i, secondHead[i]);
         }
     }
-
+    public void exportExcel(String fileName, HttpServletResponse response){
+        excelUtil.exportExcel(fileName, response);
+    }
 }
