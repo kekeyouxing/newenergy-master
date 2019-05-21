@@ -171,6 +171,7 @@ public class RechargeRecordController {
             resultModel.setRemainVolume(rechargeRecord.getRemainVolume());
             resultModel.setUpdateVolume(rechargeRecord.getUpdatedVolume());
             resultModel.setRefundState(refundRecordService.haveRefundRecord(rechargeRecord.getId()));
+            resultModel.setDelegate(rechargeRecord.getDelegate());
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
@@ -331,6 +332,7 @@ public class RechargeRecordController {
         private BigDecimal updateVolume;
         private BigDecimal rechargeVolume;
         private Integer refundState;
+        private Integer delegate;
 
         public Integer getId() {
             return id;
@@ -458,6 +460,14 @@ public class RechargeRecordController {
 
         public void setRefundState(Integer refundState) {
             this.refundState = refundState;
+        }
+
+        public Integer getDelegate() {
+            return delegate;
+        }
+
+        public void setDelegate(Integer delegate) {
+            this.delegate = delegate;
         }
     }
 
