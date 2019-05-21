@@ -231,8 +231,11 @@ public class WxOrderService {
     }
 
     @Transactional
-    public Object refund(String body){
-        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+    public Object refund(Map<String,Object> body){
+//        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+        String orderIdStr = (String)body.get("orderId");
+        if(orderIdStr == null) return ResponseUtil.badArgument();
+        Integer orderId = Integer.valueOf(orderIdStr);
         if (orderId==null){
             return ResponseUtil.badArgument();
         }

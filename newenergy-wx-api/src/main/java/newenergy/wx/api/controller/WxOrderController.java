@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * 微信充值
@@ -41,7 +42,8 @@ public class WxOrderController {
     }
 
     @PostMapping("refund")
-    public Object refund(@RequestBody String body){
+    public Object refund(@RequestBody Map<String,Object> body){
+
         return wxOrderService.refund(body);
     }
 
