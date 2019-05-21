@@ -61,7 +61,7 @@ public class Application implements CommandLineRunner {
         log.info("添加超级管理员>>>>>");
         addAdmin();
 
-        test();
+//        test();
 
         InetSocketAddress address = new InetSocketAddress(url,port);
         ChannelFuture future = nettyServer.run(address);

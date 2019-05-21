@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Created by HUST Corey on 2019-05-07.
@@ -41,11 +42,26 @@ public class MsgSolve {
         if(result.fault())
             faultService.addFault(result.deviceNum(),result.faultDtl());
 
-
         /**
-         * 返回新增用水量
+         * 返回新增用水量 和 退款水量
          */
-        solveResult.setExtraWater(waterService.getExtraWater(result.deviceNum()));
+        BigDecimal extraWater = waterService.getExtraWater(result.deviceNum());
+        BigDecimal refundWater = waterService.getRefundWater(result.deviceNum());
+        List<Integer> orders = waterService.getAllOrderIdByDeviceNum(result.deviceNum());
+        //剩余水量 小于等于 退款水量时拒绝退款
+        if(result.remainWater().compareTo(refundWater) <= 0){
+            for(Integer id : orders){
+                waterService.labelFailed(id);
+            }
+            solveResult.setExtraWater(extraWater);
+        }else{
+            for(Integer id : orders){
+                waterService.labelSuccess(id);
+            }
+            solveResult.setExtraWater(extraWater.add(refundWater.negate()));
+        }
         return solveResult;
     }
+
+
 }

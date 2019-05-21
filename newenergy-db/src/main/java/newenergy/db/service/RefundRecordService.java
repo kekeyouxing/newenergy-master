@@ -1,5 +1,6 @@
 package newenergy.db.service;
 
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.RefundRecord;
 import newenergy.db.repository.RefundRecordRepository;
 import newenergy.db.template.LogicOperation;
@@ -126,4 +127,16 @@ public class RefundRecordService extends LogicOperation<RefundRecord>{
         return specification;
     }
 
+    /**
+     * By Zeng Hui
+     */
+    public RefundRecord findByIdWithAlive(Integer id){
+        return repository.findFirstByIdAndSafeDelete(id, SafeConstant.SAFE_ALIVE);
+    }
+    /**
+     * By Zeng Hui
+     */
+    public List<RefundRecord> findByRegisterIdWithAlive(String registerId){
+        return repository.findAllByRegisterIdAndSafeDelete(registerId,SafeConstant.SAFE_ALIVE);
+    }
 }
