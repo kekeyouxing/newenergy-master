@@ -45,6 +45,9 @@ import static newenergy.wx.api.util.WxResponseCode.ORDER_REFUND_FAILED;
 public class WxOrderService {
     private final Log logger = LogFactory.getLog(WxOrderService.class);
 
+    private String wxPayNotify = "http://hgdr.top/wx/order/pay-notify";
+    private String wxRefundNotify = "http://hgdr.top/wx/order/refund-notify";
+
     private static Map<String,RechargeRecord> orderMap = new HashMap<>();
 
     @Autowired
@@ -140,6 +143,7 @@ public class WxOrderService {
             orderRequest.setTotalFee(fee);
             //设置充值设备的ip
             orderRequest.setSpbillCreateIp(IpUtil.getIpAddr(request));
+            orderRequest.setNotifyUrl(wxPayNotify);
             result = wxPayService.createOrder(orderRequest);
 
             rechargeRecordService.addRechargeRecord(order,null);
@@ -242,12 +246,14 @@ public class WxOrderService {
         RechargeRecord rechargeRecord = rechargeRecordService.findById(order.getRecordId());
         if (rechargeRecord == null || rechargeRecord.getState() == 1) return ResponseUtil.badArgument();
 
-        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
+//        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
         String outRefundNo = "refund_"+rechargeRecord.getOrderSn();
         wxPayRefundRequest.setOutRefundNo(outRefundNo);
         Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
         wxPayRefundRequest.setTotalFee(totalFee);
         wxPayRefundRequest.setRefundFee(refundFee);
+        wxPayRefundRequest.setTransactionId(rechargeRecord.getTransactionId());
+        wxPayRefundRequest.setNotifyUrl(wxRefundNotify);
 
         WxPayRefundResult wxPayRefundResult = null;
         try{
