@@ -200,8 +200,8 @@ public class WxOrderService {
         Integer totalFee = result.getTotalFee();
 
         logger.info("<payNotify> orderSn:"+orderSn);
-//        RechargeRecord order = rechargeRecordService.findBySn(orderSn);//改为orderMap
-        RechargeRecord order = orderMap.get(orderSn);
+        RechargeRecord order = rechargeRecordService.findBySn(orderSn);//改为orderMap
+//        RechargeRecord order = orderMap.get(orderSn);
 
         if (order == null){
             return WxPayNotifyResponse.fail("订单不存在 sn="+orderSn);
@@ -221,8 +221,8 @@ public class WxOrderService {
         order.setState(0);
         order.setDelegate(0);
         order.setReviewState(1);
-//        order = rechargeRecordService.updateRechargeRecord(order,null);//改为添加
-        order = rechargeRecordService.addRechargeRecord(order,null);
+        order = rechargeRecordService.updateRechargeRecord(order,null);//改为添加
+//        order = rechargeRecordService.addRechargeRecord(order,null);
         int recordId = order.getId();
         logger.info("<payNotify> recordId : " + recordId);
         //添加新增水量记录
