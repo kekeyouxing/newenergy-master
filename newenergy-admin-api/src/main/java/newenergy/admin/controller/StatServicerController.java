@@ -259,27 +259,19 @@ public class StatServicerController {
     public void afterSaleDownload(HttpServletResponse response, @RequestParam String year,
                                   @RequestParam String month, @RequestParam String servicerName,
                                   @RequestParam String servicerId, @RequestParam String filename){
-        ExcelAfterSale excel = new ExcelAfterSale();
+
         int monthNum = Integer.parseInt(month);
         int servicerIdNum = Integer.parseInt(servicerId);
         int yearNum = Integer.parseInt(year);
-        excel.setTime(year+"-"+(monthNum+1)+"-01");
-        excel.setServicerId(servicerId);
-        excel.setServicerName(servicerName);
-
-        Map<String,Object> ret = new HashMap<>();
         FaultRecordPredicate predicate = new FaultRecordPredicate();
         //维修人
-
         predicate.setServicerId(servicerIdNum);
         //时间
         if(year != null && month != null && check(yearNum,monthNum))
             predicate.setFinishTime(LocalDateTime.of(yearNum,monthNum,1,0,0));
         //处理完成的
         predicate.setState(FaultRecordConstant.STATE_FINISH);
-        Page<FaultRecord> allRes = faultRecordService.findByPredicate(predicate,
-                null,
-                Sort.by(Sort.Direction.DESC,"finishTime"));
+        Page<FaultRecord> allRes = faultRecordService.findByPredicate(predicate, null, Sort.by(Sort.Direction.DESC,"finishTime"));
         List<String[]> list = new ArrayList<>();
         allRes.forEach(record -> {
 
@@ -290,15 +282,34 @@ public class StatServicerController {
                 CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
                 addressDtl = corrAddress==null?null:corrAddress.getAddressDtl();
             }
+            LocalDateTime responseTime = record.getResponseTime();
+            String responseTimeStr = "";
+            if(response!=null){
+                responseTimeStr = responseTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            LocalDateTime finishTime = record.getResponseTime();
+            String finishTimeStr = "";
+            if(finishTime!=null){
+                finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            LocalDateTime faultTime = record.getResponseTime();
+            String faultTimeStr = "";
+            if(faultTime!=null){
+                faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
             String[] strings = new String[]{record.getRegisterId(), addressDtl, roomNum, record.getPhenomenon(),
-                    record.getFaultTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    record.getResponseTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    record.getFinishTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    faultTimeStr, responseTimeStr, finishTimeStr,
                     record.getSolution(), record.getResult()+""};
 
             list.add(strings);
         });
-        ret.put("list",list);
+
+        ExcelAfterSale excel = new ExcelAfterSale();
+
+        excel.setTime(year+"-"+(monthNum+1)+"-01");
+        excel.setServicerId(servicerId);
+        excel.setServicerName(servicerName);
         excel.createExcel(list);
         excel.exportExcel(filename,response);
     }
