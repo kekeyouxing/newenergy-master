@@ -273,7 +273,7 @@ public class WxOrderService {
             return ResponseUtil.fail(ORDER_REFUND_FAILED, "订单退款失败");
         }
         order.setOutRefundNo(outRefundNo);
-        order.setState(3);
+        order.setState(4);
         refundRecordService.updateRefundRecord(order,order.getSafeChangedUserid());
         return ResponseUtil.ok();
     }
@@ -295,7 +295,7 @@ public class WxOrderService {
             return WxPayNotifyResponse.fail(e.getMessage());
         }
         //添加退款成功逻辑
-
+        Integer refundState = 3;
         WxPayRefundNotifyResult.ReqInfo reqInfo = result.getReqInfo();
         //订单号
         String outTradeNo = reqInfo.getOutTradeNo();
@@ -307,12 +307,16 @@ public class WxOrderService {
         Integer refundFee = reqInfo.getSettlementRefundFee();
         //退款状态
         String refundStatus = reqInfo.getRefundStatus();
-        //退款成功时间
-        String successTime = reqInfo.getSuccessTime();
-        //退款账户
-        String refundRecvAccount = reqInfo.getRefundRecvAccout();
-        //退款资金来源
-        String refundRequestSource = reqInfo.getRefundRequestSource();
+        if (refundStatus == "CHANGE" || refundStatus== "REFUNDCLOSE")
+            refundState = 5;
+        else
+            refundState = 0;
+//        //退款成功时间
+//        String successTime = reqInfo.getSuccessTime();
+//        //退款账户
+//        String refundRecvAccount = reqInfo.getRefundRecvAccout();
+//        //退款资金来源
+//        String refundRequestSource = reqInfo.getRefundRequestSource();
 
         RechargeRecord order = rechargeRecordService.findBySn(outTradeNo);
         RefundRecord refundRecord = refundRecordService.findBySn(outRefundNo);
@@ -329,7 +333,7 @@ public class WxOrderService {
 
         refundRecord.setRefundTime(LocalDateTime.now());
 
-        refundRecord.setState(0);
+        refundRecord.setState(refundState);
         Integer userId = refundRecord.getSafeChangedUserid();
         refundRecordService.updateRefundRecord(refundRecord,userId);
 
