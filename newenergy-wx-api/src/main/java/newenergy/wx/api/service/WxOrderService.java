@@ -243,7 +243,8 @@ public class WxOrderService {
         if (order == null){
             return ResponseUtil.badArgument();
         }
-        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
+//        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
+        Integer refundFee = order.getRefundAmount();
         WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
 
         RechargeRecord rechargeRecord = rechargeRecordService.findById(order.getRecordId());
@@ -252,7 +253,9 @@ public class WxOrderService {
 //        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
         String outRefundNo = "refund_"+rechargeRecord.getOrderSn();
         wxPayRefundRequest.setOutRefundNo(outRefundNo);
-        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
+//        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
+        Integer totalFee = rechargeRecord.getAmount();
+
         wxPayRefundRequest.setTotalFee(totalFee);
         wxPayRefundRequest.setRefundFee(refundFee);
         wxPayRefundRequest.setTransactionId(rechargeRecord.getTransactionId());
