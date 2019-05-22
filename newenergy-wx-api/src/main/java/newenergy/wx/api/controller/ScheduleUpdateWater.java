@@ -150,7 +150,7 @@ public class ScheduleUpdateWater {
     /**
      * TODO [TEST]每十分钟生成一次
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
 //    @Scheduled(cron = "0 0 0 1 1/1 ?")
     public void updateConsume() {
         List<RemainWater> remainWaters = scheduleUpdateWater.remainWaterService.findAll();
@@ -183,7 +183,7 @@ public class ScheduleUpdateWater {
     /**
      * TODO [TEST]每十分钟生成一次
      */
-    @Scheduled(cron = "0 5/10 * * * ?")
+    @Scheduled(cron = "0 1/5 * * * ?")
     //@Scheduled(cron = "0 30 0 1 1/1 ?")
     public void updatePlotRecharge() {
         List<CorrPlot> plots = scheduleUpdateWater.corrPlotService.findAll();

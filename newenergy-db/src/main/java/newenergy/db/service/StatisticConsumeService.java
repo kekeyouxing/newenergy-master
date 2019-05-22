@@ -36,7 +36,7 @@ public class StatisticConsumeService {
      */
     public StatisticConsume findByRegisterIdAndUpdateTime(String registerId, LocalDate currentTime) {
         Specification<StatisticConsume> specification = querySelection(registerId, currentTime,null);
-        List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification, Sort.by(Sort.Direction.DESC,"updatedTime"));
+        List<StatisticConsume> consumes = statisticConsumeRepository.findAll(specification, Sort.by(Sort.Direction.DESC,"updateTime"));
         if(!consumes.isEmpty()) return consumes.get(0);
         return null;
     }

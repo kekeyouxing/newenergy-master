@@ -206,6 +206,7 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
         if(refundRecord == null) return;
         if(refundWater.signum() <= 0) return;
         refundWaterMap.put(orderid,refundWater);
+        logger.info("添加退款信息，orderid:"+orderid+";refundWater:"+refundWater);
         saveMaps();
     }
 

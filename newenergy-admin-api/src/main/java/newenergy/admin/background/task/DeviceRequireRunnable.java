@@ -28,11 +28,10 @@ public class DeviceRequireRunnable implements Runnable {
 
         List<String> plotNums = deviceRequireService.findAllPlotNums();
 
-        System.out.println("计算需水量：");
+        System.out.println("计算需水量...");
         for(String plotNum : plotNums){
             BigDecimal require = storageService.calRequireWaterByPlotNum(plotNum);
             deviceRequireService.setRequire(plotNum,require);
-            System.out.println(plotNum + " : " + require);
         }
         deviceRequireService.setUpdateTime(TimeUtil.getUTCNow());
 
