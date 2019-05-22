@@ -7,4 +7,5 @@ public class ApplyFactorConstant {
     public static final Integer UNCHECK = 0;
     public static final Integer ACCEPT = 1;
     public static final Integer REJECT = 2;
+    public static final Integer ACCEPT_EFFECT = 3;
 }

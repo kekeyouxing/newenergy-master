@@ -528,9 +528,17 @@ public class FaultRecordController {
         predicate.setRegisterId(registerId);
         predicate.setUsername(username);
         predicate.setState(type);
+        Sort sort = null;
+        if(type == 0){
+            sort = Sort.by(Sort.Direction.DESC,"faultTime");
+        }else if(type == 1){
+            sort = Sort.by(Sort.Direction.DESC,"responseTime");
+        }else if(type == 2){
+            sort = Sort.by(Sort.Direction.DESC,"finishTime");
+        }
         Page<FaultRecord> records = faultRecordService.findByPredicate(predicate,
                 PageRequest.of(page-1,limit),
-                Sort.by(Sort.Direction.DESC,"faultTime"));
+                sort);
         ret.put("total",records.getTotalElements());
         records.forEach(record->{
             Map<String,Object> tmp = new HashMap<>();
@@ -563,8 +571,9 @@ public class FaultRecordController {
                 state = 2; //维修中
             }
             tmp.put("state",state);
-            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
-
+            tmp.put("faultTime", TimeUtil.getString(record.getFaultTime()));
+            tmp.put("responseTime",TimeUtil.getString(record.getResponseTime()));
+            tmp.put("finishTime",TimeUtil.getString(record.getFinishTime()));
             list.add(tmp);
         });
         ret.put("records",list);

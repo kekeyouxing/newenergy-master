@@ -13,5 +13,5 @@ import java.util.List;
 public interface ApplyFactorRepository extends JpaRepository<ApplyFactor,Integer>, JpaSpecificationExecutor<ApplyFactor> {
     ApplyFactor findFirstById(Integer id);
 
-    List<ApplyFactor> findAllByState(Integer state);
+    List<ApplyFactor> findAllByStateOrderByCheckTime(Integer state);
 }

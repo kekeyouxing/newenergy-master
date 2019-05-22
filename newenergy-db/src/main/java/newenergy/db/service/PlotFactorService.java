@@ -13,6 +13,7 @@ import newenergy.db.repository.ApplyFactorRepository;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.SortUtil;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,8 @@ import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +63,12 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
     public Page<ApplyFactor> findAllUncheckApply(Pageable pageable, Sort sort){
         ApplyFactorPredicate predicate = new ApplyFactorPredicate();
         predicate.setState(ApplyFactorConstant.UNCHECK);
+        return findByPredicate(predicate,pageable,sort);
+    }
+
+    public Page<ApplyFactor> findAllByPlotNum(String plotNum, Pageable pageable, Sort sort){
+        ApplyFactorPredicate predicate = new ApplyFactorPredicate();
+        predicate.setPlots(Collections.singletonList(plotNum));
         return findByPredicate(predicate,pageable,sort);
     }
 
@@ -120,7 +129,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
 
 //    更新审核通过待生效的充值系数
     public void updateFactor(){
-        List<ApplyFactor> list = repository.findAllByState(1);
+        List<ApplyFactor> list = repository.findAllByStateOrderByCheckTime(1);
         for (ApplyFactor applyFactor :
                 list) {
             CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());

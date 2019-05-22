@@ -3,6 +3,7 @@ package newenergy.admin.controller;
 import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.TimeUtil;
+import newenergy.db.constant.ApplyFactorConstant;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.ManualRecord;
@@ -116,6 +117,16 @@ public class PlotFactorController {
             item.put("plotDtl",e.getPlotDtl());
             item.put("plotNum",e.getPlotNum());
             item.put("plotFactor",e.getPlotFactor());
+            Page<ApplyFactor> applyFactors = plotFactorService.findAllByPlotNum(e.getPlotNum(),null,Sort.by(Sort.Direction.DESC,"applyTime"));
+            ApplyFactor applyFactor = applyFactors.get().findFirst().orElse(null);
+            int remark = 0;
+            if(applyFactor != null){
+                if(applyFactor.getState().equals(ApplyFactorConstant.UNCHECK))
+                    remark = 1;
+                if(applyFactor.getState().equals(ApplyFactorConstant.ACCEPT))
+                    remark = 2;
+            }
+            item.put("remark",remark);
             list.add(item);
         });
         ret.put("list",list);
