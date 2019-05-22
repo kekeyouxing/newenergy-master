@@ -47,7 +47,7 @@ public class WxPayRefundNotifyResult extends BaseWxPayResult implements Serializ
                 String keyMd5String = DigestUtils.md5Hex(mchKey).toLowerCase();
                 logger.info("WxPayRefundParse:<keyMd5String>"+keyMd5String);
                 SecretKeySpec key = new SecretKeySpec(keyMd5String.getBytes(StandardCharsets.UTF_8), "AES");
-                logger.info("WxPayRefundParse:<key>"+key);
+                logger.info("WxPayRefundParse:<key>"+key.getEncoded().length);
                 Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding","BC");
                 logger.info("WxPayRefundParse:<cipher>"+cipher);
                 cipher.init(Cipher.DECRYPT_MODE,key);
