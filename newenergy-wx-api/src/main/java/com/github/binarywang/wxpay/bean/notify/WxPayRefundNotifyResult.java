@@ -12,6 +12,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.beans.ConstructorProperties;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import me.chanjar.weixin.common.util.json.WxGsonBuilder;
@@ -20,6 +21,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 @XStreamAlias("xml")
 public class WxPayRefundNotifyResult extends BaseWxPayResult implements Serializable {
@@ -41,13 +43,15 @@ public class WxPayRefundNotifyResult extends BaseWxPayResult implements Serializ
             String reqInfoString = result.getReqInfoString();
             logger.info("WxPayRefundParse:<reqInfoString>"+reqInfoString);
             try {
+                Security.addProvider(new BouncyCastleProvider());
                 String keyMd5String = DigestUtils.md5Hex(mchKey).toLowerCase();
                 logger.info("WxPayRefundParse:<keyMd5String>"+keyMd5String);
                 SecretKeySpec key = new SecretKeySpec(keyMd5String.getBytes(StandardCharsets.UTF_8), "AES");
                 logger.info("WxPayRefundParse:<key>"+key);
-                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding","BC");
                 logger.info("WxPayRefundParse:<cipher>"+cipher);
-                cipher.init(2, key);
+                cipher.init(Cipher.DECRYPT_MODE,key);
+//                cipher.init(2, key);
                 logger.info("WxPayRefundParse:<cipherInit>"+cipher);
                 result.setReqInfo(WxPayRefundNotifyResult.ReqInfo.fromXML(new String(cipher.doFinal(Base64.decodeBase64(reqInfoString)), StandardCharsets.UTF_8)));
                 logger.info("WxPayRefundParse:<finalResult>"+result);

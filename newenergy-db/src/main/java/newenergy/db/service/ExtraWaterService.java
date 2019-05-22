@@ -37,7 +37,8 @@ public class ExtraWaterService {
     }
 
     public List<ExtraWater> findAll(){
-        Sort sort = new Sort("addTime");
+        Sort sort = Sort.by(Sort.Direction.ASC,"addTime");
+//        Sort sort = new Sort("addTime");
         return extraWaterRepository.findAll(sort);
     }
 
