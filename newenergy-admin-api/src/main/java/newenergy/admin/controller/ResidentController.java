@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -301,7 +302,7 @@ public class ResidentController {
         }
     }
     @GetMapping("/residentListDownload")
-    public void residentListDownload(@RequestParam String address, @RequestParam String fileName){
+    public void residentListDownload(HttpServletResponse response, @RequestParam String address, @RequestParam String fileName){
         List<String> addressNums = new ArrayList<>();
         if(!StringUtils.isEmpty(address)){
             addressNums = corrAddressService.queryAddress(address);
@@ -335,6 +336,6 @@ public class ResidentController {
         String[] headers = new String[]{"登记号","用户姓名","装机地址","房间号","联系电话","微信号","房间面积M²","购机日期","安装机型","额定流量(T/h)","机器编码","装机序号","所属机房","装机日期","验收日期","备注"};
         ExcelCommon excel = new ExcelCommon();
         excel.createExcel(headers, list);
-
+        excel.exportExcel(fileName, response);
     }
 }
