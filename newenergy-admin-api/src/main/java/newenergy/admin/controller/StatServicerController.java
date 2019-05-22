@@ -284,7 +284,7 @@ public class StatServicerController {
             }
             LocalDateTime responseTime = record.getResponseTime();
             String responseTimeStr = "";
-            if(response!=null){
+            if(responseTime!=null){
                 responseTimeStr = responseTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             }
             LocalDateTime finishTime = record.getResponseTime();
@@ -306,8 +306,8 @@ public class StatServicerController {
         });
 
         ExcelAfterSale excel = new ExcelAfterSale();
-
-        excel.setTime(year+"-"+(monthNum+1)+"-01");
+        int monthPlus = monthNum+1;
+        excel.setTime(year+"-"+monthPlus+"-01");
         excel.setServicerId(servicerId);
         excel.setServicerName(servicerName);
         excel.createExcel(list);

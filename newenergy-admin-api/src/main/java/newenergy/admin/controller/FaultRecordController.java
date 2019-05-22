@@ -889,10 +889,18 @@ public class FaultRecordController {
             Integer serviceId = record.getServicerId();
             NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
             String servicerName = null;
+            LocalDateTime faultTime = record.getFaultTime();
+            LocalDateTime finishTime = record.getFinishTime();
+            String faultTimeStr = "";
+            String finishTimeStr = "";
+            if(faultTime!=null){
+                faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            if(finishTime!=null){
+                finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
             if(admin != null) servicerName = admin.getRealName();
-            String[] strings = new String[]{record.getFaultTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    record.getPhenomenon(),record.getSolution(),
-                    record.getFinishTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+            String[] strings = new String[]{faultTimeStr, record.getPhenomenon(),record.getSolution(), finishTimeStr,
                     servicerName, record.getResult()+""};
             list.add(strings);
         });
