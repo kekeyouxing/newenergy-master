@@ -13,7 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +39,32 @@ public class AdminController {
         Long total = pageAdmin.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
-        data.put("items", adminList);
+        data.put("items", roleSort(adminList));
 
         return ResponseUtil.ok(data);
+    }
+
+    private List<NewenergyAdmin> roleSort(List<NewenergyAdmin> adminList){
+        List<NewenergyAdmin> result = new ArrayList<>();
+        if(adminList == null || adminList.size() == 0){
+            return result;
+        }
+        Map<Integer, List<NewenergyAdmin>> maps = new HashMap<>();
+        for(NewenergyAdmin admin : adminList){
+            Integer roleId = admin.getRoleIds()[0];
+            List<NewenergyAdmin> list = maps.get(roleId);
+            if(list == null){
+                list = new ArrayList<NewenergyAdmin>();
+            }
+            list.add(admin);
+            maps.put(roleId,  list);
+        }
+        for (List<NewenergyAdmin> admins: maps.values()) {
+            for(NewenergyAdmin admin : admins){
+                result.add(admin);
+            }
+        }
+        return result;
     }
 
     //@RequiresPermissions("admin:admin:create")

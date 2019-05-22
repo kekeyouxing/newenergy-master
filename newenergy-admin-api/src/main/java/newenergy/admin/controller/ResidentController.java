@@ -12,8 +12,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -300,7 +302,7 @@ public class ResidentController {
         }
     }
     @GetMapping("/residentListDownload")
-    public void residentListDownload(@RequestParam String address, @RequestParam String fileName){
+    public void residentListDownload(HttpServletResponse response, @RequestParam String address, @RequestParam String fileName){
         List<String> addressNums = new ArrayList<>();
         if(!StringUtils.isEmpty(address)){
             addressNums = corrAddressService.queryAddress(address);
@@ -308,18 +310,32 @@ public class ResidentController {
         List<Resident> pageResident = residentService.querySelective(addressNums);
         List<String[]> list = new ArrayList<>();
         for(Resident resident: pageResident){
+            LocalDate buyTime = resident.getBuyTime();
+            LocalDate installTime = resident.getInstallTime();
+            LocalDate receiveTime =  resident.getReceiveTime();
+            String buyTimeStr = "";
+            String installTimeStr = "";
+            String receiveTimeStr ="";
+            if(buyTime!=null){
+                buyTimeStr = buyTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
+            if(installTime!=null){
+                installTimeStr = installTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
+            if(receiveTime!=null){
+                receiveTimeStr = receiveTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             String[] info = new String[]{resident.getRegisterId(), resident.getUserName(),
                     corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()), resident.getRoomNum(), resident.getPhone(),
-                    resident.getOpenid(), resident.getArea()+"", resident.getBuyTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    resident.getOpenid(), resident.getArea()+"", buyTimeStr,
                     corrTypeService.findByTypeNum(resident.getTypeNum()).getTypeDtl(), corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow()+"",
                     resident.getDeviceNum(), resident.getDeviceSeq(),corrPumpService.findByPlotNum(resident.getPumpNum()).get(0).getPumpDtl(),
-                    resident.getInstallTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                    resident.getReceiveTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))};
+                    installTimeStr, receiveTimeStr};
             list.add(info);
         }
         String[] headers = new String[]{"登记号","用户姓名","装机地址","房间号","联系电话","微信号","房间面积M²","购机日期","安装机型","额定流量(T/h)","机器编码","装机序号","所属机房","装机日期","验收日期","备注"};
         ExcelCommon excel = new ExcelCommon();
         excel.createExcel(headers, list);
-
+        excel.exportExcel(fileName, response);
     }
 }
