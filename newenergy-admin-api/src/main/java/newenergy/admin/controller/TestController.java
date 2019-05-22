@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -20,21 +22,14 @@ import java.util.Map;
  */
 @RestController
 public class TestController {
-    public static class Test{
-        private String data;
 
-        public String getData() {
-            return data;
-        }
+    RestTemplate restTemplate = new RestTemplate();
+    String refundUrl = "http://localhost/wx/order/refund";
 
-        public void setData(String data) {
-            this.data = data;
-        }
-    }
-    @RequestMapping(value="test",method = RequestMethod.POST)
-    public void test(@RequestBody Map<String,Object> request){
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        System.out.println(request.get("data"));
-        System.out.println(LocalDateTime.parse((String)request.get("dateTime"),df));
+    @RequestMapping(value="testrefund")
+    public Object test(){
+        Map<String,Object> request = new HashMap<>();
+        request.put("orderId",6);
+        return restTemplate.postForObject(refundUrl,request,Object.class);
     }
 }
