@@ -287,13 +287,13 @@ public class StatServicerController {
             if(responseTime!=null){
                 responseTimeStr = responseTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             }
-            LocalDateTime finishTime = record.getResponseTime();
+            LocalDateTime finishTime = record.getFinishTime();
             String finishTimeStr = "";
             if(finishTime!=null){
                 finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             }
 
-            LocalDateTime faultTime = record.getResponseTime();
+            LocalDateTime faultTime = record.getFaultTime();
             String faultTimeStr = "";
             if(faultTime!=null){
                 faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

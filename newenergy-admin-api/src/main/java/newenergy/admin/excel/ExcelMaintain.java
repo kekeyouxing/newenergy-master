@@ -59,13 +59,15 @@ public class ExcelMaintain {
         }
 
         HSSFRow forthRow = excelUtil.createRow(3);
-        excelUtil.createCell(forthRow,0, "保修时间");
-        excelUtil.createCell(forthRow,1, "报修现象");
-        excelUtil.createCell(forthRow,2, "处理过程");
+        excelUtil.createCell(forthRow,0, "报修时间");
+        excelUtil.createCell(forthRow,2, "报修现象");
+        excelUtil.createCell(forthRow,3, "处理过程");
         excelUtil.createCell(forthRow,7, "处理时间");
         excelUtil.createCell(forthRow,8, "售后人员");
         excelUtil.createCell(forthRow,9, "备注");
-        CellRangeAddress secondRegion=new CellRangeAddress(3, 3, 2, 6);
+        CellRangeAddress firstRegion=new CellRangeAddress(3, 3, 0, 1);
+        excelUtil.addMergedRegion(firstRegion);
+        CellRangeAddress secondRegion=new CellRangeAddress(3, 3, 3, 6);
         excelUtil.addMergedRegion(secondRegion);
     }
     public void exportExcel(String fileName, HttpServletResponse response){
