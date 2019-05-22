@@ -121,6 +121,10 @@ public class ScheduledTask {
         remainWaterList.forEach(remainWater -> {
             String registerId = remainWater.getRegisterId();
             Resident resident = faultRecordService.getResident(registerId);
+            if(resident == null) return;
+            CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+            String address = "";
+            if(corrAddress != null) address = corrAddress.getAddressDtl();
             log.info("剩余水量："+remainWater.getRemainVolume()+"; 阈值："+resident.getThreshold()+"; 登记号："+registerId);
             if(remainWater.getRemainVolume()==null || resident.getThreshold()==null) return;
             int compare = remainWater.getRemainVolume().compareTo(new BigDecimal(resident.getThreshold()));
@@ -128,8 +132,9 @@ public class ScheduledTask {
                 Map<String,Object> request = new HashMap<>();
                 request.put("touser",resident.getOpenid());
                 request.put("remainWater",remainWater.getRemainVolume());
-                request.put("updateTime",TimeUtil.getString(remainWater.getUpdateTime()));
                 request.put("registerId",registerId);
+                request.put("username",resident.getUserName());
+                request.put("address",address);
                 restTemplate.postForObject(sendMsgPrefix+port+thresholdSuffix,request,MsgRet.class);
             }
         });

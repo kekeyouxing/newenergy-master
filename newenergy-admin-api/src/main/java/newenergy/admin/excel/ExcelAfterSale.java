@@ -5,6 +5,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 public class ExcelAfterSale {
     ExcelUtil excelUtil = null;
@@ -12,11 +13,26 @@ public class ExcelAfterSale {
     private String servicerId;
     private String servicerName;
 
-    public void createExcel(){
+    public void createExcel(List<String[]> values){
         HSSFWorkbook workbook = new HSSFWorkbook();
         excelUtil = new ExcelUtil(workbook);
         createHeader();
+        createValues(values);
     }
+
+    private void createValues(List<String[]> values) {
+        if(values != null){
+            for(int i = 0; i < values.size(); i++){
+                HSSFRow row = excelUtil.createRow(i+2);
+                excelUtil.createCell(row,0,(i+1)+"");
+                String[] cols = values.get(i);
+                for(int j = 0; j<cols.length;j++){
+                    excelUtil.createCell(row,j+1,cols[j]);
+                }
+            }
+        }
+    }
+
     public void createHeader(){
         HSSFRow firstRow = excelUtil.createRow(0);
         excelUtil.createCell(firstRow, 0, "工号: "+servicerId);

@@ -275,9 +275,10 @@ public class DataStatisticsController {
     @GetMapping("/plotRechargeDownload")
     public void plotRechargeDownload(HttpServletResponse response, @RequestParam String year,
                            @RequestParam String month, String filename){
-        String[] firstRow = new String[]{"小区充值及消费表","制表时间:"+year+"-"+month+"-01"};
+        int monthNum = Integer.parseInt(month);
+        String[] firstRow = new String[]{"小区充值及消费表","制表时间:"+year+"-"+(monthNum+1)+"-01"};
         String[] secondRow = new String[]{"序号","小区名称","当期充值金额","单价","当期充值流量","当期消费流量"};
-        LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
+        LocalDate curTime = LocalDate.of(Integer.parseInt(year), monthNum, 1).plusMonths(1);
         List<StatisticPlotRecharge> plotRecharges = statisticPlotRechargeService.curPlotRecharge(curTime);
         List<String[]> values = new ArrayList<>();
         for(StatisticPlotRecharge plotRecharge : plotRecharges) {
@@ -296,7 +297,8 @@ public class DataStatisticsController {
     @GetMapping("/userConsumeDownload")
     public void userConsumeDownload(HttpServletResponse response, @RequestParam String year,
                              @RequestParam String month, @RequestParam String plotNum, String filename){
-        LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
+        int monthNum = Integer.parseInt(month);
+        LocalDate curTime = LocalDate.of(Integer.parseInt(year), monthNum, 1).plusMonths(1);
 
         List<StatisticConsume> listConsume = statisticConsumeService.getCurConsume(curTime, plotNum);
 
@@ -309,7 +311,7 @@ public class DataStatisticsController {
 
             values.add(info);
         }
-        String[] firstRow = new String[]{"用户消费明细月报表v1.0","制表时间"+year+"-"+month+"-01"};
+        String[] firstRow = new String[]{"用户消费明细月报表v1.0","制表时间"+year+"-"+(monthNum+1)+"-01"};
         String[] secondRow = new String[]{"序号","登记号","上期流量余额","本期充值流量总额","当期流量余额","当期消费流量","小区名称"};
         ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
         excel.createExcel(firstRow, secondRow, values);
@@ -386,21 +388,27 @@ public class DataStatisticsController {
     @GetMapping("/userRechargeDownload")
     public void userRechargeDownload(HttpServletResponse response,@RequestParam String registerId,
                                      @RequestParam String filename){
+        Resident resident = residentService.fingByRegisterId(registerId);
+        List<RechargeRecord> rechargeRecords = rechargeRecordService.findByRegisterId(registerId);
+
         ExcelUserRecharge excel = new ExcelUserRecharge();
-        excel.createExcel();
+        String[] firstLineValue = new String[]{resident.getRegisterId(),resident.getUserName(),resident.getPhone(),
+                corrTypeService.findByTypeNum(resident.getTypeNum()).getTypeDtl(),
+                corrTypeService.findByTypeNum(resident.getTypeNum()).getRatedFlow()+"",
+                corrPlotService.findByPlotNum(resident.getPlotNum())};
+        String[] secondLineValue = new String[]{resident.getDeviceNum(),
+                corrAddressService.findByPlotNum(resident.getAddressNum()).get(0).getAddressDtl(),
+                resident.getRoomNum(),corrPlotService.findPlotFacByPlotNum(resident.getPlotNum())+""};
+        List<String[]> values = new ArrayList<>();
+        for(RechargeRecord rechargeRecord: rechargeRecords){
+            String[] strings = new String[]{rechargeRecord.getRechargeTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    rechargeRecord.getAmount()+"",rechargeRecord.getRechargeVolume()+"",
+                    rechargeRecord.getRemainVolume()+"", rechargeRecord.getUpdatedVolume()+""};
+            values.add(strings);
+        }
+        excel.createExcel(firstLineValue, secondLineValue,values);
         excel.exportExcel(filename,response);
     }
-    //
-    @GetMapping("/afterSaleDownload")
-    public void afterSaleDownload(HttpServletResponse response,@RequestParam String year,
-                                 @RequestParam String month,@RequestParam String servicerName,
-                                  @RequestParam String servicerId, @RequestParam String filename){
-        ExcelAfterSale excel = new ExcelAfterSale();
-        excel.setTime(year+"-"+month+"-01");
-        excel.setServicerId(servicerId);
-        excel.setServicerName(servicerName);
-        excel.createExcel();
-        excel.exportExcel(filename,response);
-    }
+
 
 }

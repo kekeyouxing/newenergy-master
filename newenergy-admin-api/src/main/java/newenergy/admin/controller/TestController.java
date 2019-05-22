@@ -1,15 +1,14 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.DeviceRequire;
 import newenergy.admin.background.service.DeviceRequireService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,11 +24,13 @@ public class TestController {
 
     RestTemplate restTemplate = new RestTemplate();
     String refundUrl = "http://localhost/wx/order/refund";
+    @Autowired
+    StorageService storageService;
 
-    @RequestMapping(value="testrefund")
-    public Object test(){
-        Map<String,Object> request = new HashMap<>();
-        request.put("orderId",6);
-        return restTemplate.postForObject(refundUrl,request,Object.class);
+    @RequestMapping(value="testrefund/{id}/{volume}")
+    public void test(@PathVariable(value = "id") Integer id,
+                       @PathVariable(value = "volume")BigDecimal volume){
+        System.out.println(id+","+volume);
+        storageService.addRefundWater(id,volume);
     }
 }
