@@ -857,8 +857,39 @@ public class FaultRecordController {
     @GetMapping("/maintainDownload")
     public void maintainDownload(HttpServletResponse response, @RequestParam String registerId,
                                  @RequestParam String filename){
+    Resident resident = faultRecordService.getResident(registerId);
+        CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+        CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
+        LocalDate receiveTime = resident.getReceiveTime();
+        LocalDate guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty);
+        Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime.atTime(0,0))?1:0;
+        String addressDtl = "";
+        if(corrAddress != null)
+            addressDtl = corrAddress.getAddressDtl();
+        String[] firstLineValue = new String[]{registerId, resident.getUserName(), addressDtl,
+                resident.getRoomNum(),resident.getPhone(),corrType.getTypeDtl(),
+                String.format("%d-%02d-%d",receiveTime.getYear(),receiveTime.getMonthValue(),receiveTime.getDayOfMonth()),
+                String.format("%d-%02d-%d",guaranteeTime.getYear(),guaranteeTime.getMonthValue(),guaranteeTime.getDayOfMonth()),
+                isWarranty+"",corrAddress.getAddressPlot()};
+
+        List<String[]> list = new ArrayList<>();
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        predicate.setRegisterId(registerId);
+        Page<FaultRecord> recordPage = faultRecordService.findByPredicate(predicate,null,Sort.by(Sort.Direction.DESC,"faultTime"));
+        recordPage.get().forEach(record->{
+            Integer serviceId = record.getServicerId();
+            NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
+            String servicerName = null;
+            if(admin != null) servicerName = admin.getRealName();
+            String[] strings = new String[]{record.getFaultTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    record.getPhenomenon(),record.getSolution(),
+                    record.getFinishTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    servicerName, record.getResult()+""};
+            list.add(strings);
+        });
+
         ExcelMaintain excel = new ExcelMaintain();
-        excel.createExcel();
+        excel.createExcel(firstLineValue, list);
         excel.exportExcel(filename,response);
     }
 
