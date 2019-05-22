@@ -26,8 +26,8 @@ public class ExcelUserRecharge {
         excelUtil.createCell(fifthRow,1, secondLineValue[1]);
         CellRangeAddress secondRegion=new CellRangeAddress(4, 4, 1, 3);
         excelUtil.addMergedRegion(secondRegion);
-        excelUtil.createCell(fifthRow,4, "房间号");
-        excelUtil.createCell(fifthRow,5, "单位(元/吨)");
+        excelUtil.createCell(fifthRow,4, secondLineValue[2]);
+        excelUtil.createCell(fifthRow,5, secondLineValue[3]);
 
         for(int i = 0; i<values.size() ;i++){
             HSSFRow row = excelUtil.createRow(i+6);
@@ -64,7 +64,7 @@ public class ExcelUserRecharge {
         String[] sixthHead= new String[]{"充值时间","充值金额","充值流量","剩余流量","可用流量","备注"};
         HSSFRow sixthRow = excelUtil.createRow(5);
         for(int i=0;i<sixthHead.length;i++){
-            excelUtil.createCell(sixthRow, i, secondHead[i]);
+            excelUtil.createCell(sixthRow, i, sixthHead[i]);
         }
     }
     public void exportExcel(String fileName, HttpServletResponse response){
