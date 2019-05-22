@@ -184,7 +184,7 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
             if(success.equals( refundWaterMap.get(id) )){
                 Map<String,Object> request = new HashMap<>();
                 request.put("orderId",id);
-                restTemplate.postForObject(refundUrl,request,Object.class);
+//                restTemplate.postForObject(refundUrl,request,Object.class);
             }else if(failed.equals( refundWaterMap.get(id) )){  //退款失败
                 RefundRecord refundRecord = refundRecordService.findByIdWithAlive(id);
                 if(refundRecord != null){

@@ -195,7 +195,7 @@ public class RefundRecordController {
 //                        refundRecord.setState(2);
 //                        refundRecord.setRejectReason("微信退款失败");
 //                    }
-                    storageService.setRefundWater(refundRecord.getId(),refundRecord.getRefundVolume());
+                    storageService.addRefundWater(refundRecord.getId(),refundRecord.getRefundVolume());
 
                 }else if (rechargeRecord.getDelegate()==1){
 //                    若为代充，则直接将充值订单作废
