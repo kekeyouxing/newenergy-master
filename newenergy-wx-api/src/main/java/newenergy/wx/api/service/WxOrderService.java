@@ -230,9 +230,16 @@ public class WxOrderService {
         return WxPayNotifyResponse.success("处理成功");
     }
 
+    /**
+     * 处理退款申请
+     * @author yangq
+     * @param body {"orderId":"6"}
+     * @return Map<String,object>
+     */
     @Transactional
     public Object refund(Map<String,Object> body){
 //        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+        //退款订单ID
         String orderIdStr = (String)body.get("orderId");
         if(orderIdStr == null) return ResponseUtil.badArgument();
         Integer orderId = Integer.valueOf(orderIdStr);
@@ -244,6 +251,7 @@ public class WxOrderService {
             return ResponseUtil.badArgument();
         }
 //        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
+        //退款金额
         Integer refundFee = order.getRefundAmount();
         WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
 
@@ -278,6 +286,11 @@ public class WxOrderService {
         return ResponseUtil.ok();
     }
 
+    /**
+     * 退款成功的回调
+     * @param request
+     * @return
+     */
     @Transactional
     public Object refundNotify(HttpServletRequest request){
         String xmlResult = null;
