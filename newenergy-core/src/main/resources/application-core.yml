@@ -1,17 +1,19 @@
 quwen:
   wx:
-    app-id: wx0ecc55fde07a32af
-    app-secret: 204968f0b20dd9d7551eea63b797a459
-    mch-id: 111111
-    mch-key: xxxxxx
-    notify-url: http://2wrf4s.natappfree.cc/wx/order/pay-notify
+    app-id: wxaad7106eddf88d51
+    app-secret: 797854e9c38aafdcf08d9d223b22adfd
+    mch-id: 1533088981
+    mch-key: UxDXGDk7fd5QUtBR4qvVrWge1C8EMeP2
+    key-path: apiclient_cert.p12
+#    notify-url: http://hgdr.top/wx/order/pay-notify
 corey:
-  ## by Zeng Hui，测试号的appid和appsecret和微信号
   wx:
-    app-id: wx0ecc55fde07a32af
-    app-secret: 204968f0b20dd9d7551eea63b797a459
-    username: gh_5aebddaa55cc
-  ##临时域名
-  domain: http://192.168.199.105:8080
-  domain2: http://4yy74u.natappfree.cc/
+    #测试号appid
+    app-id: wxaad7106eddf88d51
+    #测试号appsecret
+    app-secret: 797854e9c38aafdcf08d9d223b22adfd
+  ##微信公众号前端地址（若为内网地址，手机需连接校园网访问），8080为微信公众号前端占用的端口。最后要加 /
+  domain: http://hgdr.top/
+  ##后台项目外网地址。最后要加 /
+  domain2: http://hgdr.top/
 
