@@ -1,19 +1,18 @@
 quwen:
   wx:
-    app-id: wxaad7106eddf88d51
-    app-secret: 797854e9c38aafdcf08d9d223b22adfd
-    mch-id: 1533088981
-    mch-key: UxDXGDk7fd5QUtBR4qvVrWge1C8EMeP2
-    key-path: apiclient_cert.p12
+    app-id: 
+    app-secret: 
+    mch-id: 
+    mch-key: 
+    key-path: 
 #    notify-url: http://hgdr.top/wx/order/pay-notify
 corey:
   wx:
     #测试号appid
-    app-id: wxaad7106eddf88d51
-    #测试号appsecret
-    app-secret: 797854e9c38aafdcf08d9d223b22adfd
+    app-id: 
+    app-secret: 
   ##微信公众号前端地址（若为内网地址，手机需连接校园网访问），8080为微信公众号前端占用的端口。最后要加 /
-  domain: http://hgdr.top/
+  domain: 
   ##后台项目外网地址。最后要加 /
-  domain2: http://hgdr.top/
+  domain2: 
 
