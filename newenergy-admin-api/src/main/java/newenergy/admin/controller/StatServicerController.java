@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -290,17 +291,11 @@ public class StatServicerController {
                 addressDtl = corrAddress==null?null:corrAddress.getAddressDtl();
             }
             String[] strings = new String[]{record.getRegisterId(), addressDtl, roomNum, record.getPhenomenon(),
-                    TimeUtil.getSeconds(record.getFaultTime())+"", TimeUtil.getSeconds(record.getResponseTime())+"",
-                    TimeUtil.getSeconds(record.getFinishTime())+"", record.getSolution(), record.getResult()+""};
-//            tmp.put("roomNum",roomNum);
-//            tmp.put("addressDtl",addressDtl);
-//            tmp.put("registerId",record.getRegisterId());
-//            tmp.put("phenomenon",record.getPhenomenon());
-//            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
-//            tmp.put("responseTime",TimeUtil.getSeconds(record.getResponseTime()));
-//            tmp.put("finishTime",TimeUtil.getSeconds(record.getFinishTime()));
-//            tmp.put("solution",record.getSolution());
-//            tmp.put("state",record.getResult());
+                    record.getFaultTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    record.getResponseTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    record.getFinishTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    record.getSolution(), record.getResult()+""};
+
             list.add(strings);
         });
         ret.put("list",list);

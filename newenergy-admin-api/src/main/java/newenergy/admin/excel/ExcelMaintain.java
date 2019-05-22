@@ -5,17 +5,43 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 public class ExcelMaintain {
 
 
     ExcelUtil excelUtil = null;
-    public void createExcel(){
+    public void createExcel(String[]  firstLineValue, List<String[]> values){
 
         HSSFWorkbook workbook = new HSSFWorkbook();
         excelUtil = new ExcelUtil(workbook);
 
         createHeader();
+
+        createValue(firstLineValue, values);
+    }
+
+    private void createValue(String[] firstLineValue, List<String[]> values) {
+        HSSFRow thirdRow = excelUtil.createRow(2);
+        for(int i=0;i<firstLineValue.length;i++){
+            excelUtil.createCell(thirdRow, i, firstLineValue[i]);
+        }
+
+        for(int i=0;i<values.size();i++){
+            HSSFRow row = excelUtil.createRow(i+4);
+            String[]  strings= values.get(i);
+            excelUtil.createCell(row,0,strings[0]);
+            excelUtil.createCell(row,2,strings[1]);
+            excelUtil.createCell(row,3,strings[2]);
+            excelUtil.createCell(row,7,strings[3]);
+            excelUtil.createCell(row,8,strings[4]);
+            excelUtil.createCell(row,9,strings[5]);
+            CellRangeAddress firstRegion=new CellRangeAddress(i+4, i+4, 0, 1);
+            excelUtil.addMergedRegion(firstRegion);
+
+            CellRangeAddress secondRegion=new CellRangeAddress(i+4, i+4, 3, 6);
+            excelUtil.addMergedRegion(secondRegion);
+        }
     }
 
     private void createHeader() {
