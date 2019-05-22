@@ -18,27 +18,39 @@ import me.chanjar.weixin.common.util.json.WxGsonBuilder;
 import me.chanjar.weixin.common.util.xml.XStreamInitializer;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 @XStreamAlias("xml")
 public class WxPayRefundNotifyResult extends BaseWxPayResult implements Serializable {
+
+    private static Log logger = LogFactory.getLog(WxPayRefundNotifyResult.class);
+
     private static final long serialVersionUID = 4651725860079259186L;
     @XStreamAlias("req_info")
     private String reqInfoString;
     private WxPayRefundNotifyResult.ReqInfo reqInfo;
 
     public static WxPayRefundNotifyResult fromXML(String xmlString, String mchKey) throws WxPayException {
+        logger.info("WxPayRefundParse:<xmlString>"+xmlString);
         WxPayRefundNotifyResult result = (WxPayRefundNotifyResult)BaseWxPayResult.fromXML(xmlString, WxPayRefundNotifyResult.class);
+        logger.info("WxPayRefundParse:<result>"+result);
         if ("FAIL".equals(result.getReturnCode())) {
             return result;
         } else {
             String reqInfoString = result.getReqInfoString();
-
+            logger.info("WxPayRefundParse:<reqInfoString>"+reqInfoString);
             try {
                 String keyMd5String = DigestUtils.md5Hex(mchKey).toLowerCase();
+                logger.info("WxPayRefundParse:<keyMd5String>"+keyMd5String);
                 SecretKeySpec key = new SecretKeySpec(keyMd5String.getBytes(StandardCharsets.UTF_8), "AES");
+                logger.info("WxPayRefundParse:<key>"+key);
                 Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                logger.info("WxPayRefundParse:<cipher>"+cipher);
                 cipher.init(2, key);
+                logger.info("WxPayRefundParse:<cipherInit>"+cipher);
                 result.setReqInfo(WxPayRefundNotifyResult.ReqInfo.fromXML(new String(cipher.doFinal(Base64.decodeBase64(reqInfoString)), StandardCharsets.UTF_8)));
+                logger.info("WxPayRefundParse:<finalResult>"+result);
                 return result;
             } catch (Exception var7) {
                 throw new WxPayException("解密退款通知加密信息时出错", var7);
