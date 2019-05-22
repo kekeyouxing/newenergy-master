@@ -42,7 +42,12 @@ public class ResidentService extends LogicOperation<Resident> {
 
         return residentRepository.findAll(specification, pageable);
     }
+    public List<Resident> querySelective(List<String> addressNums) {
 
+        Specification specification = getListSpecification(null, addressNums);
+
+        return residentRepository.findAll(specification);
+    }
     /**查找同一地址同一房间的装机纪录
      * @Param  address_num  地址编号
      * @Param  room_num    房间号

@@ -1,6 +1,7 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.excel.ExcelAfterSale;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.CorrAddress;
@@ -16,11 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -252,5 +251,60 @@ public class StatServicerController {
         });
         ret.put("list",list);
         return ret;
+    }
+
+    //
+    @GetMapping("/afterSaleDownload")
+    public void afterSaleDownload(HttpServletResponse response, @RequestParam String year,
+                                  @RequestParam String month, @RequestParam String servicerName,
+                                  @RequestParam String servicerId, @RequestParam String filename){
+        ExcelAfterSale excel = new ExcelAfterSale();
+        int monthNum = Integer.parseInt(month);
+        int servicerIdNum = Integer.parseInt(servicerId);
+        int yearNum = Integer.parseInt(year);
+        excel.setTime(year+"-"+(monthNum+1)+"-01");
+        excel.setServicerId(servicerId);
+        excel.setServicerName(servicerName);
+
+        Map<String,Object> ret = new HashMap<>();
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        //维修人
+
+        predicate.setServicerId(servicerIdNum);
+        //时间
+        if(year != null && month != null && check(yearNum,monthNum))
+            predicate.setFinishTime(LocalDateTime.of(yearNum,monthNum,1,0,0));
+        //处理完成的
+        predicate.setState(FaultRecordConstant.STATE_FINISH);
+        Page<FaultRecord> allRes = faultRecordService.findByPredicate(predicate,
+                null,
+                Sort.by(Sort.Direction.DESC,"finishTime"));
+        List<String[]> list = new ArrayList<>();
+        allRes.forEach(record -> {
+
+            Resident resident = faultRecordService.getResident(record.getRegisterId());
+            String roomNum = null, addressDtl = null;
+            if(resident!=null){
+                roomNum = resident.getRoomNum();
+                CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+                addressDtl = corrAddress==null?null:corrAddress.getAddressDtl();
+            }
+            String[] strings = new String[]{record.getRegisterId(), addressDtl, roomNum, record.getPhenomenon(),
+                    TimeUtil.getSeconds(record.getFaultTime())+"", TimeUtil.getSeconds(record.getResponseTime())+"",
+                    TimeUtil.getSeconds(record.getFinishTime())+"", record.getSolution(), record.getResult()+""};
+//            tmp.put("roomNum",roomNum);
+//            tmp.put("addressDtl",addressDtl);
+//            tmp.put("registerId",record.getRegisterId());
+//            tmp.put("phenomenon",record.getPhenomenon());
+//            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
+//            tmp.put("responseTime",TimeUtil.getSeconds(record.getResponseTime()));
+//            tmp.put("finishTime",TimeUtil.getSeconds(record.getFinishTime()));
+//            tmp.put("solution",record.getSolution());
+//            tmp.put("state",record.getResult());
+            list.add(strings);
+        });
+        ret.put("list",list);
+        excel.createExcel(list);
+        excel.exportExcel(filename,response);
     }
 }
