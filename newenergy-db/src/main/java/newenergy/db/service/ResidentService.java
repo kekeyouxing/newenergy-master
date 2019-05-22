@@ -248,6 +248,11 @@ public class ResidentService extends LogicOperation<Resident> {
         };
     }
 
+    public Resident findByDeviceNumWithAlive(String deviceNum){
+        return residentRepository.findFirstByDeviceNumAndSafeDelete(deviceNum,SafeConstant.SAFE_ALIVE);
+    }
+
+
 
 
 }

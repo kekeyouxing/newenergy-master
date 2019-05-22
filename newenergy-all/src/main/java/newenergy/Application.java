@@ -75,13 +75,60 @@ public class Application implements CommandLineRunner {
 
     }
     private void test(){
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(0)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1.5)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(1.67)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(12.67)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(42.67)) );
-        System.out.println( NumberUtil.transformNum10to36(new BigDecimal(42)) );
+        String s = NumberUtil.transformNum10to36(new BigDecimal(0));
+        System.out.println(s);
+        System.out.println(NumberUtil.transformNum36to10(s));
+        BigDecimal num = null;
+        String s1 = null, s2 = null;
+
+        num = new BigDecimal(1);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
+        num = new BigDecimal(1.5);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
+        num = new BigDecimal(1.67);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
+        num = new BigDecimal(12.67);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
+        num = new BigDecimal(42.67);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
+        num = new BigDecimal(42);
+        s1 = NumberUtil.transformNum10to36(num);
+        s2 = NumberUtil.transformNum10to36(num.negate());
+        System.out.println(s1);
+        System.out.println(NumberUtil.transformNum36to10(s1));
+        System.out.println(s2);
+        System.out.println(NumberUtil.transformNum36to10(s2));
+
     }
     private void addRoles(){
         NewenergyRole role;

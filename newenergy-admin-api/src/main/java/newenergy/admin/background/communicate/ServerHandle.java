@@ -8,8 +8,12 @@ import newenergy.admin.background.communicate.executor.MsgParsing;
 import newenergy.admin.background.communicate.executor.MsgSolve;
 import newenergy.admin.background.communicate.executor.ParsingResult;
 import newenergy.admin.background.communicate.executor.SolveResult;
+import newenergy.admin.background.service.StorageService;
+import newenergy.admin.background.service.WaterService;
 import newenergy.core.util.SpringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * Created by HUST Corey on 2019-05-07.
@@ -17,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     MsgParsing msgParsing;
     MsgSolve msgSolve;
+    StorageService storageService;
     ServerHandle(){
         msgParsing = SpringUtil.getBean(MsgParsing.class);
         msgSolve = SpringUtil.getBean(MsgSolve.class);
+        storageService = SpringUtil.getBean(StorageService.class);
     }
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object o) throws Exception {
@@ -29,6 +35,8 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
         SolveResult solveResult = msgSolve.solve(parsingResult);
         if(solveResult != null)
             ctx.channel().writeAndFlush("server send message " + solveResult.replyMsg());
+        storageService.refundPostSolve(parsingResult.deviceNum());
+
 //        ctx.close();
     }
 

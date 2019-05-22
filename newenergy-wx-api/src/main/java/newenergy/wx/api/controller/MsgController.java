@@ -58,9 +58,9 @@ public class MsgController {
      */
     private final String faultMsgId = "wNKMlHvDzUs48ldxtOwRaL8ljn0cfGMlb8hb_CJ88iY";
     /**
-     * 流量预警消息id TODO 待修改成正式环境
+     * 流量预警消息id
      */
-    private final String warnMsgId = "e1dLYCj_s17-wEbFvNm3lyPLEN8lQRcf5h38XmXftWQ";
+    private final String warnMsgId = "oia2Tyw1F922oXVx35U48M-YMstPm57o5_wmiDkgeV8";
     /**
      * 故障超时上报消息id
      */
@@ -127,31 +127,41 @@ public class MsgController {
     @RequestMapping(value = "threshold/send", method = RequestMethod.POST)
     public MsgRet thresholdMsg(@RequestBody Map<String,Object> body) throws Exception{
         if(!RequestUtil.checkMap(body,
-                new String[]{"touser","remainWater","updateTime","registerId"})) return null;
+                new String[]{"touser","remainWater","username","registerId","address"})) return null;
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",warnMsgId);
         Map<String,Object> subBody = new HashMap<>();
-        Map<String,Object> remainWater = new HashMap<>();
-        remainWater.put("color","#173177");
-        remainWater.put("value",body.get("remainWater"));
-        Map<String,Object> updateTime = new HashMap<>();
-        updateTime.put("color","#173177");
-        updateTime.put("value",body.get("updateTime"));
+
+        Map<String,Object> username = new HashMap<>();
+        username.put("color","#173177");
+        username.put("value",body.get("username"));
+
+        Map<String,Object> address = new HashMap<>();
+        address.put("color","#173177");
+        address.put("value",body.get("address"));
+
         Map<String,Object> registerId = new HashMap<>();
         registerId.put("color","#173177");
         registerId.put("value",body.get("registerId"));
-        subBody.put("keyword1",remainWater);
-        subBody.put("keyword2",updateTime);
+
+        Map<String,Object> remainWater = new HashMap<>();
+        remainWater.put("color","#173177");
+        remainWater.put("value",body.get("remainWater")+"吨");
+
+        subBody.put("keyword1",username);
+        subBody.put("keyword2",address);
         subBody.put("keyword3",registerId);
+        subBody.put("keyword4",remainWater);
+
 
         Map<String,Object> first = new HashMap<>();
 
-        first.put("value","您的剩余水量不足");
+        first.put("value","您的剩余水量低于设置的阈值");
         first.put("color","#173177");
         Map<String,Object> remark = new HashMap<>();
 
-        remark.put("value","请尽快充值以免影响正常使用");
+        remark.put("value","为了不影响您的正常生活用水，请尽快充值。");
         remark.put("color","#173177");
         subBody.put("first",first);
         subBody.put("remark",remark);

@@ -1,5 +1,6 @@
 package newenergy.admin.background.service;
 
+import newenergy.admin.background.communicate.constant.RefundState;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.RemainWater;
 import newenergy.db.domain.Resident;
@@ -54,6 +55,28 @@ public class WaterService {
             result = result.add(storageService.getAndDropExtraWater(deviceNum));
         }
         return result;
+    }
+
+    /**
+     *
+     * @param deviceNum
+     * @return 退款水量，为正数
+     */
+    public BigDecimal getRefundWater(String deviceNum){
+        return storageService.getAllRefundWater(deviceNum);
+    }
+    public void labelSuccess(Integer orderid){
+        if(storageService.hasRefundWater(orderid)){
+            storageService.setRefundWater(orderid, new BigDecimal(RefundState.SUCCESS) );
+        }
+    }
+    public void labelFailed(Integer orderid){
+        if(storageService.hasRefundWater(orderid)){
+            storageService.setRefundWater(orderid, new BigDecimal(RefundState.FAILED) );
+        }
+    }
+    public List<Integer> getAllOrderIdByDeviceNum(String deviceNum){
+        return storageService.getAllOrderIdByDeviceNum(deviceNum);
     }
     public void updateRequireWater(String deviceNum, boolean started){
         storageService.updateRequireWater(deviceNum,started);
