@@ -4,14 +4,38 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 public class ExcelUserRecharge {
     ExcelUtil excelUtil = null;
 
-    public void createExcel(){
+    public void createExcel(String[] firstLineValue, String[] secondLineValue, List<String[]> values){
         HSSFWorkbook workbook = new HSSFWorkbook();
         excelUtil = new ExcelUtil(workbook);
         createHeader();
+        createValues(firstLineValue, secondLineValue, values);
+    }
+
+    private void createValues(String[] firstLineValue, String[] secondLineValue, List<String[]> values) {
+        HSSFRow thirdRow = excelUtil.createRow(2);
+        for(int i=0;i<firstLineValue.length;i++){
+            excelUtil.createCell(thirdRow,i, firstLineValue[i]);
+        }
+        HSSFRow fifthRow = excelUtil.createRow(4);
+        excelUtil.createCell(fifthRow,0, secondLineValue[0]);
+        excelUtil.createCell(fifthRow,1, secondLineValue[1]);
+        CellRangeAddress secondRegion=new CellRangeAddress(4, 4, 1, 3);
+        excelUtil.addMergedRegion(secondRegion);
+        excelUtil.createCell(fifthRow,4, "房间号");
+        excelUtil.createCell(fifthRow,5, "单位(元/吨)");
+
+        for(int i = 0; i<values.size() ;i++){
+            HSSFRow row = excelUtil.createRow(i+6);
+            String[] cols = values.get(i);
+            for(int j = 0; j<cols.length;j++){
+                excelUtil.createCell(row,j,cols[j]);
+            }
+        }
     }
 
     private void createHeader() {
