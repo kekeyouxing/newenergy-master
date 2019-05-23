@@ -70,6 +70,8 @@ public class WxOrderService {
 
     /**
      * 提交充值申请
+     *    该接口调用“统一下单”接口，并拼装发起支付请求需要的参数.
+     *    详见https://pay.weixin.qq.com/wiki/doc/api/app/app.php?chapter=8_5
      * @author yangq
      *<p>
      *     1.创建订单并生成商户订单号
@@ -83,6 +85,9 @@ public class WxOrderService {
      *                  "packageValue":"prepay_id=u802345jgfjsdfgsdg888",
      *                  "signType":"MD5",         //微信签名方式：
      *                  "paySign":"70EA570631E4BB79628FBCA90534C63FF7FADD89"  //微信签名}
+     *                          state为0代表正常订单（已支付），1代表作废订单（已退款），2代表充值中订单（已预支付）
+     *                          reviewState为0代表待审核订单，1代表已通过订单，2代表未通过订单（批量充值订单需要分辨这个字段）
+     *                          delegate为0代表非代充（即微信充值），为1代表代充（即批量充值）
      */
     @Transactional
     public Object submit(String body,HttpServletRequest request){
@@ -124,10 +129,16 @@ public class WxOrderService {
 //        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
 
         //生成商户订单号
-        order.setOrderSn(rechargeRecordService.generateOrderSn());
+        String orderSn = rechargeRecordService.generateOrderSn();
+        while(rechargeRecordService.findBySn(orderSn)!=null){
+            orderSn = rechargeRecordService.generateOrderSn();
+        }
+        order.setOrderSn(orderSn);
         order.setRechargeVolume(recharge_volumn);
         order.setPlotNum(plot_num);
+        //设为充值中
         order.setState(2);
+        //设为待审核
         order.setReviewState(0);
         WxPayMpOrderResult result = null;
         try{
@@ -170,6 +181,9 @@ public class WxOrderService {
      * @author yangq
      * @param request
      * @return
+     * state为0代表正常订单（已支付），1代表作废订单（已退款），2代表充值中订单（已预支付）
+     * reviewState为0代表待审核订单，1代表已通过订单，2代表未通过订单（批量充值订单需要分辨这个字段）
+     * delegate为0代表非代充（即微信充值），为1代表代充（即批量充值）
      */
     @Transactional
     public Object payNotify(HttpServletRequest request){
@@ -202,7 +216,7 @@ public class WxOrderService {
         logger.info("<payNotify> orderSn:"+orderSn);
         RechargeRecord order = rechargeRecordService.findBySn(orderSn);//改为orderMap
 //        RechargeRecord order = orderMap.get(orderSn);
-
+        //判断订单是否存在
         if (order == null){
             return WxPayNotifyResponse.fail("订单不存在 sn="+orderSn);
         }
@@ -232,9 +246,19 @@ public class WxOrderService {
 
     /**
      * 处理退款申请
+     * 详见 https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_4
      * @author yangq
      * @param body {"orderId":"6"}
      * @return Map<String,object>
+     *      退款记录状态：refundState{
+     *               0:退款成功
+     *               4：审核通过退款中
+     *               5：审核通过退款失败
+     *           }
+            充值记录状态：orderState{
+     *               0: 正常
+     *               1：作废
+     *           }
      */
     @Transactional
     public Object refund(Map<String,Object> body){
@@ -254,17 +278,21 @@ public class WxOrderService {
         //退款金额
         Integer refundFee = order.getRefundAmount();
         WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
-
+//查询对应充值记录
         RechargeRecord rechargeRecord = rechargeRecordService.findById(order.getRecordId());
+        //判断是否存在订单以及是否已退款
         if (rechargeRecord == null || rechargeRecord.getState() == 1) return ResponseUtil.badArgument();
 
 //        wxPayRefundRequest.setOutTradeNo(rechargeRecord.getOrderSn());
+        //退款订单号（商家生成）
         String outRefundNo = "refund_"+rechargeRecord.getOrderSn();
         wxPayRefundRequest.setOutRefundNo(outRefundNo);
 //        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
+        //订单总金额（支付时的）
         Integer totalFee = rechargeRecord.getAmount();
 
         wxPayRefundRequest.setTotalFee(totalFee);
+        //退款金额（退款时的）
         wxPayRefundRequest.setRefundFee(refundFee);
         wxPayRefundRequest.setTransactionId(rechargeRecord.getTransactionId());
         wxPayRefundRequest.setNotifyUrl(wxRefundNotify);
@@ -290,6 +318,15 @@ public class WxOrderService {
      * 退款成功的回调
      * @param request
      * @return
+     * 退款记录状态：refundState{
+     *     0:退款成功
+     *     4：审核通过退款中
+     *     5：审核通过退款失败
+     * }
+     * 充值记录状态：orderState{
+     *     0:正常
+     *     1：作废
+     * }
      */
     @Transactional
     public Object refundNotify(HttpServletRequest request){
@@ -308,7 +345,8 @@ public class WxOrderService {
             return WxPayNotifyResponse.fail(e.getMessage());
         }
         //添加退款成功逻辑
-        Integer refundState = 3;
+        Integer refundState = 4;
+        Integer orderState = 0;
         WxPayRefundNotifyResult.ReqInfo reqInfo = result.getReqInfo();
         //订单号
         String outTradeNo = reqInfo.getOutTradeNo();
@@ -316,14 +354,18 @@ public class WxOrderService {
         String outRefundNo = reqInfo.getOutRefundNo();
         //订单金额
         Integer totalFee = reqInfo.getTotalFee();
-        //实际退款金额
+        //实际退款金额（单位分）
         Integer refundFee = reqInfo.getSettlementRefundFee();
         //退款状态
         String refundStatus = reqInfo.getRefundStatus();
-        if (refundStatus == "CHANGE" || refundStatus== "REFUNDCLOSE")
+        if (refundStatus == "CHANGE" || refundStatus== "REFUNDCLOSE") {
             refundState = 5;
-        else
+            orderState = 0;
+        }
+        else {
             refundState = 0;
+            orderState = 1;
+        }
 //        //退款成功时间
 //        String successTime = reqInfo.getSuccessTime();
 //        //退款账户
@@ -333,24 +375,33 @@ public class WxOrderService {
 
         RechargeRecord order = rechargeRecordService.findBySn(outTradeNo);
         RefundRecord refundRecord = refundRecordService.findBySn(outRefundNo);
+        //判断订单是否存在
         if (order == null || refundRecord == null) return WxPayNotifyResponse.fail("订单不存在 sn="+outTradeNo);
-        if (order.getState() == 1 || refundRecord.getState() == 0) return WxPayNotifyResponse.success("订单已经处理成功");
-
-        Integer refundAmount = new BigDecimal(BaseWxPayResult.fenToYuan(refundFee)).intValue();
+        //判断订单是否被处理过，因为微信会发起多次请求
+        if (order.getState() == 1 || refundRecord.getState() == 0 || refundRecord.getState() == 5) return WxPayNotifyResponse.success("订单已经处理成功");
+//      实际退款金额（单位分）
+//        Integer refundAmount = new BigDecimal(BaseWxPayResult.fenToYuan(refundFee)).intValue();
+        Integer refundAmount = refundFee;
         refundRecord.setRefundAmount(refundAmount);
+//      小区编号
+//        String plot_num = residentService.findPlotNumByRegisterid(refundRecord.getRegisterId(),0);
+        String plot_num = order.getPlotNum();
 
-        String plot_num = residentService.findPlotNumByRegisterid(refundRecord.getRegisterId(),0);
+        //充值系数（元/吨 ~ 分/吨，这里暂时分当作元进行测试）
+//        BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num).multiply(new BigDecimal(100));
         BigDecimal plot_factor = corrPlotService.findPlotFacByPlotNum(plot_num);
+        //实际退款流量
         BigDecimal refundVolume = new BigDecimal(refundAmount).divide(plot_factor,3,RoundingMode.HALF_DOWN);
         refundRecord.setRefundVolume(refundVolume);
 
+        //实际退款时间
         refundRecord.setRefundTime(LocalDateTime.now());
 
         refundRecord.setState(refundState);
         Integer userId = refundRecord.getSafeChangedUserid();
         refundRecordService.updateRefundRecord(refundRecord,userId);
 
-        order.setState(1);
+        order.setState(orderState);
         rechargeRecordService.updateRechargeRecord(order,userId);
 
         return WxPayNotifyResponse.success("成功");
