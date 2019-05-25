@@ -53,11 +53,7 @@ public class ResidentController {
                        String address,
                        @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit){
-        List<String> addressNums = new ArrayList<>();
-        if(!StringUtils.isEmpty(address)){
-            addressNums = corrAddressService.queryAddress(address);
-        }
-        Page<Resident> pageResident = residentService.querySelective(userName, addressNums, page-1, limit);
+        Page<Resident> pageResident = residentService.querySelective(userName, address, page-1, limit);
         List<Resident> residentList = pageResident.getContent();
         Long total = pageResident.getTotalElements();
         Map<String, Object> data = new HashMap<>();

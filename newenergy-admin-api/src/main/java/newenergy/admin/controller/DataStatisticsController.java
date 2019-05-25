@@ -133,7 +133,7 @@ public class DataStatisticsController {
         List<StatisticPlotRecharge> plotRecharges = pagePlotRecharges.getContent();
         Map<String, Object> data = new HashMap<>();
         List<Map<String, Object>> list = new ArrayList<>();
-        for(StatisticPlotRecharge plotRecharge : pagePlotRecharges) {
+        for(StatisticPlotRecharge plotRecharge : plotRecharges) {
             Map<String, Object> info = new HashMap<>();
             info.put("plotDtl", corrPlotService.findByPlotNum(plotRecharge.getPlotNum()));
             info.put("amount", plotRecharge.getAmount());
