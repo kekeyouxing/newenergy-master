@@ -299,11 +299,7 @@ public class ResidentController {
     }
     @GetMapping("/residentListDownload")
     public void residentListDownload(HttpServletResponse response, @RequestParam String address, @RequestParam String fileName){
-        List<String> addressNums = new ArrayList<>();
-        if(!StringUtils.isEmpty(address)){
-            addressNums = corrAddressService.queryAddress(address);
-        }
-        List<Resident> pageResident = residentService.querySelective(addressNums);
+        List<Resident> pageResident = residentService.querySelective(address);
         List<String[]> list = new ArrayList<>();
         for(Resident resident: pageResident){
             LocalDate buyTime = resident.getBuyTime();

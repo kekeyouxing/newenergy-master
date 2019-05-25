@@ -46,9 +46,9 @@ public class ResidentService extends LogicOperation<Resident> {
 
         return residentRepository.findAll(specification, pageable);
     }
-    public List<Resident> querySelective(List<String> addressNums) {
+    public List<Resident> querySelective(String address) {
 
-        Specification specification = getListSpecification(null, addressNums);
+        Specification specification = getListSpecification(null, address);
 
         return residentRepository.findAll(specification);
     }
