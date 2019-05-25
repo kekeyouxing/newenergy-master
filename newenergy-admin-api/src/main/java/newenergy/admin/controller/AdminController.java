@@ -4,7 +4,6 @@ import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
-import newenergy.core.util.bcrypt.BCryptPasswordEncoder;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.NewenergyAdminService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -14,8 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +36,35 @@ public class AdminController {
                        @RequestParam(defaultValue = "10") Integer limit){
         Page<NewenergyAdmin> pageAdmin = adminService.querySelective(username, page-1, limit);
         List<NewenergyAdmin> adminList = pageAdmin.getContent();
-        int total = pageAdmin.getNumberOfElements();
+        Long total = pageAdmin.getTotalElements();
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
-        data.put("items", adminList);
+        data.put("items", roleSort(adminList));
 
         return ResponseUtil.ok(data);
+    }
+
+    private List<NewenergyAdmin> roleSort(List<NewenergyAdmin> adminList){
+        List<NewenergyAdmin> result = new ArrayList<>();
+        if(adminList == null || adminList.size() == 0){
+            return result;
+        }
+        Map<Integer, List<NewenergyAdmin>> maps = new HashMap<>();
+        for(NewenergyAdmin admin : adminList){
+            Integer roleId = admin.getRoleIds()[0];
+            List<NewenergyAdmin> list = maps.get(roleId);
+            if(list == null){
+                list = new ArrayList<NewenergyAdmin>();
+            }
+            list.add(admin);
+            maps.put(roleId,  list);
+        }
+        for (List<NewenergyAdmin> admins: maps.values()) {
+            for(NewenergyAdmin admin : admins){
+                result.add(admin);
+            }
+        }
+        return result;
     }
 
     //@RequiresPermissions("admin:admin:create")
@@ -60,10 +83,8 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
+        admin.setPassword(rawPassword);
 
         adminService.add(admin, adminLogin.getId());
         return ResponseUtil.ok(admin);
@@ -108,10 +129,8 @@ public class AdminController {
         }
 
         String rawPassword = admin.getPassword();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(rawPassword);
 
-        admin.setPassword(encodedPassword);
+        admin.setPassword(rawPassword);
 
         if (adminService.updateById(admin, adminLogin.getId()) == null) {
             return ResponseUtil.updatedDataFailed();
@@ -122,14 +141,14 @@ public class AdminController {
 
     //@RequiresPermissions("admin:admin:delete")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="删除")
-    @PostMapping("/delete")
-    public Object delete(@AdminLoginUser NewenergyAdmin adminLogin,@RequestBody NewenergyAdmin admin) {
-        Integer anotherAdminId = admin.getId();
-        if (anotherAdminId == null) {
+    @GetMapping("/delete")
+    public Object delete(@AdminLoginUser NewenergyAdmin adminLogin,@RequestParam Integer id) {
+
+        if (id == null) {
             return ResponseUtil.badArgument();
         }
 
-        adminService.deleteById(anotherAdminId, adminLogin.getId());
+        adminService.deleteById(id, adminLogin.getId());
         return ResponseUtil.ok();
     }
 }

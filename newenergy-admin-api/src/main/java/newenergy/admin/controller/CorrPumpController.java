@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.excel.ExcelCommon;
 import newenergy.admin.util.GetNumCode;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.CorrPump;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,5 +132,31 @@ public class CorrPumpController {
         corrPumpService.deleteCorrPump(id, userid);
         return ResponseUtil.ok();
     }
+
+    @GetMapping("/download")
+    public void download(HttpServletResponse response){
+        String[] headers = new String[]{"机房编号","所属机房","备注"};
+
+        List<CorrPump> pumps = corrPumpService.findAll();
+        List<String[]> values = Obj2String(pumps);
+
+        ExcelCommon excel = new ExcelCommon();
+        excel.createExcel(headers, values);
+        excel.exportExcel("机房信息表", response);
+    }
+
+    private List<String[]> Obj2String(List<CorrPump> pumps) {
+        List<String[]> values = new ArrayList<>();
+        if(pumps!=null && pumps.size()!=0){
+            for(CorrPump pump : pumps){
+
+                String[] corrStr = new String[]{pump.getPumpNum(), pump.getPumpDtl()};
+                values.add(corrStr);
+            }
+        }
+
+        return values;
+    }
+
 }
 

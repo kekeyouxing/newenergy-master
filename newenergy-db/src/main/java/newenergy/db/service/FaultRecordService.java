@@ -18,10 +18,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-03-27.
@@ -80,28 +83,47 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             if(predicate.getServicerId() != null)
                 conditions.add(cb.equal(root.get("servicerId").as(Integer.class),predicate.getServicerId()));
             if(!StringUtilCorey.emptyCheck(predicate.getUsername())){
-                List<Resident> residents = residentRepository.findAllByUserNameAndSafeDelete(predicate.getUsername(),0);
-                residents.forEach(resident -> {
-                    conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
+                Resident resident = new Resident();
+                resident.setUserName(predicate.getUsername());
+                Specification<Resident> spec = residentService.findByPlotNumOrSearch(resident);
+                List<Resident> residents = residentRepository.findAll(spec);
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                residents.forEach(e -> {
+                    in.value(e.getRegisterId());
                 });
-                /**
-                 * TODO 模糊查找
-                 */
+                in.value("");
+                conditions.add(cb.and(in));
             }
             if(predicate.getPlots() != null){
+                Path<Object> path = root.get("registerId");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
                 for(String plot : predicate.getPlots()){
-                    if(!StringUtilCorey.emptyCheck(plot)) continue;
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
                     List<Resident> residents = residentRepository.findAllByPlotNumAndSafeDelete(plot,0);
                     residents.forEach(resident -> {
-                        conditions.add(cb.equal(root.get("registerId").as(String.class),resident.getRegisterId()));
+                        in.value(resident.getRegisterId());
                     });
                 }
+                in.value("");
+                conditions.add(cb.and(in));
             }
             if(predicate.getFinishTime() != null){
                 LocalDateTime cond = predicate.getFinishTime();
                 LocalDateTime start = LocalDateTime.of(cond.getYear(),cond.getMonth(),1,0,0);
                 LocalDateTime end = LocalDateTime.of(cond.plusMonths(1).getYear(),cond.plusMonths(1).getMonth(),1,0,0);
                 conditions.add(cb.between(root.get("finishTime").as(LocalDateTime.class),start,end));
+            }
+            if(predicate.getFaultTime() != null){
+                LocalDateTime faultTime = predicate.getFaultTime();
+                conditions.add(cb.between(root.get("faultTime").as(LocalDateTime.class),LocalDateTime.MIN,faultTime));
             }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));
@@ -155,6 +177,14 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
 
     public Page<Resident> getResidentsByPlots(List<String> plots,Integer page, Integer limit, String registerId, String username){
         Specification<Resident> specification = null;
+        if(plots!=null && plots.isEmpty()){
+            plots = corrPlotRepository
+                    .findAll()
+                    .stream()
+                    .map(CorrPlot::getPlotNum)
+                    .collect(Collectors.toList());
+        }
+        if(plots == null) return null;
         for(String plot : plots){
             Resident resident = new Resident();
             resident.setPlotNum(plot);

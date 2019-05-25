@@ -1,13 +1,17 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.TimeUtil;
+import newenergy.db.constant.ApplyFactorConstant;
 import newenergy.db.domain.ApplyFactor;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.domain.ManualRecord;
+import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.predicate.ApplyFactorPredicate;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.service.CorrPlotService;
+import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.ManualRecordService;
 import newenergy.db.service.PlotFactorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +33,10 @@ import java.util.Map;
 /**
  * Created by HUST Corey on 2019-04-18.
  */
+
+/**
+ * 修改充值系数不是立即生效，而是等到每月一号制成报表后生效
+ */
 @RestController
 @RequestMapping("admin/factor")
 public class PlotFactorController {
@@ -40,6 +48,9 @@ public class PlotFactorController {
 
     @Autowired
     ManualRecordService manualRecordService;
+
+    @Autowired
+    FaultRecordService faultRecordService;
 
     private static class SearchDTO{
         Integer id;
@@ -80,16 +91,25 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "search", method = RequestMethod.POST)
-    public Map<String,Object> searchFactor(@RequestBody SearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> searchFactor(@RequestBody SearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
         String plotDtl = dto.getPlotDtl();
 
         Map<String,Object> ret = new HashMap<>();
         CorrPlotPredicate predicate = new CorrPlotPredicate();
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+
         predicate.setPlotDtl(plotDtl);
-        Page<CorrPlot> corrPlots = plotFactorService.findAllCorrPlotWithAlive(predicate,page-1,limit);
+        Page<CorrPlot> corrPlots = plotFactorService.findAllCorrPlotWithAlivePaged(predicate,page-1,limit);
         ret.put("total",corrPlots.getTotalElements());
         List<Map<String,Object>> list = new ArrayList<>();
         corrPlots.forEach(e->{
@@ -97,6 +117,16 @@ public class PlotFactorController {
             item.put("plotDtl",e.getPlotDtl());
             item.put("plotNum",e.getPlotNum());
             item.put("plotFactor",e.getPlotFactor());
+            Page<ApplyFactor> applyFactors = plotFactorService.findAllByPlotNum(e.getPlotNum(),null,Sort.by(Sort.Direction.DESC,"applyTime"));
+            ApplyFactor applyFactor = applyFactors.get().findFirst().orElse(null);
+            int remark = 0;
+            if(applyFactor != null){
+                if(applyFactor.getState().equals(ApplyFactorConstant.UNCHECK))
+                    remark = 1;
+                if(applyFactor.getState().equals(ApplyFactorConstant.ACCEPT))
+                    remark = 2;
+            }
+            item.put("remark",remark);
             list.add(item);
         });
         ret.put("list",list);
@@ -132,8 +162,9 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "update",method = RequestMethod.POST)
-    public Integer updateFactor(@RequestBody UpdateDTO dto){
-        Integer id = dto.getId();
+    public Integer updateFactor(@RequestBody UpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotNum = dto.getPlotNum();
         BigDecimal updateFactor = dto.getUpdateFactor();
 
@@ -178,15 +209,25 @@ public class PlotFactorController {
         }
     }
     @RequestMapping(value = "apply/search",method = RequestMethod.POST)
-    public Map<String,Object> searchApply(@RequestBody ApplySearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> searchApply(@RequestBody ApplySearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotDtl = dto.getPlotDtl();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
 
+
         Map<String,Object> ret = new HashMap<>();
         ApplyFactorPredicate predicate = new ApplyFactorPredicate();
         predicate.setPlotDtl(plotDtl);
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+
         Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.ASC,"plotNum"));
         ret.put("total",factors.getTotalElements());
         List<Map<String,Object>>  list = new ArrayList<>();
@@ -207,16 +248,17 @@ public class PlotFactorController {
 
     @RequestMapping(value = "review",method = RequestMethod.POST)
     public Object reviewPlotFactor(@RequestBody PostInfo postInfo,
-                                   HttpServletRequest request){
+                                   HttpServletRequest request,
+                                   @AdminLoginUser NewenergyAdmin user){
         ApplyFactor applyFactor = plotFactorService.findById(postInfo.getId());
         applyFactor.setState(postInfo.getReviewState());
-        if (postInfo.getReviewState()==1){
-            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
-            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
-            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
-        }
-        Integer state = plotFactorService.updateApplyState(postInfo.getOperatorId(),postInfo.getId(),postInfo.getReviewState());
-        manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),5,postInfo.getId());
+//        if (postInfo.getReviewState()==1){
+//            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+//            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+//            corrPlotService.updateCorrPlot(corrPlot,postInfo.getOperatorId());
+//        }
+        Integer state = plotFactorService.updateApplyState(user.getId(),postInfo.getId(),postInfo.getReviewState());
+        manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),5,postInfo.getId());
         Map<String,Object> result = new HashMap<>();
         result.put("state",state);
         return result;

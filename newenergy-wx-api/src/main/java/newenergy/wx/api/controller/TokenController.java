@@ -27,9 +27,6 @@ public class TokenController {
         List<String> msgs = new ArrayList<>();
         msgs.add(nonce);
         msgs.add(timestamp);
-        /**
-         * TODO 配置的Token
-         */
         msgs.add("hgdr_hust");
         Collections.sort(msgs);
         String result = DigestUtils.sha1Hex(msgs.get(0)+msgs.get(1)+msgs.get(2));

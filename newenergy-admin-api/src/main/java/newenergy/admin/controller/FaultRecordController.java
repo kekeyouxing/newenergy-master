@@ -1,33 +1,32 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.background.service.DeviceRequireService;
+import newenergy.admin.excel.ExcelMaintain;
 import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.TimeUtil;
-import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.DeviceRequireConstant;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.constant.ResultConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.CorrPlotAdminPredicate;
 import newenergy.db.predicate.DeviceRequirePredicate;
-import newenergy.db.repository.NewenergyAdminRepository;
-import newenergy.db.repository.NewenergyRoleRepository;
 import newenergy.db.service.*;
 import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -45,11 +44,15 @@ public class FaultRecordController {
     @Autowired
     private DeviceRequireService deviceRequireService;
 
+    @Value("${server.port}")
+    private String port;
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/send";
+    private RestTemplate restTemplate;
 
-
-    private RestTemplate restTemplate = new RestTemplate();
-
-    private final String sendMsgUrl = "http://localhost/wx/fault/send";
+    FaultRecordController(){
+        restTemplate = new RestTemplate();
+    }
 
     private static class UserinfoDTO{
         Integer id;
@@ -78,8 +81,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "userinfo",method = RequestMethod.POST)
-    public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> userinfo(@RequestBody UserinfoDTO dto, @AdminLoginUser NewenergyAdmin admin1){
+//        Integer id = dto.getId();
+        Integer id = admin1.getId();
         String registerId = dto.getRegisterId();
         Map<String,Object> ret = new HashMap<>();
         Map<String,Object> map = new HashMap<>();
@@ -95,7 +99,6 @@ public class FaultRecordController {
         map.put("addressDtl",addressDtl);
         map.put("roomNum",resident.getRoomNum());
         map.put("phone",resident.getPhone());
-        //暂时使用用户id代替用户姓名
         Integer serviceId = corrPlotAdmin.getServicerId();
         NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
         String servicerName = null;
@@ -105,14 +108,25 @@ public class FaultRecordController {
 
         Map<String,Object> info = new HashMap<>();
         info.put("area",resident.getArea());
-        info.put("buyTime",resident.getBuyTime());
+
+        LocalDate buyTime = resident.getBuyTime();
+        String buyTimeStr = String.format("%d-%02d-%d",buyTime.getYear(),buyTime.getMonthValue(),buyTime.getDayOfMonth());
+        info.put("buyTime",buyTimeStr);
+
         CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
         info.put("typeDtl",corrType.getTypeDtl());
         info.put("ratedFlow",resident.getRatedFlow());
         info.put("deviceNum",resident.getDeviceNum());
         info.put("deviceSeq",resident.getDeviceSeq());
-        info.put("installTime",resident.getInstallTime());
-        info.put("receiveTime",resident.getReceiveTime());
+
+        LocalDate installTime = resident.getInstallTime();
+        String installTimeStr = String.format("%d-%02d-%d",installTime.getYear(),installTime.getMonthValue(),installTime.getDayOfMonth());
+        info.put("installTime",installTimeStr);
+
+        LocalDate receiveTime = resident.getReceiveTime();
+        String receiveTimeStr = String.format("%d-%02d-%d",receiveTime.getYear(),receiveTime.getMonthValue(),receiveTime.getDayOfMonth());
+        info.put("receiveTime",receiveTimeStr);
+
         String pumpNum = resident.getPumpNum();
         CorrPump corrPump = pumpNum==null?null:faultRecordService.getCorrPump(pumpNum);
         String pumpDtl = corrPump==null?"":corrPump.getPumpDtl();
@@ -160,8 +174,9 @@ public class FaultRecordController {
      * 其他：errcode   参考https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433747234
      */
     @RequestMapping(value = "add",method = RequestMethod.POST)
-    public Integer addRecord(@RequestBody AddDTO dto){
-        Integer id = dto.getId();
+    public Integer addRecord(@RequestBody AddDTO dto, @AdminLoginUser NewenergyAdmin admin){
+//        Integer id = dto.getId();
+        Integer id = admin.getId();
         String registerId = dto.getRegisterId();
         String phenomeon = dto.getPhenomeon();
 
@@ -191,8 +206,33 @@ public class FaultRecordController {
         request.put("phone",resident.getPhone());
         String partName = String.format("%s*",resident.getUserName().substring(0,1));
         request.put("partName",partName);
-        MsgRet ret =restTemplate.postForObject(sendMsgUrl,request, MsgRet.class);
+        MsgRet ret =restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,request, MsgRet.class);
         return ret==null?3:ret.getErrcode();
+    }
+
+    @RequestMapping(value = "addother",method = RequestMethod.POST)
+    public Integer addOtherRecord(@RequestBody Map<String,Object> request, @AdminLoginUser NewenergyAdmin admin){
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        FaultRecord record = new FaultRecord();
+        record.setRegisterId((String)request.get("registerId"));
+        record.setServicerId(Integer.valueOf((String)request.get("servicerId")));
+        record.setPhenomenon((String)request.get("phenomenon"));
+        record.setSolution((String)request.get("solution"));
+        record.setFaultTime(LocalDateTime.parse((String)request.get("faultTime"),df));
+        record.setResponseTime(LocalDateTime.parse((String)request.get("responseTime"),df));
+        record.setFinishTime(LocalDateTime.parse((String)request.get("finishTime"),df));
+
+        record.setState(FaultRecordConstant.STATE_FINISH);
+        record.setResult(FaultRecordConstant.RESULT_SUCCESS);
+        String registerId = record.getRegisterId();
+        Resident resident = faultRecordService.getResident(registerId);
+        if(resident == null) return 1;
+        if(!StringUtilCorey.emptyCheck(resident.getPlotNum()) ){
+            CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
+            if(corrPlotAdmin != null) record.setMonitorId( corrPlotAdmin.getMonitorId() );
+        }
+        return faultRecordService.addRecord(record)!=null?0:1;
     }
 
 
@@ -223,8 +263,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "userdtl",method = RequestMethod.POST)
-    public Map<String,Object> userDtl(@RequestBody UserDtlDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> userDtl(@RequestBody UserDtlDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String registerId = dto.getRegisterId();
         Map<String, Object> ret = new HashMap<>();
         Map<String, Object> userinfo = new HashMap<>();
@@ -242,20 +283,22 @@ public class FaultRecordController {
         userinfo.put("phone",resident.getPhone());
 
         userinfo.put("typeDtl",corrType.getTypeDtl());
-        userinfo.put("receiveTime",TimeUtil.getSeconds(resident.getReceiveTime().atTime(0,0,0)));
-        LocalDateTime guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty).atTime(0,0,0);
-        userinfo.put("guaranteeTime",TimeUtil.getSeconds(guaranteeTime));
-        Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime)?1:0;
+
+        LocalDate receiveTime = resident.getReceiveTime();
+        userinfo.put("receiveTime",
+                String.format("%d-%02d-%d",receiveTime.getYear(),receiveTime.getMonthValue(),receiveTime.getDayOfMonth()) );
+
+
+        LocalDate guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty);
+        userinfo.put("guaranteeTime",
+                String.format("%d-%02d-%d",guaranteeTime.getYear(),guaranteeTime.getMonthValue(),guaranteeTime.getDayOfMonth()) );
+
+
+        Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime.atTime(0,0))?1:0;
         //isWarranty：1保内，0保外
         userinfo.put("guaranteeState",isWarranty);
-        String plotDtl = null;
-        if(corrAddress != null){
-            String plotNum = corrAddress.getAddressPlot();
-            if(plotNum != null){
-                CorrPlot corrPlot = faultRecordService.getCorrPlot(plotNum);
-                plotDtl = corrPlot==null?null:corrPlot.getPlotDtl();
-            }
-        }
+        String plotDtl = corrAddress==null?"":corrAddress.getAddressPlot();
+
         userinfo.put("plotDtl",plotDtl);
         ret.put("userinfo",userinfo);
 
@@ -374,8 +417,9 @@ public class FaultRecordController {
      * @return
      */
     @RequestMapping(value = "list/users",method = RequestMethod.POST)
-    public Map<String,Object> listUsers(@RequestBody ListUsersDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listUsers(@RequestBody ListUsersDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer page = dto.getPage();
         Integer limit = dto.getLimit();
         String registerId = dto.getRegisterId();
@@ -463,8 +507,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "records",method = RequestMethod.POST)
-    public Map<String,Object> listRecords(@RequestBody RecordsDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listRecords(@RequestBody RecordsDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer type = dto.getType();
         String registerId = dto.getRegisterId();
         String username = dto.getUsername();
@@ -483,9 +528,17 @@ public class FaultRecordController {
         predicate.setRegisterId(registerId);
         predicate.setUsername(username);
         predicate.setState(type);
+        Sort sort = null;
+        if(type == 0){
+            sort = Sort.by(Sort.Direction.DESC,"faultTime");
+        }else if(type == 1){
+            sort = Sort.by(Sort.Direction.DESC,"responseTime");
+        }else if(type == 2){
+            sort = Sort.by(Sort.Direction.DESC,"finishTime");
+        }
         Page<FaultRecord> records = faultRecordService.findByPredicate(predicate,
                 PageRequest.of(page-1,limit),
-                Sort.by(Sort.Direction.DESC,"faultTime"));
+                sort);
         ret.put("total",records.getTotalElements());
         records.forEach(record->{
             Map<String,Object> tmp = new HashMap<>();
@@ -518,8 +571,9 @@ public class FaultRecordController {
                 state = 2; //维修中
             }
             tmp.put("state",state);
-            tmp.put("faultTime", TimeUtil.getSeconds(record.getFaultTime()));
-
+            tmp.put("faultTime", TimeUtil.getString(record.getFaultTime()));
+            tmp.put("responseTime",TimeUtil.getString(record.getResponseTime()));
+            tmp.put("finishTime",TimeUtil.getString(record.getFinishTime()));
             list.add(tmp);
         });
         ret.put("records",list);
@@ -582,8 +636,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/search",method = RequestMethod.POST)
-    public Map<String,Object> groupSearch(@RequestBody GroupSearchDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> groupSearch(@RequestBody GroupSearchDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotDtl = dto.getPlotDtl();
         String monitorName = dto.getMonitorName();
         String servicerName = dto.getServicerName();
@@ -621,8 +676,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/userinfo",method = RequestMethod.POST)
-    public Map<String,Object> getAdminInfo(@RequestBody GroupUserinfoDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> getAdminInfo(@RequestBody GroupUserinfoDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Map<String,Object> ret = new HashMap<>();
         ret.put("servicers",corrPlotAdminService.getServicers());
         ret.put("monitors",corrPlotAdminService.getMonitors());
@@ -667,8 +723,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "group/update",method = RequestMethod.POST)
-    public CorrPlotAdmin updateAdminInfo(@RequestBody GroupUpdateDTO dto){
-        Integer id = dto.getId();
+    public CorrPlotAdmin updateAdminInfo(@RequestBody GroupUpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         String plotNum = dto.getPlotNum();
         Integer updateMonitor = dto.getUpdateMonitor();
         Integer updateServicer = dto.getUpdateServicer();
@@ -719,13 +776,29 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "require/search",method = RequestMethod.POST)
-    public Map<String,Object> requireSearch(@RequestBody RequireSearchDTO requireSearchDTO){
+    public Map<String,Object> requireSearch(@RequestBody RequireSearchDTO requireSearchDTO, @AdminLoginUser NewenergyAdmin user){
+        Integer id = user.getId();
         Map<String,Object> ret = new HashMap<>();
         DeviceRequirePredicate predicate = new DeviceRequirePredicate();
         predicate.setPlotDtl(requireSearchDTO.getPlotDtl());
+
+        List<String> mngPlots = faultRecordService.getPlotLimit(id);
+        if(mngPlots == null) {
+            ret.put("total",0);
+            return ret;
+        }
+        predicate.setPlots(mngPlots);
+        predicate.setIgnoreSetting(true);
+
         Page<DeviceRequire> plots = deviceRequireService.findByPredicateWithAive(predicate,
                 PageRequest.of(requireSearchDTO.getPage()-1, requireSearchDTO.getLimit()),
                 Sort.by(Sort.Direction.ASC,"plotNum"));
+        if(plots == null || plots.isEmpty()){
+            ret.put("total",0);
+            return ret;
+        }
+        ret.put("total",plots.getTotalElements());
+
         DeviceRequire setting = deviceRequireService.getSetting();
 
         LocalDateTime updateTime = null;
@@ -737,14 +810,12 @@ public class FaultRecordController {
         ret.put("updateTime",TimeUtil.getSeconds(updateTime));
         ret.put("updateLoop",updateLoop);
         List<Map<String,Object>> plotlist = new ArrayList<>();
-        Stream<DeviceRequire> realPlots = plots.get().filter(plot->!plot.getPlotNum().equals(DeviceRequireConstant.SETTINGS));
-        realPlots.forEach(plot->{
+        plots.forEach(plot->{
                 Map<String,Object> tmp = new HashMap<>();
                 tmp.put("plotDtl",deviceRequireService.getPlotDtl(plot.getPlotNum()));
                 tmp.put("requireVolume",plot.getRequireVolume());
                 plotlist.add(tmp);
             });
-        ret.put("total",plotlist.size());
         ret.put("list",plotlist);
         return ret;
     }
@@ -769,8 +840,9 @@ public class FaultRecordController {
         }
     }
     @RequestMapping(value = "require/update",method = RequestMethod.POST)
-    public Integer requireUpdate(@RequestBody RequireUpdateDTO dto){
-        Integer id = dto.getId();
+    public Integer requireUpdate(@RequestBody RequireUpdateDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer updateLoop = dto.getUpdateLoop();
 
         DeviceRequire setting = deviceRequireService.getSetting();
@@ -778,10 +850,64 @@ public class FaultRecordController {
         setting.setUpdateLoop(updateLoop);
         return deviceRequireService.setSetting(setting,id)==null?1:0;
     }
+
+
     @RequestMapping(value = "require/start")
     public void startCron(){
         deviceRequireService.updateCron();
     }
 
+    /**
+     * @Auther ke
+     * <p>
+     *     导出
+     * </p>
+     */
+    @GetMapping("/maintainDownload")
+    public void maintainDownload(HttpServletResponse response, @RequestParam String registerId,
+                                 @RequestParam String filename){
+    Resident resident = faultRecordService.getResident(registerId);
+        CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+        CorrType corrType = faultRecordService.getCorrType(resident.getTypeNum());
+        LocalDate receiveTime = resident.getReceiveTime();
+        LocalDate guaranteeTime = resident.getReceiveTime().plusYears(faultRecordService.warranty);
+        Integer isWarranty = LocalDateTime.now().isBefore(guaranteeTime.atTime(0,0))?1:0;
+        String addressDtl = "";
+        if(corrAddress != null)
+            addressDtl = corrAddress.getAddressDtl();
+        String[] firstLineValue = new String[]{registerId, resident.getUserName(), addressDtl,
+                resident.getRoomNum(),resident.getPhone(),corrType.getTypeDtl(),
+                String.format("%d-%02d-%d",receiveTime.getYear(),receiveTime.getMonthValue(),receiveTime.getDayOfMonth()),
+                String.format("%d-%02d-%d",guaranteeTime.getYear(),guaranteeTime.getMonthValue(),guaranteeTime.getDayOfMonth()),
+                isWarranty+"",corrAddress.getAddressPlot()};
+
+        List<String[]> list = new ArrayList<>();
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        predicate.setRegisterId(registerId);
+        Page<FaultRecord> recordPage = faultRecordService.findByPredicate(predicate,null,Sort.by(Sort.Direction.DESC,"faultTime"));
+        recordPage.get().forEach(record->{
+            Integer serviceId = record.getServicerId();
+            NewenergyAdmin admin = faultRecordService.getNewenergyAdmin(serviceId);
+            String servicerName = null;
+            LocalDateTime faultTime = record.getFaultTime();
+            LocalDateTime finishTime = record.getFinishTime();
+            String faultTimeStr = "";
+            String finishTimeStr = "";
+            if(faultTime!=null){
+                faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            if(finishTime!=null){
+                finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            if(admin != null) servicerName = admin.getRealName();
+            String[] strings = new String[]{faultTimeStr, record.getPhenomenon(),record.getSolution(), finishTimeStr,
+                    servicerName, record.getResult()+""};
+            list.add(strings);
+        });
+
+        ExcelMaintain excel = new ExcelMaintain();
+        excel.createExcel(firstLineValue, list);
+        excel.exportExcel(filename,response);
+    }
 
 }

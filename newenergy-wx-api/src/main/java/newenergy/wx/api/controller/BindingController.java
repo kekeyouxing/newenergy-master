@@ -13,6 +13,8 @@ import newenergy.wx.api.service.MsgService;
 import newenergy.wx.api.util.WxXmlUtil;
 import newenergy.wx.product.manager.UserTokenManager;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +33,8 @@ import java.util.*;
 @RestController
 @RequestMapping("wx")
 public class BindingController {
+    private Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private MsgService msgService;
     @Autowired
@@ -47,9 +51,9 @@ public class BindingController {
     private final String unbindingLabel = "点此解绑";
     private final String searchingLabel = "点此查看";
 
-    private final String bindingUrl = "/#/companyUserBind";
-    private final String unbindingUrl = "/#/companyUserBind";
-    private final String searchingUrl = "/#/faultRecords";
+    private final String bindingUrl = "/#/wx/companyUserBind";
+    private final String unbindingUrl = "/#/wx/companyUserBind";
+    private final String searchingUrl = "/#/wx/faultRecords";
     @RequestMapping("forward/bind")
     public String forward1(){
         return "绑定页面";
@@ -78,10 +82,6 @@ public class BindingController {
         List<String> msgs = new ArrayList<>();
         msgs.add(nonce);
         msgs.add(timestamp);
-        /**
-         * TODO
-         * 配置的Token
-         */
         msgs.add("hgdr_hust");
         Collections.sort(msgs);
         String result = DigestUtils.sha1Hex(msgs.get(0)+msgs.get(1)+msgs.get(2));
@@ -106,6 +106,7 @@ public class BindingController {
             return msgService.buildText(text.getFromUserName(),text.getToUserName(),greeting);
         }else if("text".equals(text.getMsgType())){
             String content = text.getContent();
+            log.info("receive message from wx : " + content);
             if(!binding.equals(content) && !unbinding.equals(content) && !searching.equals(content)) return "";
             String param = String.format("?token=%s&state=%d",UserTokenManager.generateTokenWithOpenId(text.getFromUserName()).getToken(),
                     msgService.getBindState(text.getFromUserName()));

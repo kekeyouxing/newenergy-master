@@ -78,4 +78,7 @@ public class ExtraWater {
         this.recordId = recordId;
         this.addAmount = addAmount;
     }
+
+    public ExtraWater() {
+    }
 }

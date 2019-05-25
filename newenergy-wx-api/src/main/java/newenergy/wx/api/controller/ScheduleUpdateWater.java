@@ -1,6 +1,8 @@
 package newenergy.wx.api.controller;
 
+import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.*;
+import newenergy.db.global.Parameters;
 import newenergy.db.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,9 @@ public class ScheduleUpdateWater {
     @Autowired
     private StatisticPlotRechargeService plotRechargeService;
 
+    @Autowired
+    private StorageService storageService;
+
     private static ScheduleUpdateWater scheduleUpdateWater;
 
     @PostConstruct
@@ -66,7 +71,10 @@ public class ScheduleUpdateWater {
 
     @Transactional
     @Async
-//    @Scheduled(cron = "0/5 * * * * ?")
+    /**
+     * TODO [TEST]每分钟生成一次
+     */
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
@@ -74,19 +82,25 @@ public class ScheduleUpdateWater {
             Integer addAmount = extraWater.getAddAmount();
             RechargeRecord rechargeRecord = scheduleUpdateWater.rechargeRecordService.findById(extraWater.getRecordId());
             RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
-            if (isTrustworthy(remainWater)){
+
+//            if (isTrustworthy(remainWater)){
                 updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
+                storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
                 scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
-            }
+
+//            }
         }
     }
 
+
     private boolean isTrustworthy(RemainWater remainWater){
-        LocalDateTime updataTime = remainWater.getUpdateTime();
+        if(remainWater==null || remainWater.getRemainVolume()==null || remainWater.getCurAmount()==null || remainWater.getCurFirstRemain() ==null
+        || remainWater.getCurRecharge() == null) return false;
+        LocalDateTime updateTime = remainWater.getUpdateTime();
         LocalDateTime now = LocalDateTime.now();
-        Duration duration = Duration.between(now,updataTime);
+        Duration duration = Duration.between(updateTime,now);
         long differMinutes = duration.toMinutes();
-        if (differMinutes > 10){
+        if (differMinutes > Parameters.TRUSTDURATION){
             return false;
         }
         else{
@@ -119,8 +133,9 @@ public class ScheduleUpdateWater {
         rechargeRecord.setRemainVolume(remainVolume);
         rechargeRecord.setUpdatedVolume(updatedVolume);
         scheduleUpdateWater.rechargeRecordService.updateRechargeRecord(rechargeRecord,null);
-        remainWater.setRemainVolume(updatedVolume);
-        remainWater.setUpdateTime(LocalDateTime.now());
+        //剩余水量表与设备的数据同步，传来多少就更新为多少。无需直接定时更新数据库
+//        remainWater.setRemainVolume(updatedVolume);
+//        remainWater.setUpdateTime(LocalDateTime.now());
         remainWater.setCurRecharge(remainWater.getCurRecharge().add(addVolume));
         remainWater.setCurAmount(remainWater.getCurAmount()+addAmount);
         scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
@@ -132,6 +147,10 @@ public class ScheduleUpdateWater {
      */
     @Transactional
     @Async
+    /**
+     * TODO [TEST]每十分钟生成一次
+     */
+    @Scheduled(cron = "0 0/5 * * * ?")
 //    @Scheduled(cron = "0 0 0 1 1/1 ?")
     public void updateConsume() {
         List<RemainWater> remainWaters = scheduleUpdateWater.remainWaterService.findAll();
@@ -150,7 +169,7 @@ public class ScheduleUpdateWater {
             remainWater.setCurRecharge(new BigDecimal(0));
             remainWater.setCurAmount(0);
             remainWater.setCurFirstRemain(remainWater.getRemainVolume());
-            remainWater.setUpdateTime(LocalDateTime.now());
+//            remainWater.setUpdateTime(LocalDateTime.now());
             scheduleUpdateWater.remainWaterService.updateRemainWater(remainWater);
         }
     }
@@ -160,6 +179,10 @@ public class ScheduleUpdateWater {
      */
     @Transactional
     @Async
+    /**
+     * TODO [TEST]每十分钟生成一次
+     */
+    @Scheduled(cron = "0 1/5 * * * ?")
     //@Scheduled(cron = "0 30 0 1 1/1 ?")
     public void updatePlotRecharge() {
         List<CorrPlot> plots = scheduleUpdateWater.corrPlotService.findAll();
@@ -174,6 +197,7 @@ public class ScheduleUpdateWater {
             List<Resident> residents = scheduleUpdateWater.residentService.findByPlotNum(plot.getPlotNum());
             for(Resident resident: residents) {
                 StatisticConsume consume = scheduleUpdateWater.consumeService.findByRegisterIdAndUpdateTime(resident.getRegisterId(), curTime);
+                if(consume==null) continue;
                 amount = amount + consume.getCurAmount();
                 rechargeVolume = rechargeVolume.add(consume.getCurRecharge());
                 usedVolume = usedVolume.add(consume.getCurUsed());
@@ -186,6 +210,7 @@ public class ScheduleUpdateWater {
             scheduleUpdateWater.plotRechargeService.addPlotRecharge(plotRecharge);
 
         }
+        new PlotFactorService().updateFactor();
     }
 
 

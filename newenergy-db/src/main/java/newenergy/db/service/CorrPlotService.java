@@ -1,9 +1,11 @@
 package newenergy.db.service;
 
 import newenergy.db.domain.CorrPlot;
+import newenergy.db.domain.Resident;
 import newenergy.db.predicate.CorrPlotPredicate;
 import newenergy.db.predicate.PredicateFactory;
 import newenergy.db.repository.CorrPlotRepository;
+import newenergy.db.repository.ResidentRepository;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +17,19 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CorrPlotService extends LogicOperation<CorrPlot> {
     @Autowired
     private CorrPlotRepository corrPlotRepository;
+
+    @Autowired
+    private ResidentRepository residentRepository;
 
     /**
      * 查询所有小区，按照小区编号排序
@@ -119,11 +122,44 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
 
     /**
      * by Zeng Hui
-     * @param page start with 0
-     * @param limit
      * @return
      */
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit) {
+    public List<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate) {
+        Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
+            List<Predicate> lists = new ArrayList<>();
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotDtl())) {
+                lists.add(cb.like(root.get("plotDtl").as(String.class), StringUtilCorey.getMod(predicate.getPlotDtl())));
+            }
+            if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
+                lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
+            }
+
+            if(predicate.getPlots() != null){
+                Path<Object> path = root.get("plotNum");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
+                for(String plot : predicate.getPlots()){
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
+                    in.value(plot);
+                }
+                in.value("");
+                lists.add(cb.and(in));
+            }
+
+            Predicate[] arr = new Predicate[lists.size()];
+            return cb.and(lists.toArray(arr));
+        };
+        specification = specification.and(PredicateFactory.getAliveSpecification());
+        return corrPlotRepository.findAll(specification);
+    }
+
+    public Page<CorrPlot> findAllCorrPlotWithAlivePaged(CorrPlotPredicate predicate, Integer page, Integer limit){
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "plotNum"));
         Specification<CorrPlot> specification = (Root<CorrPlot> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
             List<Predicate> lists = new ArrayList<>();
@@ -133,10 +169,39 @@ public class CorrPlotService extends LogicOperation<CorrPlot> {
             if (!StringUtilCorey.emptyCheck(predicate.getPlotNum())) {
                 lists.add(cb.equal(root.get("plotNum").as(String.class), predicate.getPlotNum()));
             }
+
+            if(predicate.getPlots() != null){
+                Path<Object> path = root.get("plotNum");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                if(predicate.getPlots().isEmpty()){
+                    predicate.setPlots(corrPlotRepository
+                            .findAll()
+                            .stream()
+                            .map(CorrPlot::getPlotNum)
+                            .collect(Collectors.toList()));
+                }
+                for(String plot : predicate.getPlots()){
+                    if(StringUtilCorey.emptyCheck(plot)) continue;
+                    in.value(plot);
+                }
+                in.value("");
+                lists.add(cb.and(in));
+            }
+
             Predicate[] arr = new Predicate[lists.size()];
             return cb.and(lists.toArray(arr));
         };
         specification = specification.and(PredicateFactory.getAliveSpecification());
-        return corrPlotRepository.findAll(specification, pageable);
+        return corrPlotRepository.findAll(specification,pageable);
+    }
+
+    /**
+     * by Zeng Hui
+     * @param plotDtl
+     * @return
+     */
+    public List<CorrPlot> findAllByPlotDtl(String plotDtl){
+        Specification<CorrPlot> spec = getListSpecification(plotDtl);
+        return corrPlotRepository.findAll(spec);
     }
 }

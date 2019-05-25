@@ -1,5 +1,6 @@
 package newenergy.db.service;
 
+import newenergy.core.util.SpringUtil;
 import newenergy.db.constant.ApplyFactorConstant;
 import newenergy.db.constant.ResultConstant;
 import newenergy.db.constant.SafeConstant;
@@ -12,6 +13,7 @@ import newenergy.db.repository.ApplyFactorRepository;
 import newenergy.db.repository.CorrPlotRepository;
 import newenergy.db.repository.NewenergyAdminRepository;
 import newenergy.db.template.Searchable;
+import newenergy.db.util.SortUtil;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,28 +23,35 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by HUST Corey on 2019-04-18.
  */
 @Service
 public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPredicate> {
-    @Autowired
+//    @Autowired
     private ApplyFactorRepository repository;
-    @Autowired
+//    @Autowired
     private CorrPlotService corrPlotService;
-    @Autowired
+//    @Autowired
     CorrPlotRepository corrPlotRepository;
-    @Autowired
+//    @Autowired
     NewenergyAdminRepository newenergyAdminRepository;
+
+    public PlotFactorService(){
+        repository = SpringUtil.getBean(ApplyFactorRepository.class);
+        corrPlotService = SpringUtil.getBean(CorrPlotService.class);
+        corrPlotRepository = SpringUtil.getBean(CorrPlotRepository.class);
+        newenergyAdminRepository = SpringUtil.getBean(NewenergyAdminRepository.class);
+    }
 
     /**
      * 后台批量充值模块
@@ -54,6 +63,12 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
     public Page<ApplyFactor> findAllUncheckApply(Pageable pageable, Sort sort){
         ApplyFactorPredicate predicate = new ApplyFactorPredicate();
         predicate.setState(ApplyFactorConstant.UNCHECK);
+        return findByPredicate(predicate,pageable,sort);
+    }
+
+    public Page<ApplyFactor> findAllByPlotNum(String plotNum, Pageable pageable, Sort sort){
+        ApplyFactorPredicate predicate = new ApplyFactorPredicate();
+        predicate.setPlots(Collections.singletonList(plotNum));
         return findByPredicate(predicate,pageable,sort);
     }
 
@@ -76,8 +91,11 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
     }
 
-    public Page<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate, Integer page, Integer limit){
-        return corrPlotService.findAllCorrPlotWithAlive(predicate,page,limit);
+    public List<CorrPlot> findAllCorrPlotWithAlive(CorrPlotPredicate predicate){
+        return corrPlotService.findAllCorrPlotWithAlive(predicate);
+    }
+    public Page<CorrPlot> findAllCorrPlotWithAlivePaged(CorrPlotPredicate predicate, Integer page, Integer limit){
+        return corrPlotService.findAllCorrPlotWithAlivePaged(predicate,page,limit);
     }
     public String getPlotDtl(String plotNum){
         CorrPlot corrPlot = corrPlotRepository.findFirstByPlotNumAndSafeDelete(plotNum,SafeConstant.SAFE_ALIVE);
@@ -90,6 +108,7 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
         return admin==null?null:admin.getRealName();
     }
 
+
     public Integer applyUpdateFactor(Integer id, String plotNum, BigDecimal updateFactor){
         ApplyFactor applyFactor = new ApplyFactor();
         applyFactor.setLaborId(id);
@@ -100,12 +119,26 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
 
         CorrPlotPredicate predicate = new CorrPlotPredicate();
         predicate.setPlotNum(plotNum);
-        Page<CorrPlot> allRes = findAllCorrPlotWithAlive(predicate,0,1);
-        CorrPlot res = allRes.get().findFirst().orElse(null);
+        List<CorrPlot> allRes = findAllCorrPlotWithAlive(predicate);
+        CorrPlot res = allRes.isEmpty()?null:allRes.get(0);
         if(res == null) return ResultConstant.ERR;
         BigDecimal originFactor = res.getPlotFactor();
         applyFactor.setOriginFactor(originFactor);
         return repository.saveAndFlush(applyFactor)==null?ResultConstant.ERR:ResultConstant.OK;
+    }
+
+//    更新审核通过待生效的充值系数
+    public void updateFactor(){
+        List<ApplyFactor> list = repository.findAllByStateOrderByCheckTime(1);
+        for (ApplyFactor applyFactor :
+                list) {
+            CorrPlot corrPlot = corrPlotService.findPlotByPlotNum(applyFactor.getPlotNum());
+            corrPlot.setPlotFactor(applyFactor.getUpdateFactor());
+            corrPlotService.updateCorrPlot(corrPlot,applyFactor.getLaborId());
+            applyFactor.setState(3);
+            repository.saveAndFlush(applyFactor);
+        }
+
     }
     @Override
     public Specification<ApplyFactor> addConditioin(ApplyFactorPredicate predicate, Specification<ApplyFactor> other) {
@@ -116,8 +149,8 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                 if(!StringUtilCorey.emptyCheck(predicate.getPlotDtl())){
                     CorrPlotPredicate corrPlotPredicate = new CorrPlotPredicate();
                     corrPlotPredicate.setPlotDtl(predicate.getPlotDtl());
-                    Page<CorrPlot> allRes = findAllCorrPlotWithAlive(corrPlotPredicate,0,1);
-                    CorrPlot res = allRes.get().findFirst().orElse(null);
+                    List<CorrPlot> allRes = findAllCorrPlotWithAlive(corrPlotPredicate);
+                    CorrPlot res = allRes==null?null:allRes.get(0);
                     String plotNum = "";
                     if(res != null){
                         plotNum = res.getPlotNum();
@@ -126,6 +159,23 @@ public class PlotFactorService implements Searchable<ApplyFactor, ApplyFactorPre
                 }
                 if(predicate.getState() != null){
                     lists.add(criteriaBuilder.equal(root.get("state").as(Integer.class),predicate.getState()));
+                }
+                if(predicate.getPlots() != null){
+                    Path<Object> path = root.get("plotNum");
+                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                    if(predicate.getPlots().isEmpty()){
+                        predicate.setPlots(corrPlotRepository
+                                .findAll()
+                                .stream()
+                                .map(CorrPlot::getPlotNum)
+                                .collect(Collectors.toList()));
+                    }
+                    for(String plot : predicate.getPlots()){
+                        if(StringUtilCorey.emptyCheck(plot)) continue;
+                        in.value(plot);
+                    }
+                    in.value("");
+                    lists.add(criteriaBuilder.and(in));
                 }
 
                 Predicate[] arr = new Predicate[lists.size()];

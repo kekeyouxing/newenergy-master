@@ -1,5 +1,7 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.excel.ExcelAfterSale;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.CorrAddress;
@@ -15,12 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -120,8 +121,9 @@ public class StatServicerController {
      * }
      */
     @RequestMapping(value = "servicer/list",method = RequestMethod.POST)
-    public Map<String,Object> listServicers(@RequestBody ListServicerDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> listServicers(@RequestBody ListServicerDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer year = dto. getYear();
         Integer month = dto.getMonth();
         Integer page = dto.getPage();
@@ -208,8 +210,9 @@ public class StatServicerController {
         }
     }
     @RequestMapping(value = "servicer/dtl",method = RequestMethod.POST)
-    public Map<String,Object> servicerDtl(@RequestBody ServicerDtlDTO dto){
-        Integer id = dto.getId();
+    public Map<String,Object> servicerDtl(@RequestBody ServicerDtlDTO dto, @AdminLoginUser NewenergyAdmin user){
+//        Integer id = dto.getId();
+        Integer id = user.getId();
         Integer servicerId = dto.getServicerId();
         Integer year = dto.getYear();
         Integer month = dto.getMonth();
@@ -249,5 +252,65 @@ public class StatServicerController {
         });
         ret.put("list",list);
         return ret;
+    }
+
+    //
+    @GetMapping("/afterSaleDownload")
+    public void afterSaleDownload(HttpServletResponse response, @RequestParam String year,
+                                  @RequestParam String month, @RequestParam String servicerName,
+                                  @RequestParam String servicerId, @RequestParam String filename){
+
+        int monthNum = Integer.parseInt(month);
+        int servicerIdNum = Integer.parseInt(servicerId);
+        int yearNum = Integer.parseInt(year);
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        //维修人
+        predicate.setServicerId(servicerIdNum);
+        //时间
+        if(year != null && month != null && check(yearNum,monthNum))
+            predicate.setFinishTime(LocalDateTime.of(yearNum,monthNum,1,0,0));
+        //处理完成的
+        predicate.setState(FaultRecordConstant.STATE_FINISH);
+        Page<FaultRecord> allRes = faultRecordService.findByPredicate(predicate, null, Sort.by(Sort.Direction.DESC,"finishTime"));
+        List<String[]> list = new ArrayList<>();
+        allRes.forEach(record -> {
+
+            Resident resident = faultRecordService.getResident(record.getRegisterId());
+            String roomNum = null, addressDtl = null;
+            if(resident!=null){
+                roomNum = resident.getRoomNum();
+                CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+                addressDtl = corrAddress==null?null:corrAddress.getAddressDtl();
+            }
+            LocalDateTime responseTime = record.getResponseTime();
+            String responseTimeStr = "";
+            if(responseTime!=null){
+                responseTimeStr = responseTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            LocalDateTime finishTime = record.getFinishTime();
+            String finishTimeStr = "";
+            if(finishTime!=null){
+                finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            LocalDateTime faultTime = record.getFaultTime();
+            String faultTimeStr = "";
+            if(faultTime!=null){
+                faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            String[] strings = new String[]{record.getRegisterId(), addressDtl, roomNum, record.getPhenomenon(),
+                    faultTimeStr, responseTimeStr, finishTimeStr,
+                    record.getSolution(), record.getResult()+""};
+
+            list.add(strings);
+        });
+
+        ExcelAfterSale excel = new ExcelAfterSale();
+        int monthPlus = monthNum+1;
+        excel.setTime(year+"-"+monthPlus+"-01");
+        excel.setServicerId(servicerId);
+        excel.setServicerName(servicerName);
+        excel.createExcel(list);
+        excel.exportExcel(filename,response);
     }
 }

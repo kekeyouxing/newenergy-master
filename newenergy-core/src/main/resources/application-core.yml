@@ -1,16 +1,18 @@
 quwen:
   wx:
-    app-id: wx56acef520e1b0030
-    app-secret: 3848a4749c6337c86f3dcf42b3d21d2a
-    mch-id: 111111
-    mch-key: xxxxxx
-    notify-url: http://www.example.com/wx/order/pay-notify
+    app-id: 
+    app-secret: 
+    mch-id: 
+    mch-key: 
+    key-path: 
+#    notify-url: http://hgdr.top/wx/order/pay-notify
 corey:
-  ## by Zeng Hui，测试号的appid和appsecret和微信号
   wx:
-    app-id: wx0ecc55fde07a32af
-    app-secret: 204968f0b20dd9d7551eea63b797a459
-    username: gh_5aebddaa55cc
-  ##临时域名
-  domain: http://192.168.199.105:8080
+    #测试号appid
+    app-id: 
+    app-secret: 
+  ##微信公众号前端地址（若为内网地址，手机需连接校园网访问），8080为微信公众号前端占用的端口。最后要加 /
+  domain: 
+  ##后台项目外网地址。最后要加 /
+  domain2: 
 

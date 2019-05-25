@@ -54,3 +54,8 @@ quwen-core/target/
 quwen-db/target/
 quwen-web/target/
 quwen-wx-api/target/
+newenergy-admin-api/target/
+newenergy-all/target/
+newenergy-core/src/main/java/newenergy/core/validator/
+newenergy-core/target/
+newenergy-db/target/

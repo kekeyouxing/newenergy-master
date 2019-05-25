@@ -10,7 +10,6 @@ public class RefundRecord  implements Cloneable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Integer id;
     private String registerId;
     private String plotNum;
@@ -25,6 +24,17 @@ public class RefundRecord  implements Cloneable{
     private Integer safeChangedUserid;
     private Integer safeDelete;
     private Integer safeParent;
+    private String rejectReason;
+    //微信退款单号
+    private String outRefundNo;
+
+    public String getOutRefundNo() {
+        return outRefundNo;
+    }
+
+    public void setOutRefundNo(String outRefundNo) {
+        this.outRefundNo = outRefundNo;
+    }
 
     public Integer getId() {
         return id;
@@ -136,6 +146,14 @@ public class RefundRecord  implements Cloneable{
 
     public void setSafeParent(Integer safeParent) {
         this.safeParent = safeParent;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 
     @Override

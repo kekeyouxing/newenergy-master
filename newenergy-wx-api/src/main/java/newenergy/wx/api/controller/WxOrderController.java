@@ -1,7 +1,5 @@
 package newenergy.wx.api.controller;
 
-import newenergy.wx.annotation.OAuthUser;
-import newenergy.wx.annotation.Recharge;
 import newenergy.wx.api.service.WxCommonService;
 import newenergy.wx.api.service.WxOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * 微信充值
@@ -24,7 +23,6 @@ public class WxOrderController {
 
     /**
      * @author yangq
-     * 添加@OAuthUser注解
      * @param body
      * @param request
      * @return
@@ -39,8 +37,19 @@ public class WxOrderController {
     }
 
     @PostMapping("pay-notify")
-    public Object payNotify(HttpServletRequest request, HttpServletResponse response){
-        return wxOrderService.payNotify(request,response);
+    public Object payNotify(HttpServletRequest request){
+        return wxOrderService.payNotify(request);
+    }
+
+    @PostMapping("refund")
+    public Object refund(@RequestBody Map<String,Object> body){
+
+        return wxOrderService.refund(body);
+    }
+
+    @PostMapping("refund-notify")
+    public Object refundNotify(HttpServletRequest request){
+        return wxOrderService.refundNotify(request);
     }
 
     /**

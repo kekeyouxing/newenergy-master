@@ -47,24 +47,24 @@ public class MsgController {
     /**
      * 故障消息提醒回调路径
      */
-    private final String faultRecall = "/#/faultMsg";
+    private final String faultRecall = "/#/wx/faultMsg";
     /**
      * 故障消息上报回调路径
      */
-    private final String reportRecall =  "/#/faultMsgLeader";
+    private final String reportRecall =  "/#/wx/faultMsgLeader";
 
     /**
      * 故障提醒消息id
      */
-    private final String faultMsgId = "FiSumxdmorUPGgTh8BHmX7hlkxOOASYN3DFTItJjxc4";
+    private final String faultMsgId = "wNKMlHvDzUs48ldxtOwRaL8ljn0cfGMlb8hb_CJ88iY";
     /**
      * 流量预警消息id
      */
-    private final String warnMsgId = "e1dLYCj_s17-wEbFvNm3lyPLEN8lQRcf5h38XmXftWQ";
+    private final String warnMsgId = "oia2Tyw1F922oXVx35U48M-YMstPm57o5_wmiDkgeV8";
     /**
      * 故障超时上报消息id
      */
-    private final String faultReportId = "nOD-gDlv1w8_bZN5V5NreUgFPA-J1OruL3nAyIb1WSE";
+    private final String faultReportId = "slbtje6sGc6CT68Vs4mNjVLSy2_8HaAB8NcWwf_7NUY";
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -104,10 +104,22 @@ public class MsgController {
         Map<String,Object> partName = new HashMap<>();
         partName.put("value",body.get("partName"));
         partName.put("color","#173177");
-        subBody.put("phenomenon",pheno);
-        subBody.put("address",address);
-        subBody.put("phone",phone);
-        subBody.put("partName",partName);
+        subBody.put("keyword1",pheno);
+        subBody.put("keyword2",address);
+        subBody.put("keyword3",partName);
+        subBody.put("keyword4",phone);
+        Map<String,Object> first = new HashMap<>();
+
+        first.put("value","您有一条故障提醒");
+        first.put("color","#173177");
+        Map<String,Object> remark = new HashMap<>();
+
+        remark.put("value","请尽快处理");
+        remark.put("color","#173177");
+        subBody.put("first",first);
+        subBody.put("remark",remark);
+
+
         jsonMap.put("data",subBody);
         return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }
@@ -115,19 +127,45 @@ public class MsgController {
     @RequestMapping(value = "threshold/send", method = RequestMethod.POST)
     public MsgRet thresholdMsg(@RequestBody Map<String,Object> body) throws Exception{
         if(!RequestUtil.checkMap(body,
-                new String[]{"touser","remainWater","updateTime"})) return null;
+                new String[]{"touser","remainWater","username","registerId","address"})) return null;
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",warnMsgId);
         Map<String,Object> subBody = new HashMap<>();
+
+        Map<String,Object> username = new HashMap<>();
+        username.put("color","#173177");
+        username.put("value",body.get("username"));
+
+        Map<String,Object> address = new HashMap<>();
+        address.put("color","#173177");
+        address.put("value",body.get("address"));
+
+        Map<String,Object> registerId = new HashMap<>();
+        registerId.put("color","#173177");
+        registerId.put("value",body.get("registerId"));
+
         Map<String,Object> remainWater = new HashMap<>();
         remainWater.put("color","#173177");
-        remainWater.put("value",body.get("remainWater"));
-        Map<String,Object> updateTime = new HashMap<>();
-        updateTime.put("color","#173177");
-        updateTime.put("value",body.get(updateTime));
-        subBody.put("remainWater",remainWater);
-        subBody.put("updateTime",updateTime);
+        remainWater.put("value",body.get("remainWater")+"吨");
+
+        subBody.put("keyword1",username);
+        subBody.put("keyword2",address);
+        subBody.put("keyword3",registerId);
+        subBody.put("keyword4",remainWater);
+
+
+        Map<String,Object> first = new HashMap<>();
+
+        first.put("value","您的剩余水量低于设置的阈值");
+        first.put("color","#173177");
+        Map<String,Object> remark = new HashMap<>();
+
+        remark.put("value","为了不影响您的正常生活用水，请尽快充值。");
+        remark.put("color","#173177");
+        subBody.put("first",first);
+        subBody.put("remark",remark);
+
         jsonMap.put("data",subBody);
         return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }
@@ -138,8 +176,10 @@ public class MsgController {
         Map<String,Object> jsonMap = new HashMap<>();
         jsonMap.put("touser",body.get("touser"));
         jsonMap.put("template_id",faultReportId);
+        Integer faultId = Integer.valueOf((String) body.get("faultId"));
+
         String param = String.format("?faultId=%d&token=%s",
-                body.get("faultId"),
+                faultId,
                 UserTokenManager.generateTokenWithOpenId((String)body.get("touser")).getToken() );
         jsonMap.put("url",serverConfig.getDomain() + reportRecall + param);
         Map<String,Object> subBody = new HashMap<>();
@@ -152,9 +192,22 @@ public class MsgController {
         Map<String,Object> servicer = new HashMap<>();
         servicer.put("value",body.get("servicer"));
         servicer.put("color","#173177");
-        subBody.put("faultTime",faultTime);
-        subBody.put("address",address);
-        subBody.put("servicer",servicer);
+        subBody.put("keyword1",address);
+        subBody.put("keyword2",servicer);
+        subBody.put("keyword3",faultTime);
+
+
+        Map<String,Object> first = new HashMap<>();
+
+        first.put("value","故障超时未响应");
+        first.put("color","#173177");
+        Map<String,Object> remark = new HashMap<>();
+
+        remark.put("value","请及时处理");
+        remark.put("color","#173177");
+        subBody.put("first",first);
+        subBody.put("remark",remark);
+
         jsonMap.put("data",subBody);
         return restTemplate.postForObject(sendurl+msgService.getAccessToken(),objectMapper.writeValueAsBytes(jsonMap),MsgRet.class);
     }

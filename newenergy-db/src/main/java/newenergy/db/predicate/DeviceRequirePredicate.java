@@ -1,11 +1,31 @@
 package newenergy.db.predicate;
 
+import java.util.List;
+
 /**
  * Created by HUST Corey on 2019-04-17.
  */
 public class DeviceRequirePredicate {
     String plotDtl;
     String plotNum;
+    List<String> plots;
+    boolean ignoreSetting;
+
+    public boolean isIgnoreSetting() {
+        return ignoreSetting;
+    }
+
+    public void setIgnoreSetting(boolean ignoreSetting) {
+        this.ignoreSetting = ignoreSetting;
+    }
+
+    public List<String> getPlots() {
+        return plots;
+    }
+
+    public void setPlots(List<String> plots) {
+        this.plots = plots;
+    }
 
     public String getPlotNum() {
         return plotNum;

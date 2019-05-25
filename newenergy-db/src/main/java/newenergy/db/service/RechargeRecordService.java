@@ -37,7 +37,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return RechargeRecord
      */
     public RechargeRecord findBySn(String orderSn){
-        return repository.findFirstByOrderSn(orderSn);
+        return repository.findFirstByOrderSnAndSafeDelete(orderSn,0);
     }
     /**
      * 添加记录
@@ -74,7 +74,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0));
+        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0),Sort.by(Sort.Direction.DESC,"rechargeTime"));
     }
 
     /**
@@ -84,7 +84,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      */
 //    根据id查询批量充值记录
     public RechargeRecord findById(int id){
-        return repository.findFirstById(id);
+//        return repository.findFirstById(id);
+        return repository.findFirstByIdAndSafeDelete(id,0);
     }
 
     //TODO 这里生成一个唯一的商户订单号，但仍有两个订单相同的可能性
@@ -95,7 +96,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
         if (hashCodev < 0){
             hashCodev =- hashCodev;
         }
-        return "pk"+now+String.format("%012d",hashCodev);
+        return "hgdr"+now+String.format("%012d",hashCodev);
     }
 
     /**
@@ -121,7 +122,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
     public Page<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum, Integer page, Integer size){
         Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
         Pageable pageable = PageRequest.of(page, size,sort);
-        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),pageable);
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum,1),pageable);
     }
 
     /**
@@ -132,9 +133,9 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param state
      * @return
      */
-    public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum){
-        Sort sort = Sort.by(Sort.Direction.DESC,"safeChangedTime");
-        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum),sort);
+    public List<RechargeRecord> findByConditions(Integer batchRecordId, Integer reviewState, String registerId, Integer state, String plotNum,Integer delegate){
+        Sort sort = Sort.by(Sort.Direction.DESC,"rechargeTime");
+        return repository.findAll(findAllByConditions(batchRecordId,reviewState,registerId,state,plotNum,delegate),sort);
     }
 
     /**
@@ -174,8 +175,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @param state
      * @return
      */
-    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum){
-        return findAllByConditions1(batchRecordId, reviewState, registerId, state, plotNum, 1);
+    private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum,Integer delegate){
+        return findAllByConditions1(batchRecordId, reviewState, registerId, state, plotNum, delegate);
     }
 
     private Specification<RechargeRecord> findAllByConditions1(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum, Integer delegate){
@@ -198,8 +199,8 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
                 if (!StringUtils.isEmpty(plotNum)){
                     predicates.add(criteriaBuilder.equal(root.get("plotNum"),plotNum));
                 }
-                if(delegate==1){
-                    predicates.add(criteriaBuilder.equal(root.get("delegate"),1));
+                if(!StringUtils.isEmpty(delegate)){
+                    predicates.add(criteriaBuilder.equal(root.get("delegate"),delegate));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));

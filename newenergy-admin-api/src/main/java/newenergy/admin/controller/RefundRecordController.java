@@ -1,13 +1,18 @@
 package newenergy.admin.controller;
 
 
+import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.admin.background.service.StorageService;
 import newenergy.admin.util.IpUtil;
+import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
 import newenergy.db.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -47,10 +52,20 @@ public class RefundRecordController {
 
     @Autowired
     CorrAddressService corrAddressService;
+
+    @Autowired
+    StorageService storageService;
+
+    @Value("${server.port}")
+    private String port;
+    private String sendMsgPrefix = "http://localhost:";
+    private String sendMsgSuffix ="/wx/fault/refund";
+    private RestTemplate restTemplate = new RestTemplate();
     //    未审核通过的订单发起退款
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
     public Object addReview(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request){
+                            HttpServletRequest request,
+                            @AdminLoginUser NewenergyAdmin user){
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
         RechargeRecord rechargeRecord = rechargeRecordService.findById(postInfo.getRechargeId());
         RefundRecord refundRecord = new RefundRecord();
@@ -60,10 +75,10 @@ public class RefundRecordController {
         refundRecord.setRefundVolume(rechargeRecord.getRechargeVolume());
         refundRecord.setRefundTime(LocalDateTime.now());
         refundRecord.setRecordId(rechargeRecord.getId());
-        refundRecord.setRechargeId(postInfo.getOperatorId());
+        refundRecord.setRechargeId(user.getId());
         refundRecord.setState(1);
-        RefundRecord newRecord = refundRecordService.addRefundRecord(refundRecord,postInfo.getOperatorId());
-        manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),2,newRecord.getId());
+        RefundRecord newRecord = refundRecordService.addRefundRecord(refundRecord,user.getId());
+        manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),2,newRecord.getId());
         return ResponseUtil.ok();
     }
 
@@ -90,7 +105,8 @@ public class RefundRecordController {
             resultInfo.setRefundAmount(refundRecord.getRefundAmount());
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
-            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getUsername());
+            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
             resultInfo.setState(refundRecord.getState());
             resultInfos.add(resultInfo);
         }
@@ -125,10 +141,12 @@ public class RefundRecordController {
             resultInfo.setRefundAmount(refundRecord.getRefundAmount());
             resultInfo.setRefundVolume(refundRecord.getRefundVolume());
             resultInfo.setRefundTime(localDateTimeToLong(refundRecord.getRefundTime()));
-            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getUsername());
+            resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId()).getRealName());
             resultInfo.setCheckTime(localDateTimeToLong(refundRecord.getSafeChangedTime()));
-            resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getUsername());
+            resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid()).getRealName());
             resultInfo.setState(refundRecord.getState());
+            resultInfo.setRefundReason(rechargeRecord.getRejectReason());
+            resultInfo.setRejectReason(refundRecord.getRejectReason());
             resultInfos.add(resultInfo);
         }
         Map<String,Object> result = new HashMap<>();
@@ -152,33 +170,44 @@ public class RefundRecordController {
     //    审核退款记录
     @RequestMapping(value = "/review", method = RequestMethod.POST)
     public Object review(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request) throws  CloneNotSupportedException {
+                         HttpServletRequest request,
+                         @AdminLoginUser NewenergyAdmin user) throws  CloneNotSupportedException {
 //        state为1代表待审核，0代表审核通过，2代表审核不通过
         for (ReviewState reviewState:postInfo.getList()) {
             RefundRecord refundRecord = (RefundRecord) refundRecordService.findById(reviewState.getId()).clone();
             refundRecord.setState(reviewState.getReviewState());
-            refundRecord.setCheckId(postInfo.getOperatorId());
+            refundRecord.setCheckId(user.getId());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
-            rechargeRecord.setState(1);
-//            审核通过且为个人充值（非代充），则对剩余水量进行更新
-            if ((reviewState.getReviewState()==0) && (rechargeRecord.getDelegate()==0)){
-                RemainWater remainWater = remainWaterService.findByRegisterId(refundRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(refundRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(remainWater.getCurRecharge().subtract(refundRecord.getRefundVolume()));
-                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
-                extraWaterService.add(refundRecord.getRegisterId(),
-                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
-                        refundRecord.getId(),
-                        refundRecord.getRefundAmount()*(-1));
+//            如果审核通过，进一步判断
+            if ((reviewState.getReviewState()==0)){
+                //应该先发送微信退款请求，返回success之后再添加数据库记录
+//                extraWaterService.add(refundRecord.getRegisterId(),
+//                        refundRecord.getRefundVolume().multiply(new BigDecimal(-1)),
+//                        refundRecord.getId(),
+//                        refundRecord.getRefundAmount()*(-1));
+//                如果为非代充，即微信充值，发送退款请求
+                if (rechargeRecord.getDelegate()==0){
+//                    Map<String,Object> requestBody = new HashMap<>();
+//                    requestBody.put("orderId",refundRecord.getRecordId());
+//                    ErrorMsg e = restTemplate.postForObject(sendMsgPrefix + port + sendMsgSuffix,requestBody, ErrorMsg.class);
+////                    如果返回为空或者未返回“成功”，则判断审核失败，失败原因为退款失败
+//                    if ((e==null)||(!e.getErrmsg().equals("成功"))){
+//                        refundRecord.setState(2);
+//                        refundRecord.setRejectReason("微信退款失败");
+//                    }
+                    storageService.addRefundWater(refundRecord.getId(),refundRecord.getRefundVolume());
 
+                }else if (rechargeRecord.getDelegate()==1){
+//                    若为代充，则直接将充值订单作废
+                    rechargeRecord.setState(1);
+                }
+            }else if (reviewState.getReviewState()==2){
+//                若审核不通过，则添加审核不通过原因
+                refundRecord.setRejectReason(reviewState.getRejectReason());
             }
-            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,postInfo.getOperatorId());
-            manualRecordService.add(postInfo.getOperatorId(),IpUtil.getIpAddr(request),3,newRecord.getId());
+            rechargeRecordService.updateRechargeRecord(rechargeRecord,user.getId());
+            RefundRecord newRecord = refundRecordService.updateRefundRecord(refundRecord,user.getId());
+            manualRecordService.add(user.getId(),IpUtil.getIpAddr(request),3,newRecord.getId());
         }
         Map<String,Integer> state = new HashMap<>();
 //        0代表正常、其他代表异常
@@ -189,6 +218,15 @@ public class RefundRecordController {
     private static class ReviewState{
         private Integer id;
         private Integer reviewState;
+        private String rejectReason;
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
+        }
 
         public Integer getId() {
             return id;
@@ -287,6 +325,8 @@ public class RefundRecordController {
         private Integer state;
         private String checkName;
         private Long checkTime;
+        private String refundReason;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -391,6 +431,43 @@ public class RefundRecordController {
 
         public void setCheckTime(Long checkTime) {
             this.checkTime = checkTime;
+        }
+
+        public String getRefundReason() {
+            return refundReason;
+        }
+
+        public void setRefundReason(String refundReason) {
+            this.refundReason = refundReason;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
+        }
+    }
+
+    private static class ErrorMsg{
+        private Integer errno;
+        private String errmsg;
+
+        public Integer getErrno() {
+            return errno;
+        }
+
+        public void setErrno(Integer errno) {
+            this.errno = errno;
+        }
+
+        public String getErrmsg() {
+            return errmsg;
+        }
+
+        public void setErrmsg(String errmsg) {
+            this.errmsg = errmsg;
         }
     }
 

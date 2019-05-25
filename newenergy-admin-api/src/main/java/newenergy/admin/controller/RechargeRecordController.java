@@ -1,5 +1,6 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
 import newenergy.admin.util.IpUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.*;
@@ -73,7 +74,7 @@ public class RechargeRecordController {
                 ResultModel resultModel = new ResultModel();
                 resultModel.setId(batchRecord.getId());
                 resultModel.setPlotDtl(corrPlotService.findByPlotNum(batchRecord.getPlotNum()));
-                resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getUsername());
+                resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getRealName());
                 resultModel.setRechargeTime(localDateTimeToLong(batchRecord.getRechargeTime()));
                 resultModel.setState(batchRecord.getState());
                 list.add(resultModel);
@@ -101,13 +102,14 @@ public class RechargeRecordController {
             ResultModel resultModel = new ResultModel();
             resultModel.setId(rechargeRecord.getId());
             resultModel.setRegisterId(rechargeRecord.getRegisterId());
-            resultModel.setUsername(rechargeRecord.getUserName());
+            resultModel.setUsername(residentService.fingByRegisterId(rechargeRecord.getRegisterId()).getUserName());
             Resident resident = residentService.fingByRegisterId(rechargeRecord.getRegisterId());
             resultModel.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
             resultModel.setRoomNum(resident.getRoomNum());
             resultModel.setAmount(rechargeRecord.getAmount());
             resultModel.setReviewState(rechargeRecord.getReviewState());
             resultModel.setRefundState(refundRecordService.haveRefundRecord(rechargeRecord.getId()));
+            resultModel.setRejectReason(rechargeRecord.getRejectReason());
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
@@ -115,8 +117,10 @@ public class RechargeRecordController {
                 null,
                 null,
                 null,
-                null).size());
+                null,
+                1).size());
         result.put("list",list);
+        result.put("haveCredential",batchRecordService.queryById(postInfo.getBatchRecordId()).getImgUrl()==null?0:1);
         result.put("amount",batchRecordService.queryById(postInfo.getBatchRecordId()).getAmount());
         return result;
     }
@@ -134,10 +138,10 @@ public class RechargeRecordController {
             ResultModel resultModel = new ResultModel();
             resultModel.setId(batchRecord.getId());
             resultModel.setPlotDtl(corrPlotService.findByPlotNum(batchRecord.getPlotNum()));
-            resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getUsername());
+            resultModel.setUsername(adminService.findById(batchRecord.getBatchAdmin()).getRealName());
             resultModel.setRechargeTime(localDateTimeToLong(batchRecord.getRechargeTime()));
             resultModel.setVerifyTime(localDateTimeToLong(batchRecord.getSafeChangedTime()));
-            resultModel.setVerifyUsername(adminService.findById(batchRecord.getSafeChangedUserid()).getUsername());
+            resultModel.setVerifyUsername(adminService.findById(batchRecord.getSafeChangedUserid()).getRealName());
             resultModel.setState(batchRecord.getState());
             list.add(resultModel);
         }
@@ -149,11 +153,12 @@ public class RechargeRecordController {
     }
 
     //    某个用户充值记录
-    @RequestMapping(value = "/findPersonal", method = RequestMethod.POST)
+    @RequestMapping(value = "/findPersonal", method = RequestMethod.POST,produces = "application/json;charset=utf-8")
     public Object findPersonal(@RequestBody PostInfo postInfo){
         List<RechargeRecord> queryResult = rechargeRecordService.findByConditions(null,
-                null,
+                1,
                 postInfo.getRegisterId(),
+                null,
                 null,
                 null);
         List<ResultModel> list = new ArrayList<>();
@@ -167,10 +172,16 @@ public class RechargeRecordController {
             resultModel.setRemainVolume(rechargeRecord.getRemainVolume());
             resultModel.setUpdateVolume(rechargeRecord.getUpdatedVolume());
             resultModel.setRefundState(refundRecordService.haveRefundRecord(rechargeRecord.getId()));
+            resultModel.setDelegate(rechargeRecord.getDelegate());
+            resultModel.setRejectReason(rechargeRecord.getRejectReason());
             list.add(resultModel);
         }
         Map<String,Object> result = new HashMap<>();
-        result.put("currentRemainVolume",remainWaterService.findByRegisterId(postInfo.getRegisterId()).getRemainVolume());
+        BigDecimal remainWater = new BigDecimal(0);
+        if (remainWaterService.findByRegisterId(postInfo.getRegisterId())!=null){
+            remainWater = remainWaterService.findByRegisterId(postInfo.getRegisterId()).getRemainVolume();
+        }
+        result.put("currentRemainVolume",remainWater);
         result.put("list",list);
         return result;
     }
@@ -188,36 +199,32 @@ public class RechargeRecordController {
     //    充值订单审核
     @RequestMapping(value = "/review", method = RequestMethod.POST)
     public Object review(@RequestBody PostInfo postInfo,
-                         HttpServletRequest request) throws CloneNotSupportedException {
+                         HttpServletRequest request,
+                         @AdminLoginUser NewenergyAdmin user) throws CloneNotSupportedException {
+        int batchReviewState = 1;
         for (ReviewState reviewState:postInfo.getList()){
             RechargeRecord rechargeRecord = (RechargeRecord) rechargeRecordService.findById(reviewState.getId()).clone();
             rechargeRecord.setReviewState(reviewState.getReviewState());
-            rechargeRecord.setCheckId(postInfo.getOperatorId());
-            Integer state = 1;
+            rechargeRecord.setCheckId(user.getId());
             if (reviewState.getReviewState()==1){
-                RemainWater remainWater = remainWaterService.findByRegisterId(rechargeRecord.getRegisterId());
-                if (remainWater == null){
-                    remainWater = new RemainWater();
-                    remainWater.setRegisterId(rechargeRecord.getRegisterId());
-                    remainWater.setCurRecharge(new BigDecimal(0));
-                }
-                remainWater.setCurRecharge(rechargeRecord.getRechargeVolume().add(remainWater.getCurRecharge()));
-                remainWater.setUpdateTime(LocalDateTime.now());
-                remainWaterService.updateRemainWater(remainWater);
                 extraWaterService.add(rechargeRecord.getRegisterId(),
                         rechargeRecord.getRechargeVolume(),
                         rechargeRecord.getId(),
                         rechargeRecord.getAmount());
             }else if (reviewState.getReviewState()==2){
                 rechargeRecord.setState(1);
-                state=2;
+                batchReviewState=2;
+                rechargeRecord.setRejectReason(reviewState.getRejectReason());
             }
-            BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService.findById(reviewState.getId()).getBatchRecordId());
-            batchRecord.setState(state);
-            batchRecordService.updateBatchRecord(batchRecord,postInfo.getOperatorId());
+
             RechargeRecord newRecord = rechargeRecordService.updateRechargeRecord(rechargeRecord,postInfo.getBatchRecordId());
-            manualRecordService.add(postInfo.getOperatorId(), IpUtil.getIpAddr(request),1,newRecord.getId());
+            manualRecordService.add(user.getId(), IpUtil.getIpAddr(request),1,newRecord.getId());
         }
+        BatchRecord batchRecord = batchRecordService.queryById(rechargeRecordService
+                .findById(postInfo.getList().get(0).getId())
+                .getBatchRecordId());
+        batchRecord.setState(batchReviewState);
+        batchRecordService.updateBatchRecord(batchRecord,user.getId());
         Map<String,Integer> state = new HashMap<>();
 //        0代表正常、其他代表异常
         state.put("state",0);
@@ -227,6 +234,7 @@ public class RechargeRecordController {
     private static class ReviewState {
         private Integer id;
         private Integer reviewState;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -242,6 +250,14 @@ public class RechargeRecordController {
 
         public void setReviewState(Integer reviewState) {
             this.reviewState = reviewState;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
         }
     }
 
@@ -328,6 +344,8 @@ public class RechargeRecordController {
         private BigDecimal updateVolume;
         private BigDecimal rechargeVolume;
         private Integer refundState;
+        private Integer delegate;
+        private String rejectReason;
 
         public Integer getId() {
             return id;
@@ -455,6 +473,22 @@ public class RechargeRecordController {
 
         public void setRefundState(Integer refundState) {
             this.refundState = refundState;
+        }
+
+        public Integer getDelegate() {
+            return delegate;
+        }
+
+        public void setDelegate(Integer delegate) {
+            this.delegate = delegate;
+        }
+
+        public String getRejectReason() {
+            return rejectReason;
+        }
+
+        public void setRejectReason(String rejectReason) {
+            this.rejectReason = rejectReason;
         }
     }
 

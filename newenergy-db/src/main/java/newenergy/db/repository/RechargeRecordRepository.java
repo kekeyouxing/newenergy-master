@@ -12,9 +12,11 @@ import java.util.List;
 @Repository
 public interface RechargeRecordRepository extends JpaRepository<RechargeRecord,Integer>, JpaSpecificationExecutor<RechargeRecord> {
 
-    RechargeRecord findFirstById(Integer id);
+//    RechargeRecord findFirstById(Integer id);
+    RechargeRecord findFirstByIdAndSafeDelete(Integer id,Integer safeDelete);
 
-    RechargeRecord findFirstByOrderSn(String orderSn);
+//    RechargeRecord findFirstByOrderSn(String orderSn);
+    RechargeRecord findFirstByOrderSnAndSafeDelete(String orderSn,Integer safeDelete);
 
     List<RechargeRecord> findAll(Specification<RechargeRecord> specification);
 

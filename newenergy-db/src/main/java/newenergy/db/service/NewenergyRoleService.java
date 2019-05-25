@@ -121,4 +121,6 @@ public class NewenergyRoleService {
     public void updateRole(NewenergyRole role) {
         roleRepository.saveAndFlush(role);
     }
+
+    public NewenergyRole findById(Integer id){return roleRepository.findById(id).orElse(null);}
 }
