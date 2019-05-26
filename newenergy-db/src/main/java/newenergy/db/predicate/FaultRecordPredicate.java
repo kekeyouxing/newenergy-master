@@ -14,6 +14,16 @@ public  class FaultRecordPredicate{
     private Integer monitorId;
     private Integer servicerId;
     private List<String> plots;
+    private boolean solving;
+
+    public boolean isSolving() {
+        return solving;
+    }
+
+    public void setSolving(boolean solving) {
+        this.solving = solving;
+    }
+
     /**
      * 查询finishTime所在月的维修记录
      */
