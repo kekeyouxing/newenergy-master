@@ -17,8 +17,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import javax.servlet.MultipartConfigElement;
+import java.io.File;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -45,6 +49,14 @@ public class Application implements CommandLineRunner {
     public static void main(String[] args){
         SpringApplication.run(Application.class, args);
 
+    }
+
+//    文件上传临时路径
+    @Bean
+    MultipartConfigElement multipartConfigElement(){
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setLocation("c:/temp");
+        return factory.createMultipartConfig();
     }
 
     @Override
