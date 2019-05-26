@@ -96,7 +96,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
         if (hashCodev < 0){
             hashCodev =- hashCodev;
         }
-        return "pk"+now+String.format("%012d",hashCodev);
+        return "hgdr"+now+String.format("%012d",hashCodev);
     }
 
     /**

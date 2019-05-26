@@ -22,7 +22,7 @@ public class FileController {
     @Autowired
     BatchRecordService batchRecordService;
 
-    private String uploadDir = "C:/images/";
+    private String uploadDir = "C:\\images\\";
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
     public String uploadFile(@RequestParam(value="file") MultipartFile file){
         String filename;

@@ -1,6 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.constant.SafeConstant;
+import newenergy.db.domain.CorrAddress;
 import newenergy.db.domain.Resident;
 import newenergy.db.domain.StatisticConsume;
 import newenergy.db.repository.ResidentRepository;
@@ -30,21 +31,24 @@ public class ResidentService extends LogicOperation<Resident> {
     @Autowired
     private StatisticConsumeRepository consumeRepository;
 
+    @Autowired
+    private  CorrAddressService corrAddressService;
+
     /**
     * @Param
     * @Param address_nums 装机地址模糊查询对应编号
     * @return 返回十页的resident数据
     */
-    public Page<Resident> querySelective(String userName, List<String> addressNums, Integer page, Integer size) {
+    public Page<Resident> querySelective(String userName, String address, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Specification specification = getListSpecification(userName, addressNums);
+        Specification specification = getListSpecification(userName, address);
 
         return residentRepository.findAll(specification, pageable);
     }
-    public List<Resident> querySelective(List<String> addressNums) {
+    public List<Resident> querySelective(String address) {
 
-        Specification specification = getListSpecification(null, addressNums);
+        Specification specification = getListSpecification(null, address);
 
         return residentRepository.findAll(specification);
     }
@@ -152,7 +156,7 @@ public class ResidentService extends LogicOperation<Resident> {
         deleteRecord(id, userid, residentRepository);
     }
 
-    private Specification<Resident> getListSpecification(String userName, List<String> addressNums) {
+    private Specification<Resident> getListSpecification(String userName, String address) {
         //动态添加搜索条件
         Specification<Resident> specification = new Specification<Resident>() {
             @Override
@@ -161,13 +165,19 @@ public class ResidentService extends LogicOperation<Resident> {
                 if(!StringUtils.isEmpty(userName)){
                     predicates.add(criteriaBuilder.like(root.get("userName"), "%"+userName+"%"));
                 }
-                if(addressNums.size()!=0) {
-                    Path<Object> path = root.get("addressNum");
-                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
-                    for(String address_num: addressNums) {
-                        in.value(address_num);
+                if(!StringUtils.isEmpty(address)) {
+                    List<String> addressNums = corrAddressService.queryAddress(address);
+                    if(addressNums.size()!=0){
+                        Path<Object> path = root.get("addressNum");
+                        CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                        for(String address_num: addressNums) {
+                            in.value(address_num);
+                        }
+                        predicates.add(criteriaBuilder.and(in));
                     }
-                    predicates.add(criteriaBuilder.and(in));
+                    else {
+                        predicates.add(criteriaBuilder.equal(root.get("addressNum"), " "));
+                    }
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
