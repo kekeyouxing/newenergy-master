@@ -1,6 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.PredicateExecutor;
@@ -124,6 +125,13 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
             if(predicate.getFaultTime() != null){
                 LocalDateTime faultTime = predicate.getFaultTime();
                 conditions.add(cb.between(root.get("faultTime").as(LocalDateTime.class),LocalDateTime.MIN,faultTime));
+            }
+            if(predicate.isSolving()){
+                Path<Object> path = root.get("state");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                in.value(FaultRecordConstant.STATE_WAIT);
+                in.value(FaultRecordConstant.STATE_DURING);
+                conditions.add(cb.and(in));
             }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));

@@ -4,12 +4,14 @@ import newenergy.core.pojo.MsgRet;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.*;
+import newenergy.db.predicate.FaultRecordPredicate;
 import newenergy.db.repository.ResidentRepository;
 import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.ResidentService;
 import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,6 +41,16 @@ public class FaultService {
         restTemplate = new RestTemplate();
     }
 
+    public boolean isNewFault(String deviceNUm){
+        Resident resident = residentService.findByDeviceNumWithAlive(deviceNUm);
+        if(resident == null) return false;
+        FaultRecordPredicate predicate = new FaultRecordPredicate();
+        predicate.setRegisterId(resident.getRegisterId());
+        predicate.setSolving(true);
+        Page<FaultRecord>  records = faultRecordService.findByPredicate(predicate,null,null);
+        return records.isEmpty();
+    }
+
     public void addFault(String deviceNum, String faultDtl){
         FaultRecord faultRecord = new FaultRecord();
         Resident condition = new Resident();
@@ -49,6 +61,7 @@ public class FaultService {
         Resident resident = allRes.get(0);
         CorrPlotAdmin corrPlotAdmin = faultRecordService.getCorrPlotAdmin(resident.getPlotNum());
         CorrAddress corrAddress = faultRecordService.getCorrAddress(resident.getAddressNum());
+        if(corrPlotAdmin == null || corrAddress == null) return;
         NewenergyAdmin servicer = faultRecordService.getNewenergyAdmin(corrPlotAdmin.getServicerId());
         faultRecord.setRegisterId(resident.getRegisterId());
         faultRecord.setMonitorId(corrPlotAdmin.getMonitorId());
