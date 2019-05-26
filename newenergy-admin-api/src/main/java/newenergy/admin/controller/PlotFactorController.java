@@ -25,10 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Created by HUST Corey on 2019-04-18.
@@ -121,6 +119,7 @@ public class PlotFactorController {
             ApplyFactor applyFactor = applyFactors.get().findFirst().orElse(null);
             int remark = 0;
             if(applyFactor != null){
+                item.put("updateTime",applyFactor.getApplyTime());
                 if(applyFactor.getState().equals(ApplyFactorConstant.UNCHECK))
                     remark = 1;
                 if(applyFactor.getState().equals(ApplyFactorConstant.ACCEPT))
@@ -129,6 +128,18 @@ public class PlotFactorController {
             item.put("remark",remark);
             list.add(item);
         });
+        list.sort(new Comparator<Map<String, Object>>() {
+            @Override
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                if(o1.containsKey("updateTime") && o2.containsKey("updateTime")){
+                    LocalDateTime t1 = (LocalDateTime)o1.get("updateTime");
+                    LocalDateTime t2 = (LocalDateTime)o2.get("updateTime");
+                    return -t1.compareTo(t2);
+                }
+                return 0;
+            }
+        });
+
         ret.put("list",list);
         return ret;
     }
