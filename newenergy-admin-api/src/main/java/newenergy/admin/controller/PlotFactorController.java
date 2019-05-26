@@ -120,7 +120,6 @@ public class PlotFactorController {
             ApplyFactor applyFactor = applyFactors.get().findFirst().orElse(null);
             int remark = 0;
             if(applyFactor != null){
-                item.put("updateTime",TimeUtil.getSeconds(applyFactor.getApplyTime()));
                 if(applyFactor.getState().equals(ApplyFactorConstant.UNCHECK))
                     remark = 1;
                 if(applyFactor.getState().equals(ApplyFactorConstant.ACCEPT))
@@ -129,24 +128,7 @@ public class PlotFactorController {
             item.put("remark",remark);
             list.add(item);
         });
-        list.sort(new Comparator<Map<String, Object>>() {
-            @Override
-            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                if(o1.containsKey("updateTime") && o2.containsKey("updateTime")){
-                    Long t1 = (Long)o1.get("updateTime");
-                    Long t2 = (Long)o2.get("updateTime");
-                    return -t1.compareTo(t2);
-                }
-                if(o1.containsKey("updateTime")){
-                    return -1;
-                }
-                if(o2.containsKey("updateTime")){
-                    return 1;
-                }
-                Collator chineseCollator = Collator.getInstance(Locale.CHINA);
-                return chineseCollator.compare(o1.get("plotDtl"),o2.get("plotDtl"));
-            }
-        });
+
 
         ret.put("list",list);
         return ret;
@@ -247,7 +229,7 @@ public class PlotFactorController {
         }
         predicate.setPlots(mngPlots);
 
-        Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.ASC,"plotNum"));
+        Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.DESC,"applyTime"));
         ret.put("total",factors.getTotalElements());
         List<Map<String,Object>>  list = new ArrayList<>();
         factors.forEach(e->{
