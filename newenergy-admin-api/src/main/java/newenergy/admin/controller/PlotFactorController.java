@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.text.Collator;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -119,7 +120,7 @@ public class PlotFactorController {
             ApplyFactor applyFactor = applyFactors.get().findFirst().orElse(null);
             int remark = 0;
             if(applyFactor != null){
-                item.put("updateTime",applyFactor.getApplyTime());
+                item.put("updateTime",TimeUtil.getSeconds(applyFactor.getApplyTime()));
                 if(applyFactor.getState().equals(ApplyFactorConstant.UNCHECK))
                     remark = 1;
                 if(applyFactor.getState().equals(ApplyFactorConstant.ACCEPT))
@@ -132,11 +133,18 @@ public class PlotFactorController {
             @Override
             public int compare(Map<String, Object> o1, Map<String, Object> o2) {
                 if(o1.containsKey("updateTime") && o2.containsKey("updateTime")){
-                    LocalDateTime t1 = (LocalDateTime)o1.get("updateTime");
-                    LocalDateTime t2 = (LocalDateTime)o2.get("updateTime");
+                    Long t1 = (Long)o1.get("updateTime");
+                    Long t2 = (Long)o2.get("updateTime");
                     return -t1.compareTo(t2);
                 }
-                return 0;
+                if(o1.containsKey("updateTime")){
+                    return -1;
+                }
+                if(o2.containsKey("updateTime")){
+                    return 1;
+                }
+                Collator chineseCollator = Collator.getInstance(Locale.CHINA);
+                return chineseCollator.compare(o1.get("plotDtl"),o2.get("plotDtl"));
             }
         });
 

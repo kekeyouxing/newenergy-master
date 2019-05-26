@@ -162,12 +162,14 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
              * 9 故障领导
              * 6 审计人员
              * 1 admin
+             * 4 审核人
              *
              * 8 运营人员
              */
             if(i == AdminConstant.ROLE_FAULTLEADER
                     || i == AdminConstant.ROLE_AUDIT
-                    || i == AdminConstant.ROLE_ADMIN)
+                    || i == AdminConstant.ROLE_ADMIN
+                    || i == AdminConstant.ROLE_CHECK)
                 return ret;
             if(i == AdminConstant.ROLE_MONITOR)
                 hasAccess = true;
