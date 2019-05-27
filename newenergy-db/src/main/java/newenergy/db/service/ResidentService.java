@@ -218,12 +218,17 @@ public class ResidentService extends LogicOperation<Resident> {
                         }
                     };
                     List<StatisticConsume> consumes = consumeRepository.findAll(consumeSpecification);
-                    Path<Object> path = root.get("registerId");
-                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
-                    for(StatisticConsume consume: consumes){
-                        in.value(consume.getRegisterId());
+                    if(consumes.size()!=0){
+                        Path<Object> path = root.get("registerId");
+                        CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                        for(StatisticConsume consume: consumes){
+                            in.value(consume.getRegisterId());
+                        }
+                        predicates.add(criteriaBuilder.and(in));
                     }
-                    predicates.add(criteriaBuilder.and(in));
+                    else{
+                        predicates.add(criteriaBuilder.equal(root.get("registerId"), " "));
+                    }
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"), 0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
