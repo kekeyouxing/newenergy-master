@@ -145,8 +145,8 @@ public class RefundRecordController {
             resultInfo.setRefundName(adminService.findById(refundRecord.getRechargeId())==null?"":
                     adminService.findById(refundRecord.getRechargeId()).getRealName());
             resultInfo.setCheckTime(localDateTimeToLong(refundRecord.getSafeChangedTime()));
-            resultInfo.setCheckName(adminService.findById(refundRecord.getSafeChangedUserid())==null?"":
-                    adminService.findById(refundRecord.getSafeChangedUserid()).getRealName());
+            resultInfo.setCheckName(adminService.findById(refundRecord.getCheckId())==null?"":
+                    adminService.findById(refundRecord.getCheckId()).getRealName());
             resultInfo.setState(refundRecord.getState());
             resultInfo.setRefundReason(rechargeRecord.getRejectReason());
             resultInfo.setRejectReason(refundRecord.getRejectReason());
