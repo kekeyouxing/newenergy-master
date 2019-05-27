@@ -25,10 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.Collator;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Created by HUST Corey on 2019-04-18.
@@ -129,6 +128,8 @@ public class PlotFactorController {
             item.put("remark",remark);
             list.add(item);
         });
+
+
         ret.put("list",list);
         return ret;
     }
@@ -228,7 +229,7 @@ public class PlotFactorController {
         }
         predicate.setPlots(mngPlots);
 
-        Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.ASC,"plotNum"));
+        Page<ApplyFactor> factors = plotFactorService.findByPredicate(predicate, PageRequest.of(page-1,limit), Sort.by(Sort.Direction.DESC,"applyTime"));
         ret.put("total",factors.getTotalElements());
         List<Map<String,Object>>  list = new ArrayList<>();
         factors.forEach(e->{

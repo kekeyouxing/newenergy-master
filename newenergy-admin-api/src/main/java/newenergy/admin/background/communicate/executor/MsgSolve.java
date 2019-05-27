@@ -42,7 +42,7 @@ public class MsgSolve {
         /**
          * 监控故障
          */
-        if(result.fault())
+        if(result.fault() && faultService.isNewFault(result.deviceNum()))
             faultService.addFault(result.deviceNum(),result.faultDtl());
 
         /**

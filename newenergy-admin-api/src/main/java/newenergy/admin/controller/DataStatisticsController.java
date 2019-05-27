@@ -322,7 +322,7 @@ public class DataStatisticsController {
     @GetMapping("/plotConsumeDownload")
     public void plotConsumeDownload(HttpServletResponse response, @RequestParam String year,
                            @RequestParam String month, @RequestParam String plotNum,@RequestParam String interval,
-                           @RequestParam String filename){
+                           @RequestParam String filename,@RequestParam String plotDtl){
         LocalDate curTime = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1).plusMonths(1);
         String[] intervalStrings = interval.split("-");
         List<BigDecimal> intervalList = new ArrayList<>();
@@ -379,7 +379,7 @@ public class DataStatisticsController {
             j++;
         }
         ExcelAnalysisInfo excel = new ExcelAnalysisInfo();
-        String[] firstRow = new String[]{"小区消费统计表","小区名称"};
+        String[] firstRow = new String[]{"小区消费统计表",plotDtl};
         String[] secondRow = new String[]{"序号","月消费流量(吨)","户数","占比","备注"};
         excel.createExcel(firstRow,secondRow, values);
         excel.exportExcel(filename, response);

@@ -1,6 +1,7 @@
 package newenergy.db.service;
 
 import newenergy.db.constant.AdminConstant;
+import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.*;
 import newenergy.db.predicate.PredicateExecutor;
@@ -125,6 +126,13 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
                 LocalDateTime faultTime = predicate.getFaultTime();
                 conditions.add(cb.between(root.get("faultTime").as(LocalDateTime.class),LocalDateTime.MIN,faultTime));
             }
+            if(predicate.isSolving()){
+                Path<Object> path = root.get("state");
+                CriteriaBuilder.In<Object> in = cb.in(path);
+                in.value(FaultRecordConstant.STATE_WAIT);
+                in.value(FaultRecordConstant.STATE_DURING);
+                conditions.add(cb.and(in));
+            }
             Predicate[] arrConditions = new Predicate[conditions.size()];
             return cb.and(conditions.toArray(arrConditions));
         };
@@ -154,12 +162,14 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
              * 9 故障领导
              * 6 审计人员
              * 1 admin
+             * 4 审核人
              *
              * 8 运营人员
              */
             if(i == AdminConstant.ROLE_FAULTLEADER
                     || i == AdminConstant.ROLE_AUDIT
-                    || i == AdminConstant.ROLE_ADMIN)
+                    || i == AdminConstant.ROLE_ADMIN
+                    || i == AdminConstant.ROLE_CHECK)
                 return ret;
             if(i == AdminConstant.ROLE_MONITOR)
                 hasAccess = true;
