@@ -35,6 +35,7 @@ public class BackupService {
 //                "-r" + filePath, "--skip-lock-tables"};
         String cmd = String.format("mysqldump -u%s -p%s %s -r %s --skip-lock-tables",
                 username,password,database,filePath);
+        logger.info(cmd);
         Process process = Runtime.getRuntime().exec( cmd);
         int processComplete = process.waitFor();
         if (processComplete == 0) {
@@ -47,7 +48,8 @@ public class BackupService {
     public void loadBackup() throws Exception{
         String targetFile =  loadPath+loadName;
 //        String[] execCMD = new String[]{"mysql", database, "-u" + username, "-p" + password, "-h localhost", "-P 3306", "<", targetFile};
-        String cmd = String.format("%s mysql %s -u%s -p%s -h localhost -P 3306 < %s",cmdMac,database,username,password,targetFile);
+        String cmd = String.format("mysql %s -u%s -p%s -h localhost -P 3306 < %s",database,username,password,targetFile);
+        logger.info(cmd);
         Process process = Runtime.getRuntime().exec(cmd);
 //        Process process = Runtime.getRuntime().exec("sh -c" + execCMD);
 
