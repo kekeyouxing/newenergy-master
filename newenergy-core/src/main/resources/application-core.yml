@@ -1,18 +1,18 @@
 quwen:
   wx:
-    app-id: 
-    app-secret: 
-    mch-id: 
-    mch-key: 
-    key-path: 
+    app-id:
+    app-secret:
+    mch-id:
+    mch-key:
+    key-path:
 #    notify-url: http://hgdr.top/wx/order/pay-notify
 corey:
   wx:
     #测试号appid
-    app-id: 
-    app-secret: 
+    app-id:
+    app-secret:
   ##微信公众号前端地址（若为内网地址，手机需连接校园网访问），8080为微信公众号前端占用的端口。最后要加 /
-  domain: 
+  domain:
   ##后台项目外网地址。最后要加 /
-  domain2: 
+  domain2:
 
