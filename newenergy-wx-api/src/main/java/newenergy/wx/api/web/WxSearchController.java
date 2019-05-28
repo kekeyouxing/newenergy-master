@@ -112,6 +112,7 @@ public class WxSearchController {
         }
         List<Map<String, Object>> rechargeRecordsData = new ArrayList<>();
         for (RechargeRecord rechargeRecord : rechargeRecords) {
+            logger.info("<WxSearchController> : rechargeRecord id = " + rechargeRecord.getId());
             if (rechargeRecord.getState() == 2) continue;
             if (rechargeRecord.getReviewState() != 1) continue;
             Map<String, Object> temp = new HashMap<>();

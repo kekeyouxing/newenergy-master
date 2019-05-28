@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 /**
  * Created by HUST Corey on 2019-05-27.
@@ -40,12 +37,21 @@ public class BackupService {
 
         logger.info(cmd);
         Process process = Runtime.getRuntime().exec(cmd);
-
+        InputStream is = process.getErrorStream();
         int processComplete = process.waitFor();
         if (processComplete == 0) {
             logger.info("备份成功：" + filePath);
         } else {
             logger.error("备份失败：" + filePath);
+
+            byte[] buffer = new byte[1024];
+            StringBuilder sb = new StringBuilder();
+            while(is.available() > 0){
+                is.read(buffer);
+                sb.append(buffer);
+            }
+            logger.error("错误输出：" + buffer);
+
             throw new RuntimeException("备份数据库失败.");
         }
     }
@@ -60,6 +66,8 @@ public class BackupService {
         logger.info(cmd);
         Process process = Runtime.getRuntime().exec(cmd);
         OutputStream os = process.getOutputStream();
+        InputStream is = process.getErrorStream();
+
         FileInputStream fis = new FileInputStream(targetFile);
         byte[] buffer = new byte[1024];
         while(fis.available() > 0){
@@ -74,6 +82,15 @@ public class BackupService {
             logger.info("还原成功：" + TimeUtil.getString(TimeUtil.getUTCNow()));
         } else {
             logger.error("还原失败：" + TimeUtil.getString(TimeUtil.getUTCNow()));
+
+            byte[] errBuffer = new byte[1024];
+            StringBuilder sb = new StringBuilder();
+            while(is.available() > 0){
+                is.read(errBuffer);
+                sb.append(errBuffer);
+            }
+            logger.error("错误输出：" + errBuffer);
+
             throw new RuntimeException("还原数据库失败.");
         }
 
