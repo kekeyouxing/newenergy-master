@@ -12,9 +12,12 @@ spring:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         hbm2ddl:
            auto: update
+backup:
+  basedir: backup/
 
-#  mvc:
-#    static-path-pattern: /admin/image/**
-#
-#  resources:
-#    static-locations: file:F://images/
+  username: newenergy
+  password: 123456
+  database: newenergy
+
+  loadname: backup.sql
+
