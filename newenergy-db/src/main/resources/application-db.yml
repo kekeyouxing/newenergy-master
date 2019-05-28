@@ -13,15 +13,11 @@ spring:
         hbm2ddl:
            auto: update
 backup:
-#  basedir: C:/hgdr_backup/
-#  basedir: /Users/zzl/Desktop/新能源智慧管理软件/代码/hgdr_backup/
+  basedir: backup/
 
   username: newenergy
   password: 123456
   database: newenergy
-
-#  loaddir: C:/hgdr_backup/load/
-#  loaddir: /Users/zzl/Desktop/新能源智慧管理软件/代码/hgdr_backup/load/
 
   loadname: backup.sql
 
