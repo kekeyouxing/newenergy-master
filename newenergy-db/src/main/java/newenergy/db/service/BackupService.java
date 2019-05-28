@@ -6,37 +6,41 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 
 /**
  * Created by HUST Corey on 2019-05-27.
  */
 @Service
 public class BackupService {
-    @Value("${backup.basedir}")
-    String path;
+//    @Value("${backup.basedir}")
+//    String path;
     @Value("${backup.username}")
     String username;
     @Value("${backup.password}")
     String password;
     @Value("${backup.database}")
     String database;
-    @Value("${backup.loaddir}")
-    String loadPath;
+//    @Value("${backup.loaddir}")
+//    String loadPath;
     @Value("${backup.loadname}")
     String loadName;
-    String cmdMac = "sh -c";
-    String cmdWin = "cmd /c";
+    String cmdWin = "cmd /c ";
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
     public void saveBackup() throws Exception{
-        String filePath = path + "backup" + TimeUtil.getDateString(TimeUtil.getUTCNow()) + ".sql";
-//        String[] execCMD = new String[] {"mysqldump", "-u" + username, "-p" + password, database,
-//                "-r" + filePath, "--skip-lock-tables"};
+        String filePath = "backup" + TimeUtil.getDateString(TimeUtil.getUTCNow()) + ".sql";
         String cmd = String.format("mysqldump -u%s -p%s %s -r %s --skip-lock-tables",
                 username,password,database,filePath);
+        //服务器上
+        cmd = cmdWin.concat(cmd);
+
         logger.info(cmd);
-        Process process = Runtime.getRuntime().exec( cmd);
+        Process process = Runtime.getRuntime().exec(cmd);
+
         int processComplete = process.waitFor();
         if (processComplete == 0) {
             logger.info("备份成功：" + filePath);
@@ -46,12 +50,24 @@ public class BackupService {
         }
     }
     public void loadBackup() throws Exception{
-        String targetFile =  loadPath+loadName;
+        String targetFile = loadName;
 //        String[] execCMD = new String[]{"mysql", database, "-u" + username, "-p" + password, "-h localhost", "-P 3306", "<", targetFile};
-        String cmd = String.format("mysql %s -u%s -p%s -h localhost -P 3306 < %s",database,username,password,targetFile);
+        String cmd = String.format("mysql %s -u%s -p%s -h localhost -P 3306",database,username,password);
+
+        //服务器上
+        cmd = cmdWin.concat(cmd);
+
         logger.info(cmd);
         Process process = Runtime.getRuntime().exec(cmd);
-//        Process process = Runtime.getRuntime().exec("sh -c" + execCMD);
+        OutputStream os = process.getOutputStream();
+        FileInputStream fis = new FileInputStream(targetFile);
+        byte[] buffer = new byte[1024];
+        while(fis.available() > 0){
+            int len = fis.read(buffer);
+            os.write(buffer,0,len);
+        }
+        fis.close();
+        os.close();
 
         int processComplete = process.waitFor();
         if (processComplete == 0) {

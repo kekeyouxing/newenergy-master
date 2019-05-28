@@ -112,7 +112,8 @@ public class WxSearchController {
         }
         List<Map<String, Object>> rechargeRecordsData = new ArrayList<>();
         for (RechargeRecord rechargeRecord : rechargeRecords) {
-//            if (rechargeRecord.getState() == 2) continue;
+            if (rechargeRecord.getState() == 2) continue;
+            if (rechargeRecord.getReviewState() != 1) continue;
             Map<String, Object> temp = new HashMap<>();
             temp.put("amount", rechargeRecord.getAmount());
             temp.put("rechargeTime", TimeUtil.getString( rechargeRecord.getRechargeTime()) );
