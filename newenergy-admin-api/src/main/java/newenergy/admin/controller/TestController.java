@@ -3,6 +3,7 @@ package newenergy.admin.controller;
 import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.DeviceRequire;
 import newenergy.admin.background.service.DeviceRequireService;
+import newenergy.db.service.BackupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -21,16 +22,24 @@ import java.util.Map;
  */
 @RestController
 public class TestController {
-
-    RestTemplate restTemplate = new RestTemplate();
-    String refundUrl = "http://localhost/wx/order/refund";
     @Autowired
-    StorageService storageService;
+    BackupService backupService;
 
-    @RequestMapping(value="testrefund/{id}/{volume}")
-    public void test(@PathVariable(value = "id") Integer id,
-                       @PathVariable(value = "volume")BigDecimal volume){
-        System.out.println(id+","+volume);
-        storageService.addRefundWater(id,volume);
+    @RequestMapping("backup/save")
+    public void backupSave(){
+        try {
+            backupService.saveBackup();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @RequestMapping("backup/load")
+    public void backupLoad(){
+        try {
+            backupService.loadBackup();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
