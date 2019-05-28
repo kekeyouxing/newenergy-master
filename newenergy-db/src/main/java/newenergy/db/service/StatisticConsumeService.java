@@ -86,17 +86,25 @@ public class StatisticConsumeService {
                 if(!StringUtils.isEmpty(registerId)) {
                     predicates.add(criteriaBuilder.equal(root.get("registerId"), registerId));
                 }
-                if(!StringUtils.isEmpty(plotNum)) {
-                    List<Resident> residents = residentService.findByPlotNum(plotNum);
-                    Path<Object> path = root.get("registerId");
-                    CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
-                    for(Resident resident: residents) {
-                        in.value(resident.getRegisterId());
-                    }
-                    predicates.add(criteriaBuilder.and(in));
-                }
                 if(!StringUtils.isEmpty(curTime)) {
-                    predicates.add(criteriaBuilder.like(root.get("updateTime").as(String.class), curTime+"%"));
+                    if(!StringUtils.isEmpty(plotNum)) {
+                        List<Resident> residents = residentService.findByPlotNum(plotNum);
+                        if(residents.size()!=0){
+                            Path<Object> path = root.get("registerId");
+                            CriteriaBuilder.In<Object> in = criteriaBuilder.in(path);
+                            for(Resident resident: residents) {
+                                in.value(resident.getRegisterId());
+                            }
+                            predicates.add(criteriaBuilder.and(in));
+                            predicates.add(criteriaBuilder.like(root.get("updateTime").as(String.class), curTime+"%"));
+                        }
+                        else {
+                            predicates.add(criteriaBuilder.like(root.get("registerId").as(String.class), " "));
+                        }
+                    }
+                    else {
+                        predicates.add(criteriaBuilder.like(root.get("updateTime").as(String.class), curTime+"%"));
+                    }
                 }
 
 //                if(!StringUtils.isEmpty(start)) {
