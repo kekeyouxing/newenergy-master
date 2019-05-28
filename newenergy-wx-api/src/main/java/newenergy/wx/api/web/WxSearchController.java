@@ -2,6 +2,7 @@ package newenergy.wx.api.web;
 
 import newenergy.core.util.ResponseUtil;
 import newenergy.core.util.TimeUtil;
+import newenergy.db.constant.SafeConstant;
 import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.RemainWater;
 import newenergy.db.service.RemainWaterService;
@@ -113,8 +114,9 @@ public class WxSearchController {
         List<Map<String, Object>> rechargeRecordsData = new ArrayList<>();
         for (RechargeRecord rechargeRecord : rechargeRecords) {
             logger.info("<WxSearchController> : rechargeRecord id = " + rechargeRecord.getId());
-            if (rechargeRecord.getState() == 2) continue;
-            if (rechargeRecord.getReviewState() != 1) continue;
+            if ( new Integer(2).equals(rechargeRecord.getState()) ) continue;
+            if ( !new Integer(1).equals(rechargeRecord.getReviewState()) ) continue;
+            if (rechargeRecord.getSafeDelete() == SafeConstant.SAFE_DELETE) continue;
             Map<String, Object> temp = new HashMap<>();
             temp.put("amount", rechargeRecord.getAmount());
             temp.put("rechargeTime", TimeUtil.getString( rechargeRecord.getRechargeTime()) );

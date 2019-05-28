@@ -38,19 +38,31 @@ public class BackupService {
         logger.info(cmd);
         Process process = Runtime.getRuntime().exec(cmd);
         InputStream is = process.getErrorStream();
+
+        InputStream is2 = process.getInputStream();
+        StringBuilder sb2 = new StringBuilder();
+        while(is2.available() > 0){
+            byte[] buffer = new byte[1024];
+            is2.read(buffer);
+            sb2.append(buffer);
+        }
+        logger.info("备份输出："+sb2.toString());
+
         int processComplete = process.waitFor();
         if (processComplete == 0) {
             logger.info("备份成功：" + filePath);
         } else {
             logger.error("备份失败：" + filePath);
 
-            byte[] buffer = new byte[1024];
             StringBuilder sb = new StringBuilder();
             while(is.available() > 0){
+                byte[] buffer = new byte[1024];
                 is.read(buffer);
                 sb.append(buffer);
             }
-            logger.error("错误输出：" + buffer);
+            is.close();
+
+            logger.error("错误输出：" + sb.toString());
 
             throw new RuntimeException("备份数据库失败.");
         }
@@ -68,6 +80,7 @@ public class BackupService {
         OutputStream os = process.getOutputStream();
         InputStream is = process.getErrorStream();
 
+
         FileInputStream fis = new FileInputStream(targetFile);
         byte[] buffer = new byte[1024];
         while(fis.available() > 0){
@@ -77,19 +90,30 @@ public class BackupService {
         fis.close();
         os.close();
 
+        InputStream is2 = process.getInputStream();
+        StringBuilder sb2 = new StringBuilder();
+        while(is2.available() > 0){
+            byte[] buffer2 = new byte[1024];
+            is2.read(buffer);
+            sb2.append(buffer);
+        }
+        is2.close();
+        logger.info("还原输出："+sb2.toString());
+
         int processComplete = process.waitFor();
         if (processComplete == 0) {
             logger.info("还原成功：" + TimeUtil.getString(TimeUtil.getUTCNow()));
         } else {
             logger.error("还原失败：" + TimeUtil.getString(TimeUtil.getUTCNow()));
 
-            byte[] errBuffer = new byte[1024];
             StringBuilder sb = new StringBuilder();
             while(is.available() > 0){
+                byte[] errBuffer = new byte[1024];
                 is.read(errBuffer);
                 sb.append(errBuffer);
             }
-            logger.error("错误输出：" + errBuffer);
+            is.close();
+            logger.error("错误输出：" + sb.toString());
 
             throw new RuntimeException("还原数据库失败.");
         }
