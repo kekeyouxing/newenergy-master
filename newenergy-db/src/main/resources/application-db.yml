@@ -12,6 +12,22 @@ spring:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         hbm2ddl:
            auto: update
+  mail:
+    host: smtp.qq.com
+    username: 2359046280@qq.com
+    password: jkutibhbjrgbebhf
+    #    password: hgdr123456
+    #    password: hgdr123
+
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
 backup:
   basedir: backup/
 
@@ -20,4 +36,8 @@ backup:
   database: newenergy
 
   loadname: backup.sql
+  encloadname: backup
+
+  encnum: 0xCC
+
 

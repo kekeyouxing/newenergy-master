@@ -42,4 +42,12 @@ public class TestController {
             e.printStackTrace();
         }
     }
+    @RequestMapping("backup/send")
+    public void backupSend(){
+        try {
+            backupService.sendBackup("714676641@qq.com");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }
