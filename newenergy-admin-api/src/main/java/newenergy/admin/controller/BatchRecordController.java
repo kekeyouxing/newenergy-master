@@ -80,7 +80,7 @@ public class BatchRecordController {
                 batchAndRecharge.getRechargeRecords()) {
 //            根据注册id查询批量小区编号，然后根据小区编号查询充值系数
             BigDecimal plotFactor = corrPlotService.findPlotFacByPlotNum(residentService.findPlotNumByRegisterid(rechargeRecord.getRegisterId(),0));
-            rechargeRecord.setRechargeVolume(new BigDecimal(rechargeRecord.getAmount()).divide(plotFactor,2, RoundingMode.UP));
+            rechargeRecord.setRechargeVolume(new BigDecimal(rechargeRecord.getAmount()).divide(plotFactor,1, RoundingMode.DOWN));
             rechargeRecord.setBatchRecordId(batchRecord.getId());
             rechargeRecord.setOrderSn(rechargeRecordService.generateOrderSn());
             rechargeRecord.setRechargeTime(LocalDateTime.now());

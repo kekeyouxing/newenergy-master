@@ -6,7 +6,9 @@ import newenergy.core.util.TimeUtil;
 import newenergy.db.constant.AdminConstant;
 import newenergy.db.constant.FaultRecordConstant;
 import newenergy.db.domain.*;
+import newenergy.db.predicate.AdminPredicate;
 import newenergy.db.predicate.FaultRecordPredicate;
+import newenergy.db.service.BackupService;
 import newenergy.db.service.FaultRecordService;
 import newenergy.db.service.NewenergyAdminService;
 import newenergy.db.service.RemainWaterService;
@@ -24,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,8 @@ public class ScheduledTask {
     private RemainWaterService remainWaterService;
     @Autowired
     private NewenergyAdminService newenergyAdminService;
+    @Autowired
+    private BackupService backupService;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -112,9 +117,9 @@ public class ScheduledTask {
 
     /**
      * 余额不足提醒
-     * TODO [TEST]模拟每分钟检查阈值
+     * TODO [TEST]模拟每10分钟检查阈值
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void checkThreshold(){
         log.info("检查余额定时任务启动>>>>>");
         List<RemainWater> remainWaterList = remainWaterService.findAll();
@@ -139,6 +144,40 @@ public class ScheduledTask {
             }
         });
         log.info("检查余额定时任务结束>>>>>");
+
+    }
+
+    /**
+     * 每日备份发送数据库
+     * TODO [TEST]模拟每10分钟备份
+     */
+    @Scheduled(cron = "0 0/10 * * * ?")
+    public void saveAndSendBackup(){
+        List<NewenergyAdmin> admins = newenergyAdminService.findAllByRoleIds(new Integer[]{AdminConstant.ROLE_BACKUP});
+        NewenergyAdmin backupAdmin = admins.isEmpty()?null:admins.get(0);
+
+        if(admins.isEmpty() || backupAdmin==null){
+            log.error("没有备份人员用户，备份失败");
+            return;
+        }
+        if(StringUtilCorey.emptyCheck( backupAdmin.getEmail() )){
+            log.error("备份人员没有邮箱，备份失败");
+            return;
+        }
+
+        try {
+            backupService.saveBackup();
+        }catch (Exception e){
+            log.error("保存失败，备份失败");
+            e.printStackTrace();
+            return;
+        }
+        try{
+            backupService.sendBackup(backupAdmin.getEmail());
+        }catch (Exception e){
+            log.error("发送邮件失败，备份失败");
+            e.printStackTrace();
+        }
 
     }
 

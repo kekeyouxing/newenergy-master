@@ -12,9 +12,37 @@ spring:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         hbm2ddl:
            auto: update
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 2359046280@qq.com
+    password: jkutibhbjrgbebhf
+    #    password: hgdr123456
+    #    password: hgdr123
 
-#  mvc:
-#    static-path-pattern: /admin/image/**
-#
-#  resources:
-#    static-locations: file:F://images/
+
+    properties:
+      mail:
+        smtp:
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+backup:
+  basedir: backup/
+
+  username: newenergy
+  password: 123456
+  database: newenergy
+
+  loadname: backup.sql
+  encloadname: backup
+
+  encnum: 0xCC
+
+
