@@ -82,6 +82,7 @@ public class BackupService {
         }else{
             logger.info("删除加密文件失败");
         }
+
 //        String[] execCMD = new String[]{"mysql", database, "-u" + username, "-p" + password, "-h localhost", "-P 3306", "<", targetFile};
         String cmd = String.format("mysql %s -u%s -p%s -h localhost -P 3306",database,username,password);
 
