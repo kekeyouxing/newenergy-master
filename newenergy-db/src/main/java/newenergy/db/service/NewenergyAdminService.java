@@ -46,6 +46,14 @@ public class NewenergyAdminService extends LogicOperation<NewenergyAdmin> {
         return adminRepository.findAll(specification, pageable);
 
     }
+    public List<NewenergyAdmin> querySelective(String username){
+
+        //动态条件
+        Specification specification = getListSpecification(username);
+
+        return adminRepository.findAll(specification);
+
+    }
     private Specification<NewenergyRole> getListSpecification(String username){
 
         //动态条件
