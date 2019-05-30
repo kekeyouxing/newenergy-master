@@ -5,7 +5,9 @@ import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.NewenergyAdmin;
+import newenergy.db.domain.NewenergyRole;
 import newenergy.db.service.NewenergyAdminService;
+import newenergy.db.service.NewenergyRoleService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static newenergy.admin.util.AdminResponseCode.*;
 @RestController
@@ -28,22 +27,66 @@ public class AdminController {
     @Autowired
     private NewenergyAdminService adminService;
 
+    @Autowired
+    private NewenergyRoleService roleService;
+
     //@RequiresPermissions("admin:admin:list")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="查询")
     @GetMapping("/list")
     public Object list(String username,
                        @RequestParam(defaultValue = "0") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit){
-        Page<NewenergyAdmin> pageAdmin = adminService.querySelective(username, page-1, limit);
-        List<NewenergyAdmin> adminList = pageAdmin.getContent();
-        Long total = pageAdmin.getTotalElements();
+
+        List<NewenergyAdmin> adminList = adminService.querySelective(username);
+
+        adminList = removeSuperRole(adminList);
+        adminList = roleSort(adminList);
+        Integer total = adminList.size();
+        adminList = page(page, limit, adminList);
+
+
         Map<String, Object> data = new HashMap<>();
         data.put("total", total);
-        data.put("items", roleSort(adminList));
+        data.put("items", adminList);
 
         return ResponseUtil.ok(data);
     }
-
+    private List<NewenergyAdmin> page(Integer page, Integer limit, List<NewenergyAdmin> adminList){
+        List<NewenergyAdmin> result = new ArrayList<>();
+        int totalPage = (adminList.size()-1)/limit+1;
+        if(page<1){
+            page = 1;
+        }
+        if(page>totalPage){
+            page = totalPage;
+        }
+        int pageStart = (page-1)*limit;
+        int pageEnd = -1;
+        if(pageStart+limit<=adminList.size()){
+            pageEnd = pageStart+limit;
+        }else{
+            pageEnd = adminList.size();
+        }
+        for(int i = pageStart; i<pageEnd; i++){
+            result.add(adminList.get(i));
+        }
+        return result;
+    }
+    private List<NewenergyAdmin> removeSuperRole(List<NewenergyAdmin> adminList){
+        List<NewenergyAdmin> result = new ArrayList<>();
+        NewenergyRole superRole = roleService.findSuperAdmin();
+        int superRoleId = -1;
+        if(superRole != null){
+            superRoleId = superRole.getId();
+        }
+        for(NewenergyAdmin admin : adminList){
+            List<Integer> roleIds = Arrays.asList(admin.getRoleIds());
+            if(!roleIds.contains(superRoleId)){
+                result.add(admin);
+            }
+        }
+        return result;
+    }
     private List<NewenergyAdmin> roleSort(List<NewenergyAdmin> adminList){
         List<NewenergyAdmin> result = new ArrayList<>();
         if(adminList == null || adminList.size() == 0){
