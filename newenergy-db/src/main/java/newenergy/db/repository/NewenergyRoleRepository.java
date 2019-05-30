@@ -13,4 +13,6 @@ public interface NewenergyRoleRepository extends JpaRepository<NewenergyRole, In
     public List<NewenergyRole> getAllByEnableIsTrueAndDeletedIsFalseAndIdIn(Integer[] roleIds);
 
     public List<NewenergyRole> getAllByEnableIsTrueAndDeletedIsFalse();
+
+    public List<NewenergyRole> getAllByEnableIsTrueAndDeletedIsFalseAndNameEquals(String name);
 }
