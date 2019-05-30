@@ -117,9 +117,9 @@ public class ScheduledTask {
 
     /**
      * 余额不足提醒
-     * TODO [TEST]模拟每分钟检查阈值
+     * TODO [TEST]模拟每10分钟检查阈值
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void checkThreshold(){
         log.info("检查余额定时任务启动>>>>>");
         List<RemainWater> remainWaterList = remainWaterService.findAll();
@@ -153,13 +153,10 @@ public class ScheduledTask {
      */
     @Scheduled(cron = "0 0/10 * * * ?")
     public void saveAndSendBackup(){
-        AdminPredicate predicate  = new AdminPredicate();
-        predicate.setIds(new ArrayList<>(AdminConstant.ROLE_BACKUP));
-        Page<NewenergyAdmin> allRes = newenergyAdminService
-                .findByPredicateWithAlive(predicate,null,null);
-        NewenergyAdmin backupAdmin = allRes.get().findFirst().orElse(null);
+        List<NewenergyAdmin> admins = newenergyAdminService.findAllByRoleIds(new Integer[]{AdminConstant.ROLE_BACKUP});
+        NewenergyAdmin backupAdmin = admins.isEmpty()?null:admins.get(0);
 
-        if(allRes.isEmpty() || backupAdmin==null){
+        if(admins.isEmpty() || backupAdmin==null){
             log.error("没有备份人员用户，备份失败");
             return;
         }

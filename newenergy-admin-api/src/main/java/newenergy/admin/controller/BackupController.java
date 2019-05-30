@@ -1,16 +1,19 @@
 package newenergy.admin.controller;
 
+import newenergy.admin.annotation.AdminLoginUser;
+import newenergy.core.util.RequestUtil;
+import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.service.BackupService;
+import newenergy.db.service.NewenergyAdminService;
+import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by HUST Corey on 2019-05-28.
@@ -26,6 +29,8 @@ public class BackupController {
     String encLoadName;
     @Autowired
     BackupService backupService;
+    @Autowired
+    NewenergyAdminService newenergyAdminService;
 
     @RequestMapping(value = "upload", method = RequestMethod.POST)
     public boolean uploadFile(@RequestParam(value="file") MultipartFile file){
@@ -58,5 +63,14 @@ public class BackupController {
             return false;
         }
         return true;
+    }
+    @RequestMapping(value = "email",method = RequestMethod.POST)
+    public boolean updateEmail(@RequestBody Map<String,Object> request, @AdminLoginUser NewenergyAdmin admin){
+        Integer userid = admin.getId();
+        if( !RequestUtil.checkMap(request,new String[]{"email"}) ) return false;
+        String email = (String)request.get("email");
+        if(StringUtilCorey.emptyCheck(email)) return false;
+        admin.setEmail(email);
+        return newenergyAdminService.updateById(admin,userid)!=null;
     }
 }
