@@ -56,13 +56,13 @@ public class BackupController {
     }
     @RequestMapping(value = "load", method = RequestMethod.POST)
     public boolean loadBackup(){
+        boolean result = false;
         try{
-            backupService.loadBackup();
+            result = backupService.loadBackup();
         }catch (Exception e){
             e.printStackTrace();
-            return false;
         }
-        return true;
+        return result;
     }
     @RequestMapping(value = "email",method = RequestMethod.POST)
     public boolean updateEmail(@RequestBody Map<String,Object> request, @AdminLoginUser NewenergyAdmin admin){
