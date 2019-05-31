@@ -11,6 +11,8 @@ import newenergy.admin.background.communicate.executor.SolveResult;
 import newenergy.admin.background.service.StorageService;
 import newenergy.admin.background.service.WaterService;
 import newenergy.core.util.SpringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     MsgParsing msgParsing;
     MsgSolve msgSolve;
     StorageService storageService;
+    Logger logger = LoggerFactory.getLogger(this.getClass());
     ServerHandle(){
         msgParsing = SpringUtil.getBean(MsgParsing.class);
         msgSolve = SpringUtil.getBean(MsgSolve.class);
@@ -29,7 +32,7 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     }
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object o) throws Exception {
-        System.out.println("server receive message :" + o);
+        logger.info(">>>>>>>>>>>>>>>server receive message :" + o);
 
         ParsingResult parsingResult = msgParsing.parse((String)o);
         SolveResult solveResult = msgSolve.solve(parsingResult);

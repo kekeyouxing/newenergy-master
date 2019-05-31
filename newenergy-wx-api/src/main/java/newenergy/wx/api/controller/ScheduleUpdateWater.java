@@ -1,6 +1,7 @@
 package newenergy.wx.api.controller;
 
 import newenergy.admin.background.service.StorageService;
+import newenergy.core.util.SpringUtil;
 import newenergy.db.domain.*;
 import newenergy.db.global.Parameters;
 import newenergy.db.service.*;
@@ -153,7 +154,7 @@ public class ScheduleUpdateWater {
     @Transactional
     @Async
     /**
-     * TODO [TEST]每十分钟生成一次
+     * TODO [TEST]每5分钟生成一次
      */
     @Scheduled(cron = "0 0/5 * * * ?")
 //    @Scheduled(cron = "0 0 0 1 1/1 ?")
@@ -185,7 +186,7 @@ public class ScheduleUpdateWater {
     @Transactional
     @Async
     /**
-     * TODO [TEST]每十分钟生成一次
+     * TODO [TEST]每5分钟生成一次
      */
     @Scheduled(cron = "0 1/5 * * * ?")
     //@Scheduled(cron = "0 30 0 1 1/1 ?")

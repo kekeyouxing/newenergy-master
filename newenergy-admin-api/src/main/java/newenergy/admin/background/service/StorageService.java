@@ -193,7 +193,6 @@ public class StorageService {
         }
     }
 
-    @Transactional
     public void updateVolume(BigDecimal remainVolume, Integer rechargeRecordId){
         //对充值记录进行更新
         RechargeRecord record = rechargeRecordService.findById(rechargeRecordId);
