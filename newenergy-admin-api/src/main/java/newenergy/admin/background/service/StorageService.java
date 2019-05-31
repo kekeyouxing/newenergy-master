@@ -3,11 +3,15 @@ package newenergy.admin.background.service;
 import newenergy.admin.background.communicate.constant.RefundState;
 import newenergy.admin.background.communicate.constant.StoragePath;
 import newenergy.core.util.TimeUtil;
+import newenergy.db.domain.RechargeRecord;
 import newenergy.db.domain.RefundRecord;
+import newenergy.db.domain.RemainWater;
 import newenergy.db.domain.Resident;
 import newenergy.db.global.Parameters;
 import newenergy.db.repository.ResidentRepository;
+import newenergy.db.service.RechargeRecordService;
 import newenergy.db.service.RefundRecordService;
+import newenergy.db.service.RemainWaterService;
 import newenergy.db.service.ResidentService;
 import newenergy.db.util.StringUtilCorey;
 import org.slf4j.Logger;
@@ -16,13 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.transaction.Transactional;
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -37,6 +39,10 @@ public class StorageService {
     ResidentRepository residentRepository;
     @Autowired
     RefundRecordService refundRecordService;
+    @Autowired
+    RechargeRecordService rechargeRecordService;
+    @Autowired
+    RemainWaterService remainWaterService;
 
     RestTemplate restTemplate;
 
@@ -64,28 +70,53 @@ public class StorageService {
      * value: refundWater
      */
     private ConcurrentHashMap<Integer, BigDecimal> refundWaterMap;
+
+    /**
+     * key: deviceNum
+     * value: list of rechargeRecord id
+     */
+    private ConcurrentHashMap<String, List<Integer>> notifyRemainWaterMap;
     StorageService(){
         extraWaterMap = loadExtraWaterMap();
         requireWaterMap = loadRequireWaterMap();
         requireWaterTrustMap = loadRequireTrustMap();
         refundWaterMap = loadRefundWaterMap();
+        notifyRemainWaterMap = loadNotifyRemainWaterMap();
         restTemplate = new RestTemplate();
     }
+
+
 
     public void saveMaps(){
         try(ObjectOutputStream oosExtra = new ObjectOutputStream(new FileOutputStream(StoragePath.EXTRA_WATER));
             ObjectOutputStream oosRequire = new ObjectOutputStream(new FileOutputStream(StoragePath.REQUIRE_WATER));
             ObjectOutputStream oosRequireTrust = new ObjectOutputStream(new FileOutputStream(StoragePath.REQUIRE_TRUST));
-            ObjectOutputStream oosRefund = new ObjectOutputStream(new FileOutputStream(StoragePath.REFUND_WATER))
+            ObjectOutputStream oosRefund = new ObjectOutputStream(new FileOutputStream(StoragePath.REFUND_WATER));
+            ObjectOutputStream oosNotify = new ObjectOutputStream(new FileOutputStream(StoragePath.NOTIFY_REMAIN));
         ){
             oosExtra.writeObject(extraWaterMap);
             oosRequire.writeObject(requireWaterMap);
             oosRequireTrust.writeObject(requireWaterTrustMap);
             oosRefund.writeObject(refundWaterMap);
+            oosNotify.writeObject(notifyRemainWaterMap);
         }catch (IOException e){
             e.printStackTrace();
             logger.error("存储maps失败");
         }
+    }
+    public ConcurrentHashMap<String, List<Integer>> loadNotifyRemainWaterMap() {
+        ConcurrentHashMap<String,List<Integer>> notifyList = null;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(StoragePath.NOTIFY_REMAIN))
+        ){
+            notifyList = (ConcurrentHashMap<String, List<Integer>>) ois.readObject();
+        }catch (IOException e){
+            logger.error("读取notifyRemainWaterMap失败");
+        }catch (ClassNotFoundException e){
+            logger.info("未找到notifyRemainWaterMap");
+        }
+        if(notifyList==null) notifyList = new ConcurrentHashMap<>();
+
+        return notifyList;
     }
 
     public ConcurrentHashMap<Integer,BigDecimal> loadRefundWaterMap(){
@@ -99,11 +130,6 @@ public class StorageService {
             logger.info("未找到refundWaterMap");
         }
         if(refund==null) refund = new ConcurrentHashMap<>();
-
-//DEBUG
-        for(Map.Entry<Integer,BigDecimal> entry : refund.entrySet()){
-            System.out.println(entry.getKey()+":"+entry.getValue());
-        }
 
         return refund;
     }
@@ -120,11 +146,6 @@ public class StorageService {
         }
         if(extra==null) extra = new ConcurrentHashMap<>();
 
-//DEBUG
-for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
-    System.out.println(entry.getKey()+":"+entry.getValue());
-}
-
         return extra;
     }
 
@@ -139,11 +160,6 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
             logger.info("未找到requireWaterMap");
         }
         if(require==null) require = new ConcurrentHashMap<>();
-
-//DEBUG
-        for(Map.Entry<String,BigDecimal> entry : require.entrySet()){
-            System.out.println(entry.getKey()+":"+entry.getValue());
-        }
 
         return require;
     }
@@ -160,15 +176,58 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
         }
         if(trust==null) trust = new ConcurrentHashMap<>();
 
-//DEBUG
-        for(Map.Entry<String,LocalDateTime> entry : trust.entrySet()){
-            System.out.println(entry.getKey()+":"+entry.getValue());
-        }
 
         return trust;
     }
 
+    /**
+     * 将剩余水量通知到对应的所有充值记录
+     * @param deviceNum 机器编码
+     * @param remainWater
+     */
+    public void notifyPostSolve(String deviceNum,BigDecimal remainWater){
+        if(notifyRemainWaterMap.containsKey(deviceNum)){
+            List<Integer> ids = notifyRemainWaterMap.get(deviceNum);
+            ids.forEach(id->updateVolume(remainWater,id));
+            notifyRemainWaterMap.remove(deviceNum);
+        }
+    }
 
+    @Transactional
+    public void updateVolume(BigDecimal remainVolume, Integer rechargeRecordId){
+        //对充值记录进行更新
+        RechargeRecord record = rechargeRecordService.findById(rechargeRecordId);
+        record.setRemainVolume(remainVolume);
+        if(record.getRechargeVolume() != null)
+            record.setUpdatedVolume( remainVolume.add( record.getRechargeVolume() ) );
+        rechargeRecordService.updateRechargeRecord(record,null);
+
+        //对剩余水量表的充值流量和充值金额进行更新
+        RemainWater remainWater = remainWaterService.findByRegisterId(record.getRegisterId());
+        //在之前的WaterService.updateRemainWater()中已经完成了对剩余水量的初始化
+        if(remainWater == null || remainWater.getCurAmount()==null || remainWater.getCurRecharge() == null) return;
+        if(record.getAmount() != null)
+            remainWater.setCurAmount(remainWater.getCurAmount() + record.getAmount());
+        if(record.getRechargeVolume() != null)
+            remainWater.setCurRecharge(remainWater.getCurRecharge().add(record.getRechargeVolume()));
+        remainWaterService.updateRemainWater(remainWater);
+
+    }
+
+    /**
+     * 添加待通知剩余水量的充值记录id
+     * @param deviceNum 机器编码
+     * @param recordId 充值记录id
+     */
+    public void addNotifyItem(String deviceNum, Integer recordId){
+        if( notifyRemainWaterMap.containsKey(deviceNum) ){
+            List<Integer> ids = notifyRemainWaterMap.get(deviceNum);
+            ids.add(recordId);
+            notifyRemainWaterMap.put(deviceNum,ids);
+        }else{
+            notifyRemainWaterMap.put(deviceNum, Arrays.asList(recordId));
+        }
+    }
 
     /**
      * 退款处理
@@ -197,7 +256,7 @@ for(Map.Entry<String,BigDecimal> entry : extra.entrySet()){
     }
 
     /**
-     * TODO 退款（微信充值退款）审核通过后，调用该方法
+     *  退款（微信充值退款）审核通过后，调用该方法
      * @param orderid 退款记录id
      * @param refundWater 退款水量，为正数
      */

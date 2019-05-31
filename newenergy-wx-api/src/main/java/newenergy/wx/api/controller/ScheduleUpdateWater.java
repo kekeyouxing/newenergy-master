@@ -4,6 +4,7 @@ import newenergy.admin.background.service.StorageService;
 import newenergy.db.domain.*;
 import newenergy.db.global.Parameters;
 import newenergy.db.service.*;
+import newenergy.db.util.StringUtilCorey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,17 +79,21 @@ public class ScheduleUpdateWater {
     public void configureTasks(){
         List<ExtraWater> sortedExtraWaterList = scheduleUpdateWater.extraWaterService.findAll();
         for(ExtraWater extraWater : sortedExtraWaterList){
-            BigDecimal addVolume = extraWater.getAddVolume();
-            Integer addAmount = extraWater.getAddAmount();
+//            BigDecimal addVolume = extraWater.getAddVolume();
+//            Integer addAmount = extraWater.getAddAmount();
             RechargeRecord rechargeRecord = scheduleUpdateWater.rechargeRecordService.findById(extraWater.getRecordId());
-            RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
+//            RemainWater remainWater = scheduleUpdateWater.remainWaterService.findByRegisterId(extraWater.getRegisterId());
 
-//            if (isTrustworthy(remainWater)){
-                updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
-                storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
-                scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
+//            updateVolume(rechargeRecord,remainWater,addVolume,addAmount);
+            Resident resident = residentService.fingByRegisterId(extraWater.getRegisterId());
+            String deviceNum = resident==null?"":resident.getDeviceNum();
+            if(!StringUtilCorey.emptyCheck(deviceNum)) {
+                storageService.addNotifyItem(deviceNum,rechargeRecord.getId());
+            }
+            storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
+            scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
 
-//            }
+
         }
     }
 

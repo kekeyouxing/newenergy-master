@@ -36,6 +36,7 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
         if(solveResult != null)
             ctx.channel().writeAndFlush("server send message " + solveResult.replyMsg());
         storageService.refundPostSolve(parsingResult.deviceNum());
+        storageService.notifyPostSolve(parsingResult.deviceNum(),parsingResult.remainWater());
 
 //        ctx.close();
     }
