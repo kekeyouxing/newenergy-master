@@ -94,7 +94,6 @@ public class ScheduleUpdateWater {
             storageService.addExtraWater(extraWater.getRegisterId(),extraWater.getAddVolume());
             scheduleUpdateWater.extraWaterService.deleteRecord(extraWater);
 
-
         }
     }
 

@@ -188,29 +188,33 @@ public class StorageService {
     public void notifyPostSolve(String deviceNum,BigDecimal remainWater){
         if(notifyRemainWaterMap.containsKey(deviceNum)){
             List<Integer> ids = notifyRemainWaterMap.get(deviceNum);
-            ids.forEach(id->updateVolume(remainWater,id));
+            for(Integer id : ids){
+                remainWater = updateVolume(remainWater,id);
+            }
             notifyRemainWaterMap.remove(deviceNum);
         }
     }
 
-    public void updateVolume(BigDecimal remainVolume, Integer rechargeRecordId){
+    public BigDecimal updateVolume(BigDecimal remainVolume, Integer rechargeRecordId){
         //对充值记录进行更新
         RechargeRecord record = rechargeRecordService.findById(rechargeRecordId);
         record.setRemainVolume(remainVolume);
+        BigDecimal updatedVolume = remainVolume;
         if(record.getRechargeVolume() != null)
-            record.setUpdatedVolume( remainVolume.add( record.getRechargeVolume() ) );
+            updatedVolume = updatedVolume.add(record.getRechargeVolume());
+        record.setUpdatedVolume(updatedVolume);
         rechargeRecordService.updateRechargeRecord(record,null);
 
         //对剩余水量表的充值流量和充值金额进行更新
         RemainWater remainWater = remainWaterService.findByRegisterId(record.getRegisterId());
         //在之前的WaterService.updateRemainWater()中已经完成了对剩余水量的初始化
-        if(remainWater == null || remainWater.getCurAmount()==null || remainWater.getCurRecharge() == null) return;
+        if(remainWater == null || remainWater.getCurAmount()==null || remainWater.getCurRecharge() == null) return updatedVolume;
         if(record.getAmount() != null)
             remainWater.setCurAmount(remainWater.getCurAmount() + record.getAmount());
         if(record.getRechargeVolume() != null)
             remainWater.setCurRecharge(remainWater.getCurRecharge().add(record.getRechargeVolume()));
         remainWaterService.updateRemainWater(remainWater);
-
+        return updatedVolume;
     }
 
     /**
@@ -224,7 +228,9 @@ public class StorageService {
             ids.add(recordId);
             notifyRemainWaterMap.put(deviceNum,ids);
         }else{
-            notifyRemainWaterMap.put(deviceNum, Arrays.asList(recordId));
+            List<Integer> list = new ArrayList<>();
+            list.add(recordId);
+            notifyRemainWaterMap.put(deviceNum,list);
         }
     }
 
