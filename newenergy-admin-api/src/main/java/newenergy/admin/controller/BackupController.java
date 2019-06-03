@@ -40,7 +40,8 @@ public class BackupController {
         if (!uploadDir.exists()){
             if(!uploadDir.mkdir()) return false;
         }
-        File dest = new File(basedir+encLoadName);
+        String absPrefix = "C:\\hgdr_project\\";
+        File dest = new File(absPrefix + basedir + encLoadName);
 
         if(!dest.getParentFile().exists())
             dest.getParentFile().mkdirs();

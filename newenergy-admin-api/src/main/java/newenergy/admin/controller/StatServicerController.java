@@ -298,9 +298,19 @@ public class StatServicerController {
             if(faultTime!=null){
                 faultTimeStr = faultTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             }
+            String result = "";
+            if(record.getResult() == 0){
+                result = "维修成功";
+            }
+            if(record.getResult() == 1){
+                result = "超时未响应";
+            }
+            if(record.getResult() == 2){
+                result = "维修失败";
+            }
             String[] strings = new String[]{record.getRegisterId(), addressDtl, roomNum, record.getPhenomenon(),
                     faultTimeStr, responseTimeStr, finishTimeStr,
-                    record.getSolution(), record.getResult()+""};
+                    record.getSolution(), result};
 
             list.add(strings);
         });

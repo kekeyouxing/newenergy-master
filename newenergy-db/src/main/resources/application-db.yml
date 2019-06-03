@@ -12,14 +12,16 @@ spring:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         hbm2ddl:
            auto: update
+  servlet:
+    multipart:
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   mail:
     host: smtp.qq.com
     port: 465
     username: 2359046280@qq.com
     password: jkutibhbjrgbebhf
-    #    password: hgdr123456
     #    password: hgdr123
-
 
     properties:
       mail:
