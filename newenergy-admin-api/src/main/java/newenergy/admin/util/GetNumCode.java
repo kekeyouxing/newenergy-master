@@ -1,6 +1,10 @@
 package newenergy.admin.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GetNumCode {
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     //生成一位编码0-z
     public String getOneNum(Integer num) {
         char code = ' ';
@@ -13,7 +17,7 @@ public class GetNumCode {
             }
         }
         else {
-            System.out.println("超出一位编码范围");
+            logger.info("超出一位编码范围");
         }
         return String.valueOf(code);
     }
@@ -29,7 +33,7 @@ public class GetNumCode {
             code[1] = getOneNum(digit).charAt(0);
         }
         else {
-            System.out.println("超出两位编码范围");
+            logger.info("超出两位编码范围");
         }
         return String.valueOf(code);
     }
@@ -42,8 +46,5 @@ public class GetNumCode {
         return address_num;
     }
 
-    public static void main(String[] args) {
-        GetNumCode getNumCode = new GetNumCode();
-        System.out.println(getNumCode.getTwoNum(1295));
-    }
+
 }
