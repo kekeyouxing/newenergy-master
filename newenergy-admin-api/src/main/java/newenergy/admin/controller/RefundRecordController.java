@@ -73,7 +73,7 @@ public class RefundRecordController {
         refundRecord.setPlotNum(rechargeRecord.getPlotNum());
         refundRecord.setRefundAmount(rechargeRecord.getAmount());
         refundRecord.setRefundVolume(rechargeRecord.getRechargeVolume());
-        rechargeRecord.setDelegate(rechargeRecord.getDelegate());
+        refundRecord.setDelegate(rechargeRecord.getDelegate());
         refundRecord.setRefundTime(LocalDateTime.now());
         refundRecord.setRecordId(rechargeRecord.getId());
         refundRecord.setRechargeId(user.getId());
