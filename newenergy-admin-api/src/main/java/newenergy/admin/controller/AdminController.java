@@ -1,21 +1,17 @@
 package newenergy.admin.controller;
 
 import newenergy.admin.annotation.AdminLoginUser;
-import newenergy.admin.annotation.RequiresPermissionsDesc;
 import newenergy.core.util.RegexUtil;
 import newenergy.core.util.ResponseUtil;
 import newenergy.db.domain.NewenergyAdmin;
 import newenergy.db.domain.NewenergyRole;
 import newenergy.db.service.NewenergyAdminService;
 import newenergy.db.service.NewenergyRoleService;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
