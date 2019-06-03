@@ -99,6 +99,7 @@ public class RefundRecordController {
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
             resultInfo.setId(refundRecord.getId());
             resultInfo.setRegisterId(refundRecord.getRegisterId());
+            resultInfo.setDelegate(refundRecord.getDelegate());
             resultInfo.setUserName(resident.getUserName());
             resultInfo.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
             resultInfo.setRoomNum(resident.getRoomNum());
@@ -136,6 +137,7 @@ public class RefundRecordController {
             resultInfo.setRegisterId(refundRecord.getRegisterId());
             Resident resident = residentService.fingByRegisterId(refundRecord.getRegisterId());
             resultInfo.setUserName(resident.getUserName());
+            resultInfo.setDelegate(refundRecord.getDelegate());
             resultInfo.setAddressDtl(corrAddressService.findAddressDtlByAddressNum(resident.getAddressNum()));
             resultInfo.setRoomNum(resident.getRoomNum());
             RechargeRecord rechargeRecord = rechargeRecordService.findById(refundRecord.getRecordId());
@@ -331,6 +333,7 @@ public class RefundRecordController {
         private Long checkTime;
         private String refundReason;
         private String rejectReason;
+        private Integer delegate;
 
         public Integer getId() {
             return id;
@@ -451,6 +454,14 @@ public class RefundRecordController {
 
         public void setRejectReason(String rejectReason) {
             this.rejectReason = rejectReason;
+        }
+
+        public Integer getDelegate() {
+            return delegate;
+        }
+
+        public void setDelegate(Integer delegate) {
+            this.delegate = delegate;
         }
     }
 
