@@ -15,6 +15,8 @@ import newenergy.admin.background.task.ScheduledService;
 import newenergy.db.template.LogicOperation;
 import newenergy.db.template.Searchable;
 import newenergy.db.util.StringUtilCorey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -49,6 +51,8 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
 
     @Autowired
     private ResidentRepository residentRepository;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private ScheduledFuture<?> future;
     /**
@@ -143,7 +147,7 @@ public class DeviceRequireService extends LogicOperation<DeviceRequire>
     public void updateCron(){
         DeviceRequireRunnable runnable = new DeviceRequireRunnable();
         String cron = scheduledService.getCronByRate(null,DeviceRequireGlobal.updateLoop.get(),null);
-        System.out.println("changed to " + cron);
+        logger.info("需水量cron表达式修改为 " + cron);
         if(future == null){
             future = scheduledService.startCron(runnable,cron);
         }else{

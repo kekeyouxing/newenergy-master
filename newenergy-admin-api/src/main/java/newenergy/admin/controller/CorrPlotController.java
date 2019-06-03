@@ -136,13 +136,17 @@ public class CorrPlotController {
     @PostMapping("/update")
     public Object update(@RequestBody CorrPlot corrPlot, Integer userid) {
         corrPlotService.updateCorrPlot(corrPlot, userid);
-        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(corrPlot.getPlotNum());
+        //因为接收参数只含有id和plotDtl，改为先通过id获取数据库对象，在获取plotNum。 @author yangq
+//        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(corrPlot.getPlotNum());
+        String plotNum = corrPlotService.findById(corrPlot.getId()).getPlotNum();
+        List<CorrAddress> corrAddresses = corrAddressService.findByPlotNum(plotNum);
         for(CorrAddress corrAddress: corrAddresses){
             corrAddress.setAddressPlot(corrPlot.getPlotDtl());
             corrAddress.initAddressDtl();
             corrAddressService.updateCorrAddress(corrAddress, userid);
         }
-        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(corrPlot.getPlotNum());
+//        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(corrPlot.getPlotNum());
+        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(plotNum);
         for(CorrPump corrPump: corrPumps) {
             corrPump.setPlot(corrPlot.getPlotDtl());
             corrPump.setPumpDtl(corrPlot.getPlotDtl()+corrPump.getPump()+"号机房");

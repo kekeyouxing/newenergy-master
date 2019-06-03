@@ -62,7 +62,6 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     public List<Map<String,Object>> getMonitors(){
 
         List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
-        System.out.println("monitor:"+admins.size());
         List<Map<String,Object>> ret = new ArrayList<>();
         admins.forEach(admin -> {
             if(isMonitor(admin)){
@@ -76,7 +75,6 @@ public class CorrPlotAdminService extends LogicOperation<CorrPlotAdmin>
     }
     public List<Map<String,Object>> getServicers(){
         List<NewenergyAdmin> admins = newenergyAdminRepository.findAll(PredicateFactory.getAliveSpecification(),Sort.by(Sort.Direction.ASC,"id"));
-        System.out.println("servicer:"+admins.size());
         List<Map<String,Object>> ret = new ArrayList<>();
         admins.forEach(admin -> {
             if(isServicer(admin)){
