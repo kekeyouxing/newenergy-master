@@ -27,6 +27,7 @@ public class RefundRecord  implements Cloneable{
     private String rejectReason;
     //微信退款单号
     private String outRefundNo;
+    private Integer delegate;
 
     public String getOutRefundNo() {
         return outRefundNo;
@@ -154,6 +155,14 @@ public class RefundRecord  implements Cloneable{
 
     public void setRejectReason(String rejectReason) {
         this.rejectReason = rejectReason;
+    }
+
+    public Integer getDelegate() {
+        return delegate;
+    }
+
+    public void setDelegate(Integer delegate) {
+        this.delegate = delegate;
     }
 
     @Override
