@@ -37,7 +37,8 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
         ParsingResult parsingResult = msgParsing.parse((String)o);
         SolveResult solveResult = msgSolve.solve(parsingResult);
         if(solveResult != null)
-            ctx.channel().writeAndFlush("服务器回复消息：" + solveResult.replyMsg());
+            ctx.channel().writeAndFlush(solveResult.replyMsg());
+        logger.info("服务器回复消息：" + solveResult.replyMsg());
         storageService.refundPostSolve(parsingResult.deviceNum());
         storageService.notifyPostSolve(parsingResult.deviceNum(),parsingResult.remainWater());
 

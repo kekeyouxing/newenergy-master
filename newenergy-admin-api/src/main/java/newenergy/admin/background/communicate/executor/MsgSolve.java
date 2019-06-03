@@ -64,13 +64,15 @@ public class MsgSolve {
         List<Integer> orders = waterService.getAllOrderIdByDeviceNum(result.deviceNum());
         //剩余水量 小于等于 退款水量时拒绝退款
         if(result.remainWater().compareTo(refundWater) < 0){
-            logger.info("机器编码："+result.deviceNum()+" 拒绝退款");
+            if(!orders.isEmpty())
+                logger.info("机器编码："+result.deviceNum()+" 拒绝退款");
             for(Integer id : orders){
                 waterService.labelFailed(id);
             }
             solveResult.setExtraWater(extraWater);
         }else{
-            logger.info("机器编码："+result.deviceNum()+" 允许退款");
+            if(!orders.isEmpty())
+                logger.info("机器编码："+result.deviceNum()+" 允许退款");
             for(Integer id : orders){
                 waterService.labelSuccess(id);
             }
