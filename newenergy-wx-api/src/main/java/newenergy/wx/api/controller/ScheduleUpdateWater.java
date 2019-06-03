@@ -217,6 +217,4 @@ public class ScheduleUpdateWater {
         }
         new PlotFactorService().updateFactor();
     }
-
-
 }
