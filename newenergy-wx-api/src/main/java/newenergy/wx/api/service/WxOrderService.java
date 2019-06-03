@@ -125,8 +125,8 @@ public class WxOrderService {
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
 
         //充值流量（充值金额（元）/充值系数（元/吨））这里暂时用分代替元进行测试
-        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
-//        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
+        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,1,RoundingMode.DOWN);
+//        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),1,RoundingMode.DOWN);
 
         //生成商户订单号
         String orderSn = rechargeRecordService.generateOrderSn();

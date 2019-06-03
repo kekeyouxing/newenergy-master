@@ -40,7 +40,8 @@ public class BackupController {
         if (!uploadDir.exists()){
             if(!uploadDir.mkdir()) return false;
         }
-        File dest = new File(basedir+encLoadName);
+        String absPrefix = "C:\\hgdr_project\\";
+        File dest = new File(absPrefix + basedir + encLoadName);
 
         if(!dest.getParentFile().exists())
             dest.getParentFile().mkdirs();
@@ -56,13 +57,13 @@ public class BackupController {
     }
     @RequestMapping(value = "load", method = RequestMethod.POST)
     public boolean loadBackup(){
+        boolean result = false;
         try{
-            backupService.loadBackup();
+            result = backupService.loadBackup();
         }catch (Exception e){
             e.printStackTrace();
-            return false;
         }
-        return true;
+        return result;
     }
     @RequestMapping(value = "email",method = RequestMethod.POST)
     public boolean updateEmail(@RequestBody Map<String,Object> request, @AdminLoginUser NewenergyAdmin admin){

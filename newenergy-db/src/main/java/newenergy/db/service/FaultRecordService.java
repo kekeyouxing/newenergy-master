@@ -181,7 +181,7 @@ public class FaultRecordService implements Searchable<FaultRecord,FaultRecordPre
         plotAdmins.forEach(plotAdmin->{
             ret.add(plotAdmin.getPlotNum());
         });
-
+        if(ret.isEmpty()) return null;
         return ret;
     }
 
