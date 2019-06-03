@@ -99,7 +99,7 @@ public class CommonUtil {
 //                    jsonObject = JSONObject.fromObject(buffer.toString());
                     break;
                 default:
-                    System.out.println("null");
+                    log.info("null");
                     break;
             }
         }catch (Exception e){

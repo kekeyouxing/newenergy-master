@@ -85,8 +85,6 @@ public class BindingController {
         msgs.add("hgdr_hust");
         Collections.sort(msgs);
         String result = DigestUtils.sha1Hex(msgs.get(0)+msgs.get(1)+msgs.get(2));
-        System.out.println("result:"+result);
-        System.out.println("signature:"+signature);
         if(result.equals(signature)){
             return echostr;
         }else{
@@ -135,7 +133,6 @@ public class BindingController {
             return ret;
         }
         String openid = UserTokenManager.getOpenId((String)body.get("token"));
-        System.out.println((String)body.get("token")+","+openid);
         if(StringUtilCorey.emptyCheck(openid)){
             ret.put("list",list);
             return ret;

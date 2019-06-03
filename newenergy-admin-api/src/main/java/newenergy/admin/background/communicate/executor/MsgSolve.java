@@ -28,26 +28,34 @@ public class MsgSolve {
         SolveResult solveResult = new SolveResult();
         if(result==null || !result.legaled()) return null;
         if(StringUtilCorey.emptyCheck(result.deviceNum())) return null;
+        if(!waterService.hasRegisterid(result.deviceNum())){
+            logger.info("机器编码"+result.deviceNum()+"没有对应的登记号");
+            return null;
+        }
         /**
          * 更新剩余水量
          */
+        logger.info("更新剩余水量...");
         if(result.remainWater() != null){
             waterService.updateRemainWater(result.deviceNum(),result.remainWater());
         }
         /**
          * 存储需水量
          */
+        logger.info("存储需水量...");
         waterService.updateRequireWater(result.deviceNum(),result.started());
 
         /**
          * 监控故障
          */
+        logger.info("检测故障...");
         if(result.fault() && faultService.isNewFault(result.deviceNum()))
             faultService.addFault(result.deviceNum(),result.faultDtl());
 
         /**
          * 返回新增用水量 和 退款水量
          */
+        logger.info("获取退款和充值水量...");
         BigDecimal extraWater = waterService.getExtraWater(result.deviceNum());
         BigDecimal refundWater = waterService.getRefundWater(result.deviceNum());
         logger.info("机器编码："+result.deviceNum()+"；充值水量："+extraWater);
@@ -67,7 +75,6 @@ public class MsgSolve {
                 waterService.labelSuccess(id);
             }
             solveResult.setExtraWater(extraWater.add(refundWater.negate()));
-
 
         }
         return solveResult;

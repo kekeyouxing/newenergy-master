@@ -57,7 +57,6 @@ public class RechargeRecordController {
 //    根据id查询充值记录
     @RequestMapping(value = "/findSingle", method = RequestMethod.GET)
     public RechargeRecord findById(@RequestParam Integer id){
-        System.out.println(id);
         return rechargeRecordService.findById(id);
     }
 
