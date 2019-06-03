@@ -145,7 +145,8 @@ public class CorrPlotController {
             corrAddress.initAddressDtl();
             corrAddressService.updateCorrAddress(corrAddress, userid);
         }
-        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(corrPlot.getPlotNum());
+//        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(corrPlot.getPlotNum());
+        List<CorrPump> corrPumps = corrPumpService.findByPlotNum(plotNum);
         for(CorrPump corrPump: corrPumps) {
             corrPump.setPlot(corrPlot.getPlotDtl());
             corrPump.setPumpDtl(corrPlot.getPlotDtl()+corrPump.getPump()+"号机房");
