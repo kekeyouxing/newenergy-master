@@ -29,13 +29,16 @@ public class AdminController {
     //@RequiresPermissions("admin:admin:list")
     //@RequiresPermissionsDesc(menu={"系统管理" , "管理员管理"}, button="查询")
     @GetMapping("/list")
-    public Object list(String username,
+    public Object list(@AdminLoginUser NewenergyAdmin adminLogin, String username,
                        @RequestParam(defaultValue = "0") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit){
 
         List<NewenergyAdmin> adminList = adminService.querySelective(username);
 
-        adminList = removeSuperRole(adminList);
+        if(!isSuperAdmin(adminLogin)){
+            adminList = removeSuperRole(adminList);
+        }
+
         adminList = roleSort(adminList);
         Integer total = adminList.size();
         adminList = page(page, limit, adminList);
@@ -47,6 +50,17 @@ public class AdminController {
 
         return ResponseUtil.ok(data);
     }
+
+    private boolean isSuperAdmin(NewenergyAdmin adminLogin){
+        NewenergyRole superRole = roleService.findSuperAdmin();
+        int superRoleId = -1;
+        if(superRole != null){
+            superRoleId = superRole.getId();
+        }
+        List<Integer> roleIds = Arrays.asList(adminLogin.getRoleIds());
+        return roleIds.contains(superRoleId);
+    }
+
     private List<NewenergyAdmin> page(Integer page, Integer limit, List<NewenergyAdmin> adminList){
         List<NewenergyAdmin> result = new ArrayList<>();
         int totalPage = (adminList.size()-1)/limit+1;
