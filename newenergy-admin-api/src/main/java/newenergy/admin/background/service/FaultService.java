@@ -12,6 +12,7 @@ import newenergy.db.util.StringUtilCorey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,14 +42,26 @@ public class FaultService {
         restTemplate = new RestTemplate();
     }
 
-    public boolean isNewFault(String deviceNUm){
-        Resident resident = residentService.findByDeviceNumWithAlive(deviceNUm);
+    public boolean isNewFault(String deviceNum){
+        /**
+         * 是否有故障正在处理或等待响应
+         */
+        Resident resident = residentService.findByDeviceNumWithAlive(deviceNum);
         if(resident == null) return false;
         FaultRecordPredicate predicate = new FaultRecordPredicate();
         predicate.setRegisterId(resident.getRegisterId());
         predicate.setSolving(true);
         Page<FaultRecord>  records = faultRecordService.findByPredicate(predicate,null,null);
-        return records.isEmpty();
+        if(!records.isEmpty()) return false;
+        /**
+         * 最新一条维修记录是否为维修失败的故障，维修失败时，需要人工报备，系统无需处理，所以也返回false
+         */
+        predicate = new FaultRecordPredicate();
+
+        Page<FaultRecord> records2 = faultRecordService.findByPredicate(predicate,null, Sort.by(Sort.Direction.DESC,"finishTime"));
+
+        FaultRecord top = records2.get().findFirst().orElse(null);
+        return top==null || FaultRecordConstant.RESULT_SUCCESS.equals( top.getResult() );
     }
 
     public void addFault(String deviceNum, String faultDtl){

@@ -32,12 +32,13 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     }
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object o) throws Exception {
-        logger.info(">>>>>>>>>>>>>>>server receive message :" + o);
+        logger.info("服务器收到消息：" + o);
 
         ParsingResult parsingResult = msgParsing.parse((String)o);
         SolveResult solveResult = msgSolve.solve(parsingResult);
         if(solveResult != null)
-            ctx.channel().writeAndFlush("server send message " + solveResult.replyMsg());
+            ctx.channel().writeAndFlush(solveResult.replyMsg());
+        logger.info("服务器回复消息：" + solveResult.replyMsg());
         storageService.refundPostSolve(parsingResult.deviceNum());
         storageService.notifyPostSolve(parsingResult.deviceNum(),parsingResult.remainWater());
 
@@ -46,6 +47,6 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("channelActive>>>>>>>>");
+        logger.info("有客户端连接");
     }
 }

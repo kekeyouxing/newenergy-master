@@ -28,6 +28,13 @@ public class WaterService {
     @Autowired
     private StorageService storageService;
 
+    public boolean hasRegisterid(String deviceNum){
+        Resident condition = new Resident();
+        condition.setDeviceNum(deviceNum);
+        List<Resident> allRes = residentRepository.findAll(residentService.findByPlotNumOrSearch(condition));
+        return !allRes.isEmpty();
+    }
+
     public RemainWater updateRemainWater(String deviceNum, BigDecimal remainWater){
         Resident condition = new Resident();
         condition.setDeviceNum(deviceNum);
