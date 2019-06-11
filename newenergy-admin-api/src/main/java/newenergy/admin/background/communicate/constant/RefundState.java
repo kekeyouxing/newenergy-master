@@ -9,7 +9,7 @@ public class RefundState {
 
     public static final Integer STATE_UNCHECK = 1;
     public static final Integer STATE_CHECK_FAILED = 2;
-    public static final Integer STATE_CHECK_UNREFUND = 3;
-    public static final Integer STATE_CHECK_REFUND_FAILED = 4;
+    public static final Integer STATE_CHECK_UNREFUND = 4;
+    public static final Integer STATE_CHECK_REFUND_FAILED = 5;
     public static final Integer STATE_CHECK_REFUND_SUCCESS = 0;
 }

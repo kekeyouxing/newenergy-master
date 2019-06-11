@@ -6,6 +6,8 @@ import newenergy.core.util.SpringUtil;
 import newenergy.core.util.TimeUtil;
 import newenergy.db.domain.CorrPlot;
 import newenergy.db.service.CorrPlotService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
@@ -18,6 +20,7 @@ import java.util.List;
 public class DeviceRequireRunnable implements Runnable {
     StorageService storageService;
     DeviceRequireService deviceRequireService;
+    Logger logger = LoggerFactory.getLogger(this.getClass());
     public DeviceRequireRunnable(){
         storageService = SpringUtil.getBean(StorageService.class);
         deviceRequireService = SpringUtil.getBean(DeviceRequireService.class);
@@ -27,13 +30,14 @@ public class DeviceRequireRunnable implements Runnable {
     public void run() {
 
         List<String> plotNums = deviceRequireService.findAllPlotNums();
-
-        System.out.println("计算需水量...");
+        logger.info("开始计算需水量");
         for(String plotNum : plotNums){
             BigDecimal require = storageService.calRequireWaterByPlotNum(plotNum);
             deviceRequireService.setRequire(plotNum,require);
         }
         deviceRequireService.setUpdateTime(TimeUtil.getUTCNow());
+        logger.info("需水量计算完毕");
+
 
     }
 }

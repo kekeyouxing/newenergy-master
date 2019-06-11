@@ -42,4 +42,11 @@ public class TimeUtil {
                 localDateTime.getMinute(),
                 localDateTime.getSecond());
     }
+    public static String getDateString(LocalDateTime localDateTime){
+        if(localDateTime == null) return "";
+        return  String.format("%d%02d%02d",
+                localDateTime.getYear(),
+                localDateTime.getMonthValue(),
+                localDateTime.getDayOfMonth());
+    }
 }

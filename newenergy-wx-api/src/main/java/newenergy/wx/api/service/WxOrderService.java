@@ -125,8 +125,8 @@ public class WxOrderService {
 //        Double recharge_volumn = acturalAmount.doubleValue()*plot_factor;
 
         //充值流量（充值金额（元）/充值系数（元/吨））这里暂时用分代替元进行测试
-        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,3,RoundingMode.HALF_DOWN);
-//        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),3,RoundingMode.HALF_DOWN);
+        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor,1,RoundingMode.DOWN);
+//        BigDecimal recharge_volumn = acturalAmount.divide(plot_factor.multiply(new BigDecimal(100)),1,RoundingMode.DOWN);
 
         //生成商户订单号
         String orderSn = rechargeRecordService.generateOrderSn();
@@ -158,13 +158,6 @@ public class WxOrderService {
             result = wxPayService.createOrder(orderRequest);
 
             rechargeRecordService.addRechargeRecord(order,null);
-//            //判断是否有相同订单号
-//            while(orderMap.containsKey(order.getOrderSn())){
-//                order.setOrderSn(rechargeRecordService.generateOrderSn());
-//            }
-//            orderMap.put(order.getOrderSn(),order);
-//            String prepayId = result.getPackageValue();
-//            prepayId = prepayId.replace("prepay_id=","");
 
         }catch (Exception e) {
             e.printStackTrace();
@@ -262,7 +255,6 @@ public class WxOrderService {
      */
     @Transactional
     public Object refund(Map<String,Object> body){
-//        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
         //退款订单ID
         String orderIdStr = (String)body.get("orderId");
         if(orderIdStr == null) return ResponseUtil.badArgument();
@@ -275,7 +267,7 @@ public class WxOrderService {
             return ResponseUtil.badArgument();
         }
 //        Integer refundFee = new BigDecimal(order.getRefundAmount()).multiply(new BigDecimal(100)).intValue();
-        //退款金额
+        //退款金额，单位分
         Integer refundFee = order.getRefundAmount();
         WxPayRefundRequest wxPayRefundRequest = new WxPayRefundRequest();
 //查询对应充值记录
@@ -288,7 +280,7 @@ public class WxOrderService {
         String outRefundNo = "refund_"+rechargeRecord.getOrderSn();
         wxPayRefundRequest.setOutRefundNo(outRefundNo);
 //        Integer totalFee = new BigDecimal(rechargeRecord.getAmount()).multiply(new BigDecimal(100)).intValue();
-        //订单总金额（支付时的）
+        //订单总金额（支付时的），单位分
         Integer totalFee = rechargeRecord.getAmount();
 
         wxPayRefundRequest.setTotalFee(totalFee);

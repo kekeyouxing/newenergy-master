@@ -11,6 +11,8 @@ import newenergy.admin.background.communicate.executor.SolveResult;
 import newenergy.admin.background.service.StorageService;
 import newenergy.admin.background.service.WaterService;
 import newenergy.core.util.SpringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     MsgParsing msgParsing;
     MsgSolve msgSolve;
     StorageService storageService;
+    Logger logger = LoggerFactory.getLogger(this.getClass());
     ServerHandle(){
         msgParsing = SpringUtil.getBean(MsgParsing.class);
         msgSolve = SpringUtil.getBean(MsgSolve.class);
@@ -29,19 +32,21 @@ public class ServerHandle extends SimpleChannelInboundHandler<Object> {
     }
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object o) throws Exception {
-        System.out.println("server receive message :" + o);
+        logger.info("服务器收到消息：" + o);
 
         ParsingResult parsingResult = msgParsing.parse((String)o);
         SolveResult solveResult = msgSolve.solve(parsingResult);
         if(solveResult != null)
-            ctx.channel().writeAndFlush("server send message " + solveResult.replyMsg());
+            ctx.channel().writeAndFlush(solveResult.replyMsg());
+        logger.info("服务器回复消息：" + solveResult.replyMsg());
         storageService.refundPostSolve(parsingResult.deviceNum());
+        storageService.notifyPostSolve(parsingResult.deviceNum(),parsingResult.remainWater());
 
 //        ctx.close();
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("channelActive>>>>>>>>");
+        logger.info("有客户端连接");
     }
 }

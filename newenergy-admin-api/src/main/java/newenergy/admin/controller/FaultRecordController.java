@@ -900,8 +900,18 @@ public class FaultRecordController {
                 finishTimeStr = finishTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             }
             if(admin != null) servicerName = admin.getRealName();
+            String result = "";
+            if(record.getResult() == 0){
+                result = "维修成功";
+            }
+            if(record.getResult() == 1){
+                result = "超时未响应";
+            }
+            if(record.getResult() == 2){
+                result = "维修失败";
+            }
             String[] strings = new String[]{faultTimeStr, record.getPhenomenon(),record.getSolution(), finishTimeStr,
-                    servicerName, record.getResult()+""};
+                    servicerName, result};
             list.add(strings);
         });
 

@@ -26,7 +26,13 @@ public class NewenergyRoleService {
     @Autowired
     private NewenergyRoleRepository roleRepository;
 
-
+    public NewenergyRole findSuperAdmin(){
+        List<NewenergyRole> roles= roleRepository.getAllByEnableIsTrueAndDeletedIsFalseAndNameEquals("超级管理员");
+        if(roles == null || roles.size() == 0){
+            return null;
+        }
+        return roles.get(0);
+    }
     public Set<String> queryByIds(Integer[] roleIds) {
 
         Set<String> roles = new HashSet<String>();
