@@ -230,6 +230,7 @@ public class DataStatisticsController {
             info.put("rechargeVolume", rechargeRecord.getRechargeVolume());
             info.put("remainVolume", rechargeRecord.getRemainVolume());
             info.put("updatedVolume", rechargeRecord.getUpdatedVolume());
+            info.put("delegate", rechargeRecord.getDelegate());
             list.add(info);
         }
         data.put("rechargeRecords", list);

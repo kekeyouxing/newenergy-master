@@ -74,7 +74,7 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     public List<RechargeRecord> findByRegisterId(String registerId) {
-        return repository.findAll(findAllByConditions1(null,null,registerId,null,null,0),Sort.by(Sort.Direction.DESC,"rechargeTime"));
+        return repository.findAll(findAllByConditions1(null,null,registerId,0,null),Sort.by(Sort.Direction.DESC,"rechargeTime"));
     }
 
     /**
@@ -176,10 +176,6 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
      * @return
      */
     private Specification<RechargeRecord> findAllByConditions(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum,Integer delegate){
-        return findAllByConditions1(batchRecordId, reviewState, registerId, state, plotNum, delegate);
-    }
-
-    private Specification<RechargeRecord> findAllByConditions1(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum, Integer delegate){
         Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
             @Override
             public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -201,6 +197,33 @@ public class RechargeRecordService extends LogicOperation<RechargeRecord> {
                 }
                 if(!StringUtils.isEmpty(delegate)){
                     predicates.add(criteriaBuilder.equal(root.get("delegate"),delegate));
+                }
+                predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
+                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+            }
+        };
+        return  specification;
+    }
+
+    private Specification<RechargeRecord> findAllByConditions1(Integer batchRecordId,Integer reviewState,String registerId,Integer state,String plotNum){
+        Specification<RechargeRecord> specification = new Specification<RechargeRecord>() {
+            @Override
+            public Predicate toPredicate(Root<RechargeRecord> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                List<Predicate> predicates = new ArrayList<>();
+                if (!StringUtils.isEmpty(batchRecordId)){
+                    predicates.add(criteriaBuilder.equal(root.get("batchRecordId"),batchRecordId));
+                }
+                if (!StringUtils.isEmpty(registerId)){
+                    predicates.add(criteriaBuilder.equal(root.get("registerId"),registerId));
+                }
+                if (!StringUtils.isEmpty(reviewState)){
+                    predicates.add(criteriaBuilder.equal(root.get("reviewState"),reviewState));
+                }
+                if (!StringUtils.isEmpty(state)){
+                    predicates.add(criteriaBuilder.equal(root.get("state"),state));
+                }
+                if (!StringUtils.isEmpty(plotNum)){
+                    predicates.add(criteriaBuilder.equal(root.get("plotNum"),plotNum));
                 }
                 predicates.add(criteriaBuilder.equal(root.get("safeDelete"),0));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
