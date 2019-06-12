@@ -402,9 +402,14 @@ public class DataStatisticsController {
                 resident.getRoomNum(),corrPlotService.findPlotFacByPlotNum(resident.getPlotNum())+""};
         List<String[]> values = new ArrayList<>();
         for(RechargeRecord rechargeRecord: rechargeRecords){
+            int delegate = rechargeRecord.getDelegate();
+            String delegateStr = "";
+            if(delegate == 1){
+                delegateStr = "代充";
+            }
             String[] strings = new String[]{rechargeRecord.getRechargeTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                     rechargeRecord.getAmount()+"",rechargeRecord.getRechargeVolume()+"",
-                    rechargeRecord.getRemainVolume()+"", rechargeRecord.getUpdatedVolume()+""};
+                    rechargeRecord.getRemainVolume()+"", rechargeRecord.getUpdatedVolume()+"", delegateStr};
             values.add(strings);
         }
         excel.createExcel(firstLineValue, secondLineValue,values);
